@@ -1,0 +1,18 @@
+[tools]
+# go = "1.26"
+
+[tasks.test]
+description = "Run Go tests"
+run = "go test ./..."
+
+[tasks.vet]
+description = "Run go vet"
+run = "go vet ./..."
+
+[tasks.format]
+description = "Format Go files"
+run = "gofmt -w {} +"
+
+[tasks.lint]
+description = "Run static Go checks available in the toolchain"
+run = "go test ./... && go vet ./..."

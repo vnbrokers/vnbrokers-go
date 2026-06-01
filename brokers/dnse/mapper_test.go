@@ -57,3 +57,24 @@ func TestMapOrderStatusHandlesPendingCancel(t *testing.T) {
 		t.Fatalf("partial status = %q", got)
 	}
 }
+
+func TestMapCandlesUsesResolutionAndTime(t *testing.T) {
+	candles := MapCandles("ACB", "15", map[string]any{
+		"t": []any{1773657310},
+		"o": []any{10},
+		"h": []any{11},
+		"l": []any{9},
+		"c": []any{10.5},
+		"v": []any{1000},
+	})
+
+	if len(candles) != 1 {
+		t.Fatalf("candles len = %d", len(candles))
+	}
+	if candles[0].Resolution != "15" {
+		t.Fatalf("resolution = %q", candles[0].Resolution)
+	}
+	if candles[0].Time != "1773657310" {
+		t.Fatalf("time = %q", candles[0].Time)
+	}
+}

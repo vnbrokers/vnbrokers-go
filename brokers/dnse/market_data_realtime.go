@@ -168,7 +168,7 @@ func startMarketDataSubscription[T any](
 
 func BuildMarketDataChannel(kind string, boardID string, resolution string, indexName string, encoding string) string {
 	if encoding == "" {
-		encoding = "json"
+		encoding = "mspack"
 	}
 	switch kind {
 	case "tick", "tick_extra", "top_price", "expected_price", "security_definition", "foreign":
@@ -242,15 +242,15 @@ func decodeTopPrice(message map[string]any) domain.TopPrice {
 func decodeCandle(message map[string]any) domain.Candle {
 	data := marketDataMessageData(message)
 	return domain.Candle{
-		Symbol:   stringify(data["symbol"]),
-		Interval: stringify(data["resolution"]),
-		OpenedAt: stringify(data["time"]),
-		Open:     decimalFrom(data["open"]),
-		High:     decimalFrom(data["high"]),
-		Low:      decimalFrom(data["low"]),
-		Close:    decimalFrom(data["close"]),
-		Volume:   decimalFrom(data["volume"]),
-		Raw:      rawPayload(message, nil),
+		Symbol:     stringify(data["symbol"]),
+		Resolution: stringify(data["resolution"]),
+		Time:       stringify(data["time"]),
+		Open:       decimalFrom(data["open"]),
+		High:       decimalFrom(data["high"]),
+		Low:        decimalFrom(data["low"]),
+		Close:      decimalFrom(data["close"]),
+		Volume:     decimalFrom(data["volume"]),
+		Raw:        rawPayload(message, nil),
 	}
 }
 

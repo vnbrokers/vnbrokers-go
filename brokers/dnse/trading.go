@@ -7,7 +7,14 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/vnbrokers/vnbrokers-go/core"
 	"github.com/vnbrokers/vnbrokers-go/domain"
+	sdktrading "github.com/vnbrokers/vnbrokers-go/trading"
 	"github.com/vnbrokers/vnbrokers-go/transport"
+)
+
+var (
+	_ sdktrading.AccountsService  = (*TradingAccountsService)(nil)
+	_ sdktrading.OrdersService    = (*TradingOrdersService)(nil)
+	_ sdktrading.PositionsService = (*TradingPositionsService)(nil)
 )
 
 type TradingAccountsService struct {
@@ -30,7 +37,7 @@ func (s *TradingAccountsService) List(ctx context.Context) ([]domain.Account, er
 }
 
 func (s *TradingAccountsService) Balance(ctx context.Context, accountID string) (domain.Balance, error) {
-	if err := s.broker.RequireCapability(core.CapabilityTradingAccountsList); err != nil {
+	if err := s.broker.RequireCapability(core.CapabilityTradingAccountsBalance); err != nil {
 		return domain.Balance{}, err
 	}
 	response, err := s.broker.send(ctx, "trading.accounts.balance", transport.HTTPRequest{
@@ -45,12 +52,19 @@ func (s *TradingAccountsService) Balance(ctx context.Context, accountID string) 
 }
 
 func (s *TradingAccountsService) Orders(ctx context.Context, accountID string) ([]domain.Order, error) {
-	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersPlace); err != nil {
+	return s.OrdersWithRequest(ctx, sdktrading.ListOrdersRequest{AccountID: accountID})
+}
+
+func (s *TradingAccountsService) OrdersWithRequest(
+	ctx context.Context,
+	request sdktrading.ListOrdersRequest,
+) ([]domain.Order, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersList); err != nil {
 		return nil, err
 	}
 	response, err := s.broker.send(ctx, "trading.accounts.orders", transport.HTTPRequest{
 		Method:  "GET",
-		URL:     s.broker.url("/accounts/" + url.PathEscape(accountID) + "/orders?" + s.broker.marketOrderQuery()),
+		URL:     s.broker.url("/accounts/" + url.PathEscape(request.AccountID) + "/orders?" + s.broker.marketOrderQueryFrom(request.MarketType, request.OrderCategory)),
 		Headers: s.broker.apiHeaders(),
 	})
 	if err != nil {
@@ -66,17 +80,32 @@ func (s *TradingAccountsService) OrderHistory(
 	toDate string,
 	pageIndex int,
 ) ([]domain.Order, error) {
-	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersPlace); err != nil {
+	return s.OrderHistoryWithRequest(ctx, sdktrading.OrderHistoryRequest{
+		AccountID: accountID,
+		FromDate:  fromDate,
+		ToDate:    toDate,
+		PageIndex: pageIndex,
+	})
+}
+
+func (s *TradingAccountsService) OrderHistoryWithRequest(
+	ctx context.Context,
+	request sdktrading.OrderHistoryRequest,
+) ([]domain.Order, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersHistory); err != nil {
 		return nil, err
 	}
 	params := url.Values{}
-	params.Set("marketType", s.broker.config.MarketType)
-	params.Set("from", fromDate)
-	params.Set("to", toDate)
-	params.Set("pageIndex", decimal.NewFromInt(int64(pageIndex)).String())
+	params.Set("marketType", s.broker.marketType(request.MarketType))
+	params.Set("from", request.FromDate)
+	params.Set("to", request.ToDate)
+	params.Set("pageIndex", decimal.NewFromInt(int64(request.PageIndex)).String())
+	if request.PageSize > 0 {
+		params.Set("pageSize", decimal.NewFromInt(int64(request.PageSize)).String())
+	}
 	response, err := s.broker.send(ctx, "trading.accounts.order_history", transport.HTTPRequest{
 		Method:  "GET",
-		URL:     s.broker.url("/accounts/" + url.PathEscape(accountID) + "/orders/history?" + params.Encode()),
+		URL:     s.broker.url("/accounts/" + url.PathEscape(request.AccountID) + "/orders/history?" + params.Encode()),
 		Headers: s.broker.apiHeaders(),
 	})
 	if err != nil {
@@ -90,13 +119,23 @@ func (s *TradingAccountsService) Executions(
 	accountID string,
 	orderID string,
 ) (domain.RawPayload, error) {
-	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersPlace); err != nil {
+	return s.ExecutionsWithRequest(ctx, sdktrading.ExecutionsRequest{
+		AccountID: accountID,
+		OrderID:   orderID,
+	})
+}
+
+func (s *TradingAccountsService) ExecutionsWithRequest(
+	ctx context.Context,
+	request sdktrading.ExecutionsRequest,
+) (domain.RawPayload, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersExecutions); err != nil {
 		return domain.RawPayload{}, err
 	}
-	path := "/accounts/" + url.PathEscape(accountID) + "/executions/" + url.PathEscape(orderID)
+	path := "/accounts/" + url.PathEscape(request.AccountID) + "/executions/" + url.PathEscape(request.OrderID)
 	response, err := s.broker.send(ctx, "trading.accounts.executions", transport.HTTPRequest{
 		Method:  "GET",
-		URL:     s.broker.url(path + "?" + s.broker.marketOrderQuery()),
+		URL:     s.broker.url(path + "?" + s.broker.marketOrderQueryFrom(request.MarketType, request.OrderCategory)),
 		Headers: s.broker.apiHeaders(),
 	})
 	if err != nil {
@@ -112,23 +151,35 @@ func (s *TradingAccountsService) PPSE(
 	price decimal.Decimal,
 	loanPackageID *int,
 ) (domain.RawPayload, error) {
-	if err := s.broker.RequireCapability(core.CapabilityTradingAccountsList); err != nil {
+	return s.PPSEWithRequest(ctx, sdktrading.BuyingPowerRequest{
+		AccountID:     accountID,
+		Symbol:        symbol,
+		Price:         price,
+		LoanPackageID: loanPackageID,
+	})
+}
+
+func (s *TradingAccountsService) PPSEWithRequest(
+	ctx context.Context,
+	request sdktrading.BuyingPowerRequest,
+) (domain.RawPayload, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingBuyingPower); err != nil {
 		return domain.RawPayload{}, err
 	}
 	params := url.Values{}
-	params.Set("marketType", s.broker.config.MarketType)
-	params.Set("symbol", symbol)
-	if loanPackageID != nil {
-		params.Set("loanPackageId", decimal.NewFromInt(int64(*loanPackageID)).String())
+	params.Set("marketType", s.broker.marketType(request.MarketType))
+	params.Set("symbol", request.Symbol)
+	if request.LoanPackageID != nil {
+		params.Set("loanPackageId", decimal.NewFromInt(int64(*request.LoanPackageID)).String())
 	} else if s.broker.config.LoanPackageID != nil {
 		params.Set("loanPackageId", decimal.NewFromInt(int64(*s.broker.config.LoanPackageID)).String())
 	} else {
 		params.Set("loanPackageId", "0")
 	}
-	params.Set("price", price.String())
+	params.Set("price", request.Price.String())
 	response, err := s.broker.send(ctx, "trading.accounts.ppse", transport.HTTPRequest{
 		Method:  "GET",
-		URL:     s.broker.url("/accounts/" + url.PathEscape(accountID) + "/ppse?" + params.Encode()),
+		URL:     s.broker.url("/accounts/" + url.PathEscape(request.AccountID) + "/ppse?" + params.Encode()),
 		Headers: s.broker.apiHeaders(),
 	})
 	if err != nil {
@@ -142,15 +193,25 @@ func (s *TradingAccountsService) LoanPackages(
 	accountID string,
 	symbol string,
 ) (domain.RawPayload, error) {
-	if err := s.broker.RequireCapability(core.CapabilityTradingAccountsList); err != nil {
+	return s.LoanPackagesWithRequest(ctx, sdktrading.LoanPackagesRequest{
+		AccountID: accountID,
+		Symbol:    symbol,
+	})
+}
+
+func (s *TradingAccountsService) LoanPackagesWithRequest(
+	ctx context.Context,
+	request sdktrading.LoanPackagesRequest,
+) (domain.RawPayload, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingLoanPackages); err != nil {
 		return domain.RawPayload{}, err
 	}
 	params := url.Values{}
-	params.Set("marketType", s.broker.config.MarketType)
-	params.Set("symbol", symbol)
+	params.Set("marketType", s.broker.marketType(request.MarketType))
+	params.Set("symbol", request.Symbol)
 	response, err := s.broker.send(ctx, "trading.accounts.loan_packages", transport.HTTPRequest{
 		Method:  "GET",
-		URL:     s.broker.url("/accounts/" + url.PathEscape(accountID) + "/loan-packages?" + params.Encode()),
+		URL:     s.broker.url("/accounts/" + url.PathEscape(request.AccountID) + "/loan-packages?" + params.Encode()),
 		Headers: s.broker.apiHeaders(),
 	})
 	if err != nil {
@@ -164,15 +225,26 @@ type TradingPositionsService struct {
 }
 
 func (s *TradingPositionsService) List(ctx context.Context, accountID string) ([]domain.Position, error) {
+	return s.ListWithRequest(ctx, sdktrading.ListPositionsRequest{AccountID: accountID})
+}
+
+func (s *TradingPositionsService) ListWithRequest(
+	ctx context.Context,
+	request sdktrading.ListPositionsRequest,
+) ([]domain.Position, error) {
 	if err := s.broker.RequireCapability(core.CapabilityTradingPositionsList); err != nil {
 		return nil, err
 	}
+	pageSize := request.PageSize
+	if pageSize == 0 {
+		pageSize = s.broker.config.PositionsPageSize
+	}
 	params := url.Values{}
-	params.Set("marketType", s.broker.config.MarketType)
-	params.Set("pageSize", decimal.NewFromInt(int64(s.broker.config.PositionsPageSize)).String())
+	params.Set("marketType", s.broker.marketType(request.MarketType))
+	params.Set("pageSize", decimal.NewFromInt(int64(pageSize)).String())
 	response, err := s.broker.send(ctx, "trading.positions.list", transport.HTTPRequest{
 		Method:  "GET",
-		URL:     s.broker.url("/accounts/" + url.PathEscape(accountID) + "/positions?" + params.Encode()),
+		URL:     s.broker.url("/accounts/" + url.PathEscape(request.AccountID) + "/positions?" + params.Encode()),
 		Headers: s.broker.apiHeaders(),
 	})
 	if err != nil {
@@ -182,14 +254,21 @@ func (s *TradingPositionsService) List(ctx context.Context, accountID string) ([
 }
 
 func (s *TradingPositionsService) Get(ctx context.Context, positionID string) (domain.Position, error) {
-	if err := s.broker.RequireCapability(core.CapabilityTradingPositionsList); err != nil {
+	return s.GetWithRequest(ctx, sdktrading.GetPositionRequest{PositionID: positionID})
+}
+
+func (s *TradingPositionsService) GetWithRequest(
+	ctx context.Context,
+	request sdktrading.GetPositionRequest,
+) (domain.Position, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingPositionsGet); err != nil {
 		return domain.Position{}, err
 	}
 	params := url.Values{}
-	params.Set("marketType", s.broker.config.MarketType)
+	params.Set("marketType", s.broker.marketType(request.MarketType))
 	response, err := s.broker.send(ctx, "trading.positions.get", transport.HTTPRequest{
 		Method:  "GET",
-		URL:     s.broker.url("/accounts/positions/" + url.PathEscape(positionID) + "?" + params.Encode()),
+		URL:     s.broker.url("/accounts/positions/" + url.PathEscape(request.PositionID) + "?" + params.Encode()),
 		Headers: s.broker.apiHeaders(),
 	})
 	if err != nil {
@@ -199,14 +278,21 @@ func (s *TradingPositionsService) Get(ctx context.Context, positionID string) (d
 }
 
 func (s *TradingPositionsService) Close(ctx context.Context, positionID string) (domain.RawPayload, error) {
-	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersPlace); err != nil {
+	return s.CloseWithRequest(ctx, sdktrading.ClosePositionRequest{PositionID: positionID})
+}
+
+func (s *TradingPositionsService) CloseWithRequest(
+	ctx context.Context,
+	request sdktrading.ClosePositionRequest,
+) (domain.RawPayload, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingPositionsClose); err != nil {
 		return domain.RawPayload{}, err
 	}
 	params := url.Values{}
-	params.Set("marketType", s.broker.config.MarketType)
+	params.Set("marketType", s.broker.marketType(request.MarketType))
 	response, err := s.broker.send(ctx, "trading.positions.close", transport.HTTPRequest{
 		Method:  "POST",
-		URL:     s.broker.url("/accounts/positions/" + url.PathEscape(positionID) + "/close?" + params.Encode()),
+		URL:     s.broker.url("/accounts/positions/" + url.PathEscape(request.PositionID) + "/close?" + params.Encode()),
 		Headers: s.broker.tradingHeaders(false),
 	})
 	if err != nil {
@@ -250,15 +336,29 @@ func (s *TradingOrdersService) Place(
 }
 
 func (s *TradingOrdersService) Cancel(ctx context.Context, accountID string, orderID string) error {
-	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersCancel); err != nil {
-		return err
-	}
-	_, err := s.broker.send(ctx, "trading.orders.cancel", transport.HTTPRequest{
-		Method:  "DELETE",
-		URL:     s.broker.url(s.broker.orderPath(accountID, orderID)),
-		Headers: s.broker.tradingHeaders(false),
+	_, err := s.CancelWithRequest(ctx, sdktrading.CancelOrderRequest{
+		AccountID: accountID,
+		OrderID:   orderID,
 	})
 	return err
+}
+
+func (s *TradingOrdersService) CancelWithRequest(
+	ctx context.Context,
+	request sdktrading.CancelOrderRequest,
+) (domain.RawPayload, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersCancel); err != nil {
+		return domain.RawPayload{}, err
+	}
+	response, err := s.broker.send(ctx, "trading.orders.cancel", transport.HTTPRequest{
+		Method:  "DELETE",
+		URL:     s.broker.url(s.broker.orderPathFrom(request.AccountID, request.OrderID, request.MarketType, request.OrderCategory)),
+		Headers: s.broker.tradingHeaders(false),
+	})
+	if err != nil {
+		return domain.RawPayload{}, err
+	}
+	return rawPayload(response.Body, response.Raw), nil
 }
 
 func (s *TradingOrdersService) Get(
@@ -266,12 +366,22 @@ func (s *TradingOrdersService) Get(
 	accountID string,
 	orderID string,
 ) (domain.Order, error) {
-	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersPlace); err != nil {
+	return s.GetWithRequest(ctx, sdktrading.GetOrderRequest{
+		AccountID: accountID,
+		OrderID:   orderID,
+	})
+}
+
+func (s *TradingOrdersService) GetWithRequest(
+	ctx context.Context,
+	request sdktrading.GetOrderRequest,
+) (domain.Order, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersGet); err != nil {
 		return domain.Order{}, err
 	}
 	response, err := s.broker.send(ctx, "trading.orders.get", transport.HTTPRequest{
 		Method:  "GET",
-		URL:     s.broker.url(s.broker.orderPath(accountID, orderID)),
+		URL:     s.broker.url(s.broker.orderPathFrom(request.AccountID, request.OrderID, request.MarketType, request.OrderCategory)),
 		Headers: s.broker.apiHeaders(),
 	})
 	if err != nil {
@@ -287,16 +397,28 @@ func (s *TradingOrdersService) Update(
 	price decimal.Decimal,
 	quantity int,
 ) (domain.RawPayload, error) {
-	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersPlace); err != nil {
+	return s.Replace(ctx, sdktrading.ReplaceOrderRequest{
+		AccountID: accountID,
+		OrderID:   orderID,
+		Price:     price,
+		Quantity:  quantity,
+	})
+}
+
+func (s *TradingOrdersService) Replace(
+	ctx context.Context,
+	request sdktrading.ReplaceOrderRequest,
+) (domain.RawPayload, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersReplace); err != nil {
 		return domain.RawPayload{}, err
 	}
 	response, err := s.broker.send(ctx, "trading.orders.update", transport.HTTPRequest{
 		Method:  "PUT",
-		URL:     s.broker.url(s.broker.orderPath(accountID, orderID)),
+		URL:     s.broker.url(s.broker.orderPathFrom(request.AccountID, request.OrderID, request.MarketType, request.OrderCategory)),
 		Headers: s.broker.tradingHeaders(true),
 		JSON: map[string]any{
-			"price":    numberValue(&price),
-			"quantity": quantity,
+			"price":    numberValue(&request.Price),
+			"quantity": request.Quantity,
 		},
 	})
 	if err != nil {
@@ -306,12 +428,42 @@ func (s *TradingOrdersService) Update(
 }
 
 func (b *Broker) marketOrderQuery() string {
+	return b.marketOrderQueryFrom("", "")
+}
+
+func (b *Broker) marketOrderQueryFrom(
+	marketType sdktrading.MarketType,
+	orderCategory sdktrading.OrderCategory,
+) string {
 	params := url.Values{}
-	params.Set("marketType", b.config.MarketType)
-	params.Set("orderCategory", b.config.OrderCategory)
+	params.Set("marketType", b.marketType(marketType))
+	params.Set("orderCategory", b.orderCategory(orderCategory))
 	return params.Encode()
 }
 
 func (b *Broker) orderPath(accountID string, orderID string) string {
-	return "/accounts/" + url.PathEscape(accountID) + "/orders/" + url.PathEscape(orderID) + "?" + b.marketOrderQuery()
+	return b.orderPathFrom(accountID, orderID, "", "")
+}
+
+func (b *Broker) orderPathFrom(
+	accountID string,
+	orderID string,
+	marketType sdktrading.MarketType,
+	orderCategory sdktrading.OrderCategory,
+) string {
+	return "/accounts/" + url.PathEscape(accountID) + "/orders/" + url.PathEscape(orderID) + "?" + b.marketOrderQueryFrom(marketType, orderCategory)
+}
+
+func (b *Broker) marketType(marketType sdktrading.MarketType) string {
+	if marketType != "" {
+		return string(marketType)
+	}
+	return b.config.MarketType
+}
+
+func (b *Broker) orderCategory(orderCategory sdktrading.OrderCategory) string {
+	if orderCategory != "" {
+		return string(orderCategory)
+	}
+	return b.config.OrderCategory
 }

@@ -12,8 +12,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/vnbrokers/vnbrokers-go/core"
 	"github.com/vnbrokers/vnbrokers-go/domain"
 	"github.com/vnbrokers/vnbrokers-go/errors"
+	sdktrading "github.com/vnbrokers/vnbrokers-go/trading"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -83,6 +85,9 @@ type AuthService struct {
 }
 
 func (s *AuthService) SendEmailOTP(ctx context.Context) (domain.RawPayload, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingAuthSendOTP); err != nil {
+		return domain.RawPayload{}, err
+	}
 	response, err := s.broker.send(ctx, "auth.send_email_otp", transport.HTTPRequest{
 		Method:  "POST",
 		URL:     s.broker.url("/registration/send-email-otp"),
@@ -99,13 +104,26 @@ func (s *AuthService) GetTradingToken(
 	otpType string,
 	passcode string,
 ) (domain.RawPayload, error) {
+	return s.GetTradingTokenWithRequest(ctx, sdktrading.TradingTokenRequest{
+		OTPType:  sdktrading.OTPType(otpType),
+		Passcode: passcode,
+	})
+}
+
+func (s *AuthService) GetTradingTokenWithRequest(
+	ctx context.Context,
+	request sdktrading.TradingTokenRequest,
+) (domain.RawPayload, error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingAuthTradingToken); err != nil {
+		return domain.RawPayload{}, err
+	}
 	response, err := s.broker.send(ctx, "auth.get_trading_token", transport.HTTPRequest{
 		Method:  "POST",
 		URL:     s.broker.url("/registration/trading-token"),
 		Headers: withContentType(s.broker.apiHeaders()),
 		JSON: map[string]any{
-			"otpType":  otpType,
-			"passcode": passcode,
+			"otpType":  string(request.OTPType),
+			"passcode": request.Passcode,
 		},
 	})
 	if err != nil {

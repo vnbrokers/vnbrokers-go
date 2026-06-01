@@ -33,7 +33,7 @@ func (c Config) withDefaults() Config {
 		c.BaseURL = "https://openapi.dnse.com.vn"
 	}
 	if c.StreamURL == "" {
-		c.StreamURL = "wss://ws-openapi.dnse.com.vn/v1/stream?encoding=json"
+		c.StreamURL = "wss://ws-openapi.dnse.com.vn/v1/stream?encoding=msgpack"
 	}
 	if c.StreamEncoding == "" {
 		c.StreamEncoding = "msgpack"

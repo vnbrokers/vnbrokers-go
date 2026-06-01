@@ -59,7 +59,7 @@ func (s *TradingRealtimeService) SubscribePositions(
 
 func BuildStreamSubscribeOrdersMessage(marketType string, encoding string) map[string]any {
 	if encoding == "" {
-		encoding = "json"
+		encoding = "msgpack"
 	}
 	return map[string]any{
 		"action": "subscribe",
@@ -71,7 +71,7 @@ func BuildStreamSubscribeOrdersMessage(marketType string, encoding string) map[s
 
 func BuildStreamSubscribePositionsMessage(marketType string, encoding string) map[string]any {
 	if encoding == "" {
-		encoding = "json"
+		encoding = "msgpack"
 	}
 	return map[string]any{
 		"action": "subscribe",

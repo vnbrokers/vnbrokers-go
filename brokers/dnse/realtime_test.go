@@ -2,7 +2,6 @@ package dnse
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 	"testing"
@@ -33,6 +32,14 @@ func TestMarketDataSubscribeMessageSupportsAllSymbols(t *testing.T) {
 	}
 }
 
+func TestMarketDataChannelDefaultsToMsgpackEncoding(t *testing.T) {
+	channel := BuildMarketDataChannel("top_price", "G1", "", "", "")
+
+	if channel != "top_price.G1.msgpack" {
+		t.Fatalf("channel = %s", channel)
+	}
+}
+
 func TestTradingSubscribeOrdersMessageUsesEncoding(t *testing.T) {
 	message := BuildStreamSubscribeOrdersMessage("STOCK", "msgpack")
 	channels := message["channels"].([]any)
@@ -40,6 +47,30 @@ func TestTradingSubscribeOrdersMessageUsesEncoding(t *testing.T) {
 
 	if channel["name"] != "order.STOCK.msgpack" {
 		t.Fatalf("channel = %s", channel["name"])
+	}
+}
+
+func TestTradingSubscribeMessagesDefaultToMsgpackEncoding(t *testing.T) {
+	orders := BuildStreamSubscribeOrdersMessage("STOCK", "")
+	orderChannels := orders["channels"].([]any)
+	orderChannel := orderChannels[0].(map[string]any)
+	if orderChannel["name"] != "order.STOCK.msgpack" {
+		t.Fatalf("order channel = %s", orderChannel["name"])
+	}
+
+	positions := BuildStreamSubscribePositionsMessage("STOCK", "")
+	positionChannels := positions["channels"].([]any)
+	positionChannel := positionChannels[0].(map[string]any)
+	if positionChannel["name"] != "position.STOCK.msgpack" {
+		t.Fatalf("position channel = %s", positionChannel["name"])
+	}
+}
+
+func TestConfigDefaultsStreamURLToMsgpackEncoding(t *testing.T) {
+	config := Config{}.withDefaults()
+
+	if config.StreamURL != "wss://ws-openapi.dnse.com.vn/v1/stream?encoding=msgpack" {
+		t.Fatalf("stream url = %s", config.StreamURL)
 	}
 }
 
@@ -74,10 +105,10 @@ func TestStreamRespondsPongToServerPing(t *testing.T) {
 	}
 	defer subscription.Close()
 
-	_ = receiveSentMessage(t, socket)
-	_ = receiveSentMessage(t, socket)
-	socket.receiveJSON(t, map[string]any{"action": "ping"})
-	message := receiveSentMessage(t, socket)
+	_ = receiveSentMessage(t, socket, broker.config.StreamEncoding)
+	_ = receiveSentMessage(t, socket, broker.config.StreamEncoding)
+	socket.receiveMessage(t, map[string]any{"action": "ping"}, broker.config.StreamEncoding)
+	message := receiveSentMessage(t, socket, broker.config.StreamEncoding)
 
 	if message["action"] != "pong" {
 		t.Fatalf("action = %v", message["action"])
@@ -107,9 +138,9 @@ func TestStreamSendsProactivePong(t *testing.T) {
 	}
 	defer subscription.Close()
 
-	_ = receiveSentMessage(t, socket)
-	_ = receiveSentMessage(t, socket)
-	message := receiveSentMessage(t, socket)
+	_ = receiveSentMessage(t, socket, broker.config.StreamEncoding)
+	_ = receiveSentMessage(t, socket, broker.config.StreamEncoding)
+	message := receiveSentMessage(t, socket, broker.config.StreamEncoding)
 
 	if message["action"] != "pong" {
 		t.Fatalf("action = %v", message["action"])
@@ -182,9 +213,9 @@ func (s *fakeWebSocket) Close() error {
 	return nil
 }
 
-func (s *fakeWebSocket) receiveJSON(t *testing.T, value map[string]any) {
+func (s *fakeWebSocket) receiveMessage(t *testing.T, value map[string]any, encoding string) {
 	t.Helper()
-	message, err := json.Marshal(value)
+	message, err := encodeStreamMessage(value, encoding)
 	if err != nil {
 		t.Fatalf("marshal message: %v", err)
 	}
@@ -195,12 +226,12 @@ func (s *fakeWebSocket) receiveJSON(t *testing.T, value map[string]any) {
 	}
 }
 
-func receiveSentMessage(t *testing.T, socket *fakeWebSocket) map[string]any {
+func receiveSentMessage(t *testing.T, socket *fakeWebSocket, encoding string) map[string]any {
 	t.Helper()
 	select {
 	case raw := <-socket.sent:
-		message := map[string]any{}
-		if err := json.Unmarshal(raw, &message); err != nil {
+		message, err := decodeStreamMessage(raw, encoding)
+		if err != nil {
 			t.Fatalf("decode sent message: %v", err)
 		}
 		return message

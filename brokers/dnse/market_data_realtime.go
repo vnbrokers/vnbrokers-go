@@ -168,7 +168,7 @@ func startMarketDataSubscription[T any](
 
 func BuildMarketDataChannel(kind string, boardID string, resolution string, indexName string, encoding string) string {
 	if encoding == "" {
-		encoding = "mspack"
+		encoding = "msgpack"
 	}
 	switch kind {
 	case "tick", "tick_extra", "top_price", "expected_price", "security_definition", "foreign":

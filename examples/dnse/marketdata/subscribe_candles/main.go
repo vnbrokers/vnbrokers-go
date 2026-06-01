@@ -16,9 +16,11 @@ func main() {
 		APISecret:      os.Getenv("DNSE_API_SECRET"),
 		StreamEncoding: "msgpack",
 	})
-	sub, err := broker.MarketData().Realtime().SubscribeTopPrice(context.Background(), marketdata.SubscribeSymbolRequest{
-		Symbol: "ACB",
-	})
+	sub, err := broker.MarketData().Realtime().SubscribeCandles(
+		context.Background(),
+		marketdata.SubscribeSymbolRequest{Symbol: "ACB"},
+		"15",
+	)
 	if err != nil {
 		panic(err)
 	}

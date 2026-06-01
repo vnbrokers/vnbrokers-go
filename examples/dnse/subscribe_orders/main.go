@@ -14,10 +14,10 @@ func main() {
 	broker := vnbrokers.NewDNSE(dnse.Config{
 		APIKey:         os.Getenv("DNSE_API_KEY"),
 		APISecret:      os.Getenv("DNSE_API_SECRET"),
-		StreamEncoding: os.Getenv("DNSE_STREAM_ENCODING"),
+		StreamEncoding: "msgpack",
 	})
 	sub, err := broker.Trading().Realtime().SubscribeOrders(context.Background(), trading.SubscribeOrdersRequest{
-		MarketType: os.Getenv("DNSE_MARKET_TYPE"),
+		MarketType: "STOCK",
 	})
 	if err != nil {
 		panic(err)

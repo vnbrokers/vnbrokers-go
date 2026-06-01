@@ -11,16 +11,16 @@ import (
 )
 
 func main() {
-	price := decimal.RequireFromString(os.Getenv("DNSE_ORDER_PRICE"))
+	price := decimal.RequireFromString("25000")
 	broker := vnbrokers.NewDNSE(dnse.Config{
 		APIKey:       os.Getenv("DNSE_API_KEY"),
 		APISecret:    os.Getenv("DNSE_API_SECRET"),
-		TradingToken: os.Getenv("DNSE_TRADING_TOKEN"),
-		MarketType:   os.Getenv("DNSE_MARKET_TYPE"),
+		TradingToken: "replace-with-trading-token",
+		MarketType:   "STOCK",
 	})
 	_, err := broker.Trading().Orders().Place(context.Background(), domain.PlaceOrderRequest{
 		AccountID: os.Getenv("DNSE_ACCOUNT_NO"),
-		Symbol:    os.Getenv("DNSE_SYMBOL"),
+		Symbol:    "ACB",
 		Side:      domain.OrderSideBuy,
 		Type:      domain.OrderTypeLimit,
 		Quantity:  decimal.NewFromInt(1),

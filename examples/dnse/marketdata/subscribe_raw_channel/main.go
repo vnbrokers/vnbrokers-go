@@ -7,7 +7,6 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
-	"github.com/vnbrokers/vnbrokers-go/marketdata"
 )
 
 func main() {
@@ -16,14 +15,16 @@ func main() {
 		APISecret:      os.Getenv("DNSE_API_SECRET"),
 		StreamEncoding: "msgpack",
 	})
-	sub, err := broker.MarketData().Realtime().SubscribeTopPrice(context.Background(), marketdata.SubscribeSymbolRequest{
-		Symbol: "ACB",
-	})
+	sub, err := broker.MarketData().Realtime().SubscribeRawChannel(
+		context.Background(),
+		"top_price.G1.msgpack",
+		[]string{"ACB"},
+	)
 	if err != nil {
 		panic(err)
 	}
 	defer sub.Close()
 	for event := range sub.Events() {
-		fmt.Println(event)
+		fmt.Printf("%+v\n", event)
 	}
 }

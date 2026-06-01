@@ -215,15 +215,18 @@ func MapOrderType(raw string) domain.OrderType {
 }
 
 func MapOrderStatus(raw string) domain.OrderStatus {
-	switch strings.ToUpper(raw) {
-	case "PENDING":
+	normalized := strings.NewReplacer("_", "", "-", "", " ", "").Replace(strings.ToUpper(raw))
+	switch normalized {
+	case "PENDING", "PENDINGNEW":
 		return domain.OrderStatusPending
 	case "NEW", "ACCEPTED":
 		return domain.OrderStatusAccepted
-	case "PARTIALLY_FILLED":
+	case "PARTIALLYFILLED":
 		return domain.OrderStatusPartiallyFilled
 	case "FILLED":
 		return domain.OrderStatusFilled
+	case "PENDINGCANCEL":
+		return domain.OrderStatusPendingCancel
 	case "CANCELLED", "CANCELED":
 		return domain.OrderStatusCancelled
 	case "REJECTED":

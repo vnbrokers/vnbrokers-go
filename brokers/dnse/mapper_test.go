@@ -48,3 +48,12 @@ func TestMapOrderEventUsesTEventShape(t *testing.T) {
 		t.Fatalf("status = %q", event.Status)
 	}
 }
+
+func TestMapOrderStatusHandlesPendingCancel(t *testing.T) {
+	if got := MapOrderStatus("PendingCancel"); got != "PENDING_CANCEL" {
+		t.Fatalf("status = %q", got)
+	}
+	if got := MapOrderStatus("PARTIALLY_FILLED"); got != "PARTIALLY_FILLED" {
+		t.Fatalf("partial status = %q", got)
+	}
+}

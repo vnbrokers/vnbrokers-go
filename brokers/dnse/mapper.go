@@ -163,15 +163,15 @@ func MapCandles(symbol string, interval string, payload map[string]any) []domain
 	candles := make([]domain.Candle, 0, len(times))
 	for i := range times {
 		candles = append(candles, domain.Candle{
-			Symbol:   symbol,
-			Interval: interval,
-			OpenedAt: stringify(at(times, i)),
-			Open:     decimalFrom(at(opens, i)),
-			High:     decimalFrom(at(highs, i)),
-			Low:      decimalFrom(at(lows, i)),
-			Close:    decimalFrom(at(closes, i)),
-			Volume:   decimalFrom(at(volumes, i)),
-			Raw:      rawPayload(payload, nil),
+			Symbol:     symbol,
+			Resolution: interval,
+			Time:       stringify(at(times, i)),
+			Open:       decimalFrom(at(opens, i)),
+			High:       decimalFrom(at(highs, i)),
+			Low:        decimalFrom(at(lows, i)),
+			Close:      decimalFrom(at(closes, i)),
+			Volume:     decimalFrom(at(volumes, i)),
+			Raw:        rawPayload(payload, nil),
 		})
 	}
 	return candles

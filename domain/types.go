@@ -118,15 +118,15 @@ type Quote struct {
 }
 
 type Candle struct {
-	Symbol   string
-	Interval string
-	OpenedAt string
-	Open     decimal.Decimal
-	High     decimal.Decimal
-	Low      decimal.Decimal
-	Close    decimal.Decimal
-	Volume   decimal.Decimal
-	Raw      RawPayload
+	Symbol     string
+	Resolution string
+	Time       string
+	Open       decimal.Decimal
+	High       decimal.Decimal
+	Low        decimal.Decimal
+	Close      decimal.Decimal
+	Volume     decimal.Decimal
+	Raw        RawPayload
 }
 
 type Tick struct {

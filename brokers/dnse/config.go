@@ -36,7 +36,7 @@ func (c Config) withDefaults() Config {
 		c.StreamURL = "wss://ws-openapi.dnse.com.vn/v1/stream?encoding=json"
 	}
 	if c.StreamEncoding == "" {
-		c.StreamEncoding = "json"
+		c.StreamEncoding = "msgpack"
 	}
 	if c.StreamPongInterval == 0 {
 		c.StreamPongInterval = 30 * time.Second

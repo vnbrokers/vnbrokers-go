@@ -116,6 +116,28 @@ func TestStreamSendsProactivePong(t *testing.T) {
 	}
 }
 
+func TestDecodeCandleUsesResolutionAndTime(t *testing.T) {
+	candle := decodeCandle(map[string]any{
+		"data": map[string]any{
+			"symbol":     "ACB",
+			"resolution": "15",
+			"time":       "1773657310",
+			"open":       10,
+			"high":       11,
+			"low":        9,
+			"close":      10.5,
+			"volume":     1000,
+		},
+	})
+
+	if candle.Resolution != "15" {
+		t.Fatalf("resolution = %q", candle.Resolution)
+	}
+	if candle.Time != "1773657310" {
+		t.Fatalf("time = %q", candle.Time)
+	}
+}
+
 type fakeWebSocket struct {
 	sent     chan transport.WebSocketMessage
 	received chan transport.WebSocketMessage

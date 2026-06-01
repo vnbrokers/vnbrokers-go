@@ -2,6 +2,7 @@ package dnse
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
@@ -13,6 +14,7 @@ type Config struct {
 	APISecret             string
 	TradingToken          string
 	StreamEncoding        string
+	StreamPongInterval    time.Duration
 	MarketType            string
 	OrderCategory         string
 	LoanPackageID         *int
@@ -35,6 +37,9 @@ func (c Config) withDefaults() Config {
 	}
 	if c.StreamEncoding == "" {
 		c.StreamEncoding = "json"
+	}
+	if c.StreamPongInterval == 0 {
+		c.StreamPongInterval = 30 * time.Second
 	}
 	if c.MarketType == "" {
 		c.MarketType = "DERIVATIVE"

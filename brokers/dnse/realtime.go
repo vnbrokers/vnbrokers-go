@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
@@ -60,6 +61,16 @@ func startRealtimeSubscription[T any](
 	}
 	childCtx, cancel := context.WithCancel(ctx)
 	var socket transport.WebSocketTransport
+	var sendMu sync.Mutex
+	sendMessage := func(ctx context.Context, message map[string]any) error {
+		payload, err := encodeStreamMessage(message, encoding)
+		if err != nil {
+			return err
+		}
+		sendMu.Lock()
+		defer sendMu.Unlock()
+		return socket.Send(ctx, payload)
+	}
 	subscription := realtime.NewQueueSubscription[T](defaultSubscriptionBuffer, func() error {
 		cancel()
 		if socket != nil {
@@ -79,32 +90,18 @@ func startRealtimeSubscription[T any](
 		}
 		subscription.PublishStatus(realtime.StatusConnected)
 		subscription.PublishStatus(realtime.StatusAuthenticating)
-		authPayload, err := encodeStreamMessage(
-			BuildStreamAuthMessage(broker.config.APIKey, broker.config.APISecret, 0, ""),
-			encoding,
-		)
-		if err != nil {
+		if err := sendMessage(childCtx, BuildStreamAuthMessage(broker.config.APIKey, broker.config.APISecret, 0, "")); err != nil {
 			subscription.PublishStatus(realtime.StatusFailed)
 			subscription.PublishError(err)
 			return
 		}
-		if err := socket.Send(childCtx, authPayload); err != nil {
-			subscription.PublishStatus(realtime.StatusFailed)
-			subscription.PublishError(err)
-			return
-		}
-		subscribePayload, err := encodeStreamMessage(subscribeMessage, encoding)
-		if err != nil {
-			subscription.PublishStatus(realtime.StatusFailed)
-			subscription.PublishError(err)
-			return
-		}
-		if err := socket.Send(childCtx, subscribePayload); err != nil {
+		if err := sendMessage(childCtx, subscribeMessage); err != nil {
 			subscription.PublishStatus(realtime.StatusFailed)
 			subscription.PublishError(err)
 			return
 		}
 		subscription.PublishStatus(realtime.StatusSubscribed)
+		startStreamPongLoop(childCtx, broker.config.StreamPongInterval, sendMessage, subscription, cancel)
 		for {
 			message, err := socket.Receive(childCtx)
 			if err != nil {
@@ -119,6 +116,17 @@ func startRealtimeSubscription[T any](
 				subscription.PublishError(errors.Decode("dnse", "realtime.decode", "failed to decode DNSE stream message", message, err))
 				continue
 			}
+			if isStreamPingMessage(decoded) {
+				if err := sendMessage(childCtx, BuildStreamPongMessage()); err != nil {
+					if childCtx.Err() == nil {
+						subscription.PublishStatus(realtime.StatusFailed)
+						subscription.PublishError(err)
+						cancel()
+					}
+					return
+				}
+				continue
+			}
 			if !shouldPublish(decoded) {
 				continue
 			}
@@ -126,6 +134,45 @@ func startRealtimeSubscription[T any](
 		}
 	}()
 	return subscription, nil
+}
+
+func startStreamPongLoop[T any](
+	ctx context.Context,
+	interval time.Duration,
+	send func(context.Context, map[string]any) error,
+	subscription *realtime.QueueSubscription[T],
+	cancel context.CancelFunc,
+) {
+	if interval <= 0 {
+		return
+	}
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if err := send(ctx, BuildStreamPongMessage()); err != nil {
+					if ctx.Err() == nil {
+						subscription.PublishStatus(realtime.StatusFailed)
+						subscription.PublishError(err)
+						cancel()
+					}
+					return
+				}
+			}
+		}
+	}()
+}
+
+func isStreamPingMessage(message map[string]any) bool {
+	return strings.EqualFold(stringify(message["action"]), "ping")
+}
+
+func BuildStreamPongMessage() map[string]any {
+	return map[string]any{"action": "pong"}
 }
 
 func streamEncoding(config Config) (string, error) {

@@ -17,7 +17,7 @@ func main() {
 	symbols, err := broker.MarketData().Symbols().List(
 		context.Background(),
 		"ACB",
-		"HOSE",
+		"STO",
 		"",
 		"",
 		20,

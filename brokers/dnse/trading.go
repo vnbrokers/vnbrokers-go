@@ -307,9 +307,9 @@ type TradingOrdersService struct {
 
 type PlaceOrderRequest struct {
 	domain.PlaceOrderRequest
-	MarketType     sdktrading.MarketType
-	OrderCategory  sdktrading.OrderCategory
-	LoanPackageID  *int
+	MarketType    sdktrading.MarketType
+	OrderCategory sdktrading.OrderCategory
+	LoanPackageID *int
 }
 
 func (s *TradingOrdersService) Place(

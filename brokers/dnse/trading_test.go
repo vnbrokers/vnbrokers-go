@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/shopspring/decimal"
+	"github.com/vnbrokers/vnbrokers-go/domain"
 	sdktrading "github.com/vnbrokers/vnbrokers-go/trading"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
@@ -102,6 +103,53 @@ func TestReplaceOrderBuildsDNSERequest(t *testing.T) {
 	}
 	if request.Headers["trading-token"] != "trading-token" {
 		t.Fatalf("missing trading token header")
+	}
+}
+
+func TestPlaceOrderWithRequestUsesPerOrderLoanPackageID(t *testing.T) {
+	httpTransport := &fakeHTTPTransport{
+		responses: []transport.HTTPResponse{{
+			StatusCode: 200,
+			Body: map[string]any{
+				"id":          1626,
+				"orderStatus": "PendingNew",
+			},
+		}},
+	}
+	broker := NewBroker(Config{
+		BaseURL:       "https://api.dnse.example",
+		TradingToken:  "trading-token",
+		HTTPTransport: httpTransport,
+	})
+	price := decimal.RequireFromString("23200")
+	loanPackageID := 1775
+
+	_, err := broker.Trading().Orders().PlaceWithRequest(context.Background(), PlaceOrderRequest{
+		PlaceOrderRequest: domain.PlaceOrderRequest{
+			AccountID: "0001179019",
+			Symbol:    "ACB",
+			Side:      domain.OrderSideBuy,
+			Type:      domain.OrderTypeLimit,
+			Quantity:  decimal.NewFromInt(1),
+			Price:     &price,
+		},
+		MarketType:    sdktrading.MarketTypeStock,
+		OrderCategory: sdktrading.OrderCategoryNormal,
+		LoanPackageID: &loanPackageID,
+	})
+	if err != nil {
+		t.Fatalf("place order: %v", err)
+	}
+	request := httpTransport.requests[0]
+	if got := request.URL; got != "https://api.dnse.example/accounts/orders?marketType=STOCK&orderCategory=NORMAL" {
+		t.Fatalf("url = %s", got)
+	}
+	body, ok := request.JSON.(map[string]any)
+	if !ok {
+		t.Fatalf("json body type = %T", request.JSON)
+	}
+	if body["loanPackageId"] != loanPackageID {
+		t.Fatalf("loanPackageId = %v", body["loanPackageId"])
 	}
 }
 

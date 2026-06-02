@@ -305,27 +305,46 @@ type TradingOrdersService struct {
 	broker *Broker
 }
 
+type PlaceOrderRequest struct {
+	domain.PlaceOrderRequest
+	MarketType     sdktrading.MarketType
+	OrderCategory  sdktrading.OrderCategory
+	LoanPackageID  *int
+}
+
 func (s *TradingOrdersService) Place(
 	ctx context.Context,
 	request domain.PlaceOrderRequest,
 ) (domain.PlaceOrderResponse, error) {
+	return s.PlaceWithRequest(ctx, PlaceOrderRequest{PlaceOrderRequest: request})
+}
+
+func (s *TradingOrdersService) PlaceWithRequest(
+	ctx context.Context,
+	request PlaceOrderRequest,
+) (domain.PlaceOrderResponse, error) {
 	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersPlace); err != nil {
 		return domain.PlaceOrderResponse{}, err
 	}
+	order := request.PlaceOrderRequest
 	body := map[string]any{
-		"accountNo": request.AccountID,
-		"orderType": dnseOrderType(request.Type),
-		"price":     numberValue(request.Price),
-		"quantity":  request.Quantity.IntPart(),
-		"side":      dnseSide(request.Side),
-		"symbol":    request.Symbol,
+		"accountNo": order.AccountID,
+		"orderType": dnseOrderType(order.Type),
+		"price":     numberValue(order.Price),
+		"quantity":  order.Quantity.IntPart(),
+		"side":      dnseSide(order.Side),
+		"symbol":    order.Symbol,
 	}
-	if s.broker.config.LoanPackageID != nil {
-		body["loanPackageId"] = *s.broker.config.LoanPackageID
+	loanPackageID := request.LoanPackageID
+	if loanPackageID == nil {
+		loanPackageID = s.broker.config.LoanPackageID
+	}
+	if loanPackageID != nil {
+		body["loanPackageId"] = *loanPackageID
 	}
 	response, err := s.broker.send(ctx, "trading.orders.place", transport.HTTPRequest{
 		Method:  "POST",
-		URL:     s.broker.url("/accounts/orders?" + s.broker.marketOrderQuery()),
+		URL:     s.broker.url("/accounts/orders?" + s.broker.marketOrderQueryFrom(request.MarketType, request.OrderCategory)),
 		Headers: s.broker.tradingHeaders(true),
 		JSON:    body,
 	})

@@ -13,7 +13,7 @@ import (
 func main() {
 	symbol := "ACB"
 	price := decimal.RequireFromString("23200")
-	loanPackageID := 1775 // requiredInt("DNSE_LOAN_PACKAGE_ID")
+	loanPackageID := 1775 // GD Tiền mặt
 	broker := vnbrokers.NewDNSE(dnse.Config{
 		APIKey:       os.Getenv("DNSE_API_KEY"),
 		APISecret:    os.Getenv("DNSE_API_SECRET"),

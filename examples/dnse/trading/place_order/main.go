@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/shopspring/decimal"
@@ -11,16 +12,31 @@ import (
 )
 
 func main() {
-	symbol := "ACB"
-	price := decimal.RequireFromString("23200")
-	loanPackageID := 1775 // GD Tiền mặt
+	ctx := context.Background()
+	symbol := "AAA"
+	loanPackageID := 1775 // GD Tien mat
 	broker := vnbrokers.NewDNSE(dnse.Config{
 		APIKey:       os.Getenv("DNSE_API_KEY"),
 		APISecret:    os.Getenv("DNSE_API_SECRET"),
 		TradingToken: os.Getenv("DNSE_TRADING_TOKEN"),
 		MarketType:   "STOCK",
 	})
-	_, err := broker.Trading().Orders().PlaceWithRequest(context.Background(), dnse.PlaceOrderRequest{
+	secdef, err := broker.MarketData().Symbols().SecurityDefinition(ctx, symbol, "G1")
+	if err != nil {
+		panic(err)
+	}
+	var secdefs dnse.SecurityDefinitionList
+	if err := dnse.UnmarshalRawPayload(secdef, &secdefs); err != nil {
+		panic(err)
+	}
+	price, ok := secdefs.FloorPrice(symbol)
+	if !ok {
+		panic("floor price not found for " + symbol)
+	}
+	price = price.Mul(decimal.NewFromInt(1000))
+	fmt.Println("Floor price: ", price.String())
+
+	_, err = broker.Trading().Orders().PlaceWithRequest(ctx, dnse.PlaceOrderRequest{
 		PlaceOrderRequest: domain.PlaceOrderRequest{
 			AccountID: os.Getenv("DNSE_ACCOUNT_NO"),
 			Symbol:    symbol,

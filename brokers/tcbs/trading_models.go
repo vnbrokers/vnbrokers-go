@@ -1,5 +1,30 @@
 package tcbs
 
+import (
+	"bytes"
+	"encoding/json"
+)
+
+type FlexibleString string
+
+func (s FlexibleString) String() string {
+	return string(s)
+}
+
+func (s *FlexibleString) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, []byte("null")) {
+		*s = ""
+		return nil
+	}
+	var value string
+	if err := json.Unmarshal(data, &value); err == nil {
+		*s = FlexibleString(value)
+		return nil
+	}
+	*s = FlexibleString(string(data))
+	return nil
+}
+
 type PlaceOrderRequest struct {
 	ExecType  string `json:"execType"`
 	Price     int    `json:"price"`
@@ -117,6 +142,35 @@ type CommandMatchInformationDetail struct {
 	Qtty       float64 `json:"qtty"`
 	Price      float64 `json:"price"`
 	TimeExec   float64 `json:"timeExec"`
+}
+
+type StockOrderRealtimeMessage struct {
+	Object      string         `json:"object"`
+	AccountNo   string         `json:"accountNo"`
+	OrderID     string         `json:"orderId"`
+	ExecType    string         `json:"execType"`
+	OrderQtty   FlexibleString `json:"orderQtty"`
+	Symbol      string         `json:"symbol"`
+	PriceType   string         `json:"priceType"`
+	TxTime      string         `json:"txTime"`
+	TxDate      string         `json:"txDate"`
+	ExpDate     string         `json:"expDate"`
+	TimeType    string         `json:"timeType"`
+	OrStatus    string         `json:"orStatus"`
+	LimitPrice  FlexibleString `json:"limitPrice"`
+	RemainQtty  FlexibleString `json:"remainQtty"`
+	Via         string         `json:"via"`
+	QuotePrice  FlexibleString `json:"quotePrice"`
+	TradePlace  string         `json:"tradePlace"`
+	MatchType   string         `json:"matchType"`
+	IsDisposal  string         `json:"isDisposal"`
+	IsCancel    string         `json:"isCancel"`
+	IsAmend     string         `json:"isAmend"`
+	UserName    string         `json:"userName"`
+	OrsOrderID  string         `json:"orsOrderId"`
+	SecType     string         `json:"secType"`
+	IsFOOrder   string         `json:"isFOOrder"`
+	OdTimeStamp string         `json:"odTimeStamp"`
 }
 
 type PurchasingPowerResponse struct {

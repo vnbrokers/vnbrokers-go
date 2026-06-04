@@ -287,10 +287,12 @@ func (f *fakeTCBSWebSocketFactory) Connect(_ context.Context, url string, header
 
 type fakeWebSocketTransport struct {
 	received []transport.WebSocketMessage
+	sent     []transport.WebSocketMessage
 	closed   bool
 }
 
-func (f *fakeWebSocketTransport) Send(context.Context, transport.WebSocketMessage) error {
+func (f *fakeWebSocketTransport) Send(_ context.Context, message transport.WebSocketMessage) error {
+	f.sent = append(f.sent, append(transport.WebSocketMessage(nil), message...))
 	return nil
 }
 
@@ -311,7 +313,11 @@ func (f *fakeWebSocketTransport) Close() error {
 func TestSubscribeStockMatchesConnectsAndPublishesOrderEvents(t *testing.T) {
 	socket := &fakeWebSocketTransport{
 		received: []transport.WebSocketMessage{
-			[]byte(`{"accountNo":"0001170730","orderID":"OID-1","symbol":"ACB","side":"B","orStatus":"Matched","execQtty":100,"txtime":"09:30:00"}`),
+			[]byte(`session|NWFlM2E3OGUtNGI1Ny00N2U0LTg3MmQtZjEwZWRkZDUyZjcwfGk0Mw==`),
+			[]byte(`ping|`),
+			[]byte(`authenticate|{"success":true,"error":null}`),
+			[]byte(`pingTimeout|7`),
+			[]byte(`message_proto|STOCK_ORDER|{"accountNo":"0001170730","orderId":"9202412270000098858","execType":"NB","orderQtty":100.0,"symbol":"LUT","priceType":"LO","txTime":"12:04:39","orStatus":"8","limitPrice":500.0,"remainQtty":100.0,"isCancel":"Y","isAmend":"Y"}`),
 		},
 	}
 	factory := &fakeTCBSWebSocketFactory{socket: socket}
@@ -336,21 +342,148 @@ func TestSubscribeStockMatchesConnectsAndPublishesOrderEvents(t *testing.T) {
 
 	select {
 	case event := <-subscription.Events():
-		if event.Broker != "tcbs" || event.AccountID != "0001170730" || event.OrderID != "OID-1" {
+		if event.Broker != "tcbs" || event.AccountID != "0001170730" || event.OrderID != "9202412270000098858" {
 			t.Fatalf("event = %#v", event)
 		}
-		if event.Status != domain.OrderStatusFilled {
+		if event.Symbol != "LUT" {
+			t.Fatalf("symbol = %s", event.Symbol)
+		}
+		if event.Status != domain.OrderStatusPending {
 			t.Fatalf("status = %s", event.Status)
+		}
+		if event.ReceivedAt != "12:04:39" {
+			t.Fatalf("received at = %s", event.ReceivedAt)
 		}
 	case <-time.After(time.Second):
 		t.Fatal("timed out waiting for order event")
 	}
 
+	expectedAuth := `authenticate|eyJqd3QiOiJqd3QtMTIzIn0=`
+	expectedPing := `ping|1`
+	expectedSubscribe := `subscribe|eyJ0b3BpYyI6IlNUT0NLX09SREVSIn0=`
+	if len(socket.sent) < 3 {
+		t.Fatalf("sent messages = %q", socket.sent)
+	}
+	if string(socket.sent[0]) != expectedAuth {
+		t.Fatalf("auth message = %s", socket.sent[0])
+	}
+	if string(socket.sent[1]) != expectedPing {
+		t.Fatalf("ping message = %s", socket.sent[1])
+	}
+	if string(socket.sent[2]) != expectedSubscribe {
+		t.Fatalf("subscribe message = %s", socket.sent[2])
+	}
+
 	select {
 	case status := <-subscription.Status():
-		if status != realtime.StatusConnecting && status != realtime.StatusConnected && status != realtime.StatusSubscribed && status != realtime.StatusClosed {
+		if status != realtime.StatusConnecting && status != realtime.StatusConnected && status != realtime.StatusAuthenticating && status != realtime.StatusSubscribed && status != realtime.StatusClosed {
 			t.Fatalf("unexpected status = %s", status)
 		}
 	default:
+	}
+}
+
+func TestStockOrderRealtimeMessageDecodesFlexibleTCBSFields(t *testing.T) {
+	message, err := decodeTCBSStockOrderRealtimeMessage([]byte(`{
+		"object":"order",
+		"accountNo":"0001201435",
+		"orderId":"9202412270000098858",
+		"execType":"NB",
+		"orderQtty":100.0,
+		"symbol":"LUT",
+		"priceType":"LO",
+		"txTime":"12:04:39",
+		"txDate":"2024-12-27T00:00:00.000+07:00",
+		"expDate":"2024-12-27T00:00:00.000+07:00",
+		"timeType":"T",
+		"orStatus":"8",
+		"limitPrice":"500.0",
+		"remainQtty":100.0,
+		"via":"O",
+		"quotePrice":"500.0",
+		"tradePlace":"005",
+		"matchType":"N",
+		"isDisposal":"N",
+		"isCancel":"Y",
+		"isAmend":"Y",
+		"userName":"6868",
+		"orsOrderId":"9202412270000098858",
+		"secType":"001",
+		"isFOOrder":"Y",
+		"odTimeStamp":"2024-12-27 12:04:39.373390"
+	}`))
+	if err != nil {
+		t.Fatalf("decode stock order realtime message: %v", err)
+	}
+	if message.OrderQtty.String() != "100.0" {
+		t.Fatalf("order qtty = %s", message.OrderQtty)
+	}
+	if message.LimitPrice.String() != "500.0" {
+		t.Fatalf("limit price = %s", message.LimitPrice)
+	}
+	event := MapStockOrderEvent(message)
+	if event.AccountID != "0001201435" || event.OrderID != "9202412270000098858" || event.Symbol != "LUT" {
+		t.Fatalf("event = %#v", event)
+	}
+	if event.Status != domain.OrderStatusPending {
+		t.Fatalf("status = %s", event.Status)
+	}
+	if event.ReceivedAt != "12:04:39" {
+		t.Fatalf("received at = %s", event.ReceivedAt)
+	}
+}
+
+func TestTCBSOrderStatusCodesMapToDomainStatuses(t *testing.T) {
+	cases := []struct {
+		code     string
+		expected domain.OrderStatus
+	}{
+		{code: "8", expected: domain.OrderStatusPending},
+		{code: "11", expected: domain.OrderStatusPending},
+		{code: "C", expected: domain.OrderStatusPendingCancel},
+		{code: "3", expected: domain.OrderStatusCancelled},
+		{code: "4", expected: domain.OrderStatusFilled},
+		{code: "12", expected: domain.OrderStatusFilled},
+		{code: "S", expected: domain.OrderStatusFilled},
+		{code: "0", expected: domain.OrderStatusRejected},
+	}
+	for _, tc := range cases {
+		if got := mapOrderStatus(tc.code); got != tc.expected {
+			t.Fatalf("status %s = %s, want %s", tc.code, got, tc.expected)
+		}
+	}
+}
+
+func TestTCBSRealtimeControlFramesAreNotJSONMessages(t *testing.T) {
+	payloads := []transport.WebSocketMessage{
+		[]byte(`session|NWFlM2E3OGUtNGI1Ny00N2U0LTg3MmQtZjEwZWRkZDUyZjcwfGk0Mw==`),
+		[]byte(`ping|`),
+	}
+	for _, payload := range payloads {
+		frame := parseTCBSRealtimeFrame(payload)
+		if !isTCBSRealtimeControlFrame(frame) {
+			t.Fatalf("frame %q was not treated as control frame", payload)
+		}
+	}
+}
+
+func TestTCBSRealtimePingLoopSendsPing(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	subscription := realtime.NewQueueSubscription[domain.OrderEvent](1, nil)
+	sent := make(chan string, 1)
+
+	startTCBSRealtimePingLoop(ctx, 5*time.Millisecond, func(_ context.Context, message string) error {
+		sent <- message
+		return nil
+	}, subscription, cancel)
+
+	select {
+	case message := <-sent:
+		if message != "ping|1" {
+			t.Fatalf("ping message = %s", message)
+		}
+	case <-time.After(100 * time.Millisecond):
+		t.Fatal("timed out waiting for ping")
 	}
 }

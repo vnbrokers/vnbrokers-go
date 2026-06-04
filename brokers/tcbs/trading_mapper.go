@@ -78,7 +78,21 @@ func MapStockMatchEvent(message map[string]any) domain.OrderEvent {
 		Status:         mapOrderStatus(firstString(message, "orStatus", "status", "orderStatus")),
 		RawStatus:      firstString(message, "orStatus", "status", "orderStatus"),
 		FilledQuantity: firstString(message, "execQtty", "qtty", "matchVolume"),
-		ReceivedAt:     firstString(message, "txtime", "time", "timeExec"),
+		ReceivedAt:     firstString(message, "txTime", "txtime", "time", "timeExec"),
+		Raw:            rawPayload(message, nil),
+	}
+}
+
+func MapStockOrderEvent(message StockOrderRealtimeMessage) domain.OrderEvent {
+	return domain.OrderEvent{
+		Broker:         "tcbs",
+		AccountID:      message.AccountNo,
+		OrderID:        message.OrderID,
+		Symbol:         message.Symbol,
+		Status:         mapOrderStatus(message.OrStatus),
+		RawStatus:      message.OrStatus,
+		FilledQuantity: "",
+		ReceivedAt:     message.TxTime,
 		Raw:            rawPayload(message, nil),
 	}
 }
@@ -109,6 +123,23 @@ func mapOrderStatus(value string) domain.OrderStatus {
 	normalized := strings.ToLower(strings.TrimSpace(value))
 	switch {
 	case normalized == "":
+		return domain.OrderStatusUnknown
+	case normalized == "8" || normalized == "11" || normalized == "a":
+		return domain.OrderStatusPending
+	case normalized == "c":
+		return domain.OrderStatusPendingCancel
+	case normalized == "2" || normalized == "10" || normalized == "s":
+		if normalized == "s" {
+			return domain.OrderStatusFilled
+		}
+		return domain.OrderStatusAccepted
+	case normalized == "3":
+		return domain.OrderStatusCancelled
+	case normalized == "4" || normalized == "12":
+		return domain.OrderStatusFilled
+	case normalized == "0":
+		return domain.OrderStatusRejected
+	case normalized == "5":
 		return domain.OrderStatusUnknown
 	case strings.Contains(normalized, "match") || strings.Contains(normalized, "filled"):
 		return domain.OrderStatusFilled

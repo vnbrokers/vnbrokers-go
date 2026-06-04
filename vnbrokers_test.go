@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
+	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
 	"github.com/vnbrokers/vnbrokers-go/core"
 )
 
@@ -17,6 +18,19 @@ func TestNewBrokerBuildsDNSEBroker(t *testing.T) {
 	}
 	if !broker.Supports(core.CapabilityMarketDataRealtimeTop) {
 		t.Fatalf("expected dnse top price realtime capability")
+	}
+}
+
+func TestNewBrokerBuildsEntradeBroker(t *testing.T) {
+	broker, err := NewBroker("entrade", FactoryConfig{Entrade: &entrade.Config{}})
+	if err != nil {
+		t.Fatalf("new broker: %v", err)
+	}
+	if broker.Name() != "entrade" {
+		t.Fatalf("broker name = %q", broker.Name())
+	}
+	if !broker.Supports(core.CapabilityTradingOrdersPlace) {
+		t.Fatalf("expected entrade place order capability")
 	}
 }
 

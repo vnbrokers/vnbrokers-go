@@ -2,22 +2,33 @@ package tcbs
 
 import "github.com/vnbrokers/vnbrokers-go/core"
 
-type Config struct {
-	BaseURL     string
-	AccessToken string
-}
-
 type Broker struct {
 	core.BaseBroker
-	config Config
+	config      Config
+	accessToken string
+	auth        *AuthService
+	account     *AccountService
 }
 
 func NewBroker(config Config) *Broker {
-	return &Broker{
+	config = config.withDefaults()
+	b := &Broker{
 		BaseBroker: core.BaseBroker{
 			BrokerName:         "tcbs",
-			BrokerCapabilities: []core.Capability{},
+			BrokerCapabilities: Capabilities,
 		},
-		config: config,
+		config:      config,
+		accessToken: config.AccessToken,
 	}
+	b.auth = &AuthService{broker: b}
+	b.account = &AccountService{broker: b}
+	return b
+}
+
+func (b *Broker) Auth() *AuthService {
+	return b.auth
+}
+
+func (b *Broker) Account() *AccountService {
+	return b.account
 }

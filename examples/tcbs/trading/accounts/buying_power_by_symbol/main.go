@@ -13,9 +13,10 @@ func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{
 		AccessToken: mustEnv("TCBS_ACCESS_TOKEN"),
 	})
-	response, err := broker.Trading().Accounts().PurchasingPower(
+	response, err := broker.Trading().Accounts().PurchasingPowerBySymbol(
 		context.Background(),
 		mustEnv("TCBS_ACCOUNT_NO"),
+		"AAA",
 	)
 	if err != nil {
 		panic(err)

@@ -74,7 +74,7 @@ type BankAccount struct {
 	BranchCode          string `json:"branchCode"`
 	BankType            string `json:"bankType"`
 	BankSys             string `json:"bankSys"`
-	Authorized          string `json:"authorized"`
+	Authorized          int8   `json:"authorized"`
 	BankAccountType     string `json:"bankAccountType"`
 }
 

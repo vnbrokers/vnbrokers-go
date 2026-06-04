@@ -8,6 +8,7 @@ type Broker struct {
 	accessToken string
 	auth        *AuthService
 	account     *AccountService
+	trading     *TradingService
 }
 
 func NewBroker(config Config) *Broker {
@@ -22,6 +23,11 @@ func NewBroker(config Config) *Broker {
 	}
 	b.auth = &AuthService{broker: b}
 	b.account = &AccountService{broker: b}
+	b.trading = &TradingService{
+		accounts: &TradingAccountsService{broker: b},
+		orders:   &TradingOrdersService{broker: b},
+		realtime: &TradingRealtimeService{broker: b},
+	}
 	return b
 }
 
@@ -31,4 +37,8 @@ func (b *Broker) Auth() *AuthService {
 
 func (b *Broker) Account() *AccountService {
 	return b.account
+}
+
+func (b *Broker) Trading() *TradingService {
+	return b.trading
 }

@@ -9,6 +9,7 @@
 *.dll
 *.so
 *.dylib
+__debug*
 
 # Test binary, built with `go test -c`
 *.test
@@ -32,4 +33,4 @@ go.work.sum
 
 # Editor/IDE
 # .idea/
-# .vscode/
+.vscode/

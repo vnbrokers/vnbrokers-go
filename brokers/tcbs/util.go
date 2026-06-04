@@ -3,6 +3,7 @@ package tcbs
 import (
 	"fmt"
 
+	"github.com/shopspring/decimal"
 	"github.com/vnbrokers/vnbrokers-go/domain"
 )
 
@@ -31,4 +32,23 @@ func cloneHeaders(headers map[string]string) map[string]string {
 		out[key] = value
 	}
 	return out
+}
+
+func decimalFrom(value any) decimal.Decimal {
+	if value == nil {
+		return decimal.Zero
+	}
+	out, err := decimal.NewFromString(fmt.Sprint(value))
+	if err != nil {
+		return decimal.Zero
+	}
+	return out
+}
+
+func optionalDecimal(value any) *decimal.Decimal {
+	if value == nil {
+		return nil
+	}
+	out := decimalFrom(value)
+	return &out
 }

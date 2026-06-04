@@ -2,6 +2,7 @@ package tcbs
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 
 	"github.com/vnbrokers/vnbrokers-go/core"
@@ -35,6 +36,7 @@ func (s *AccountService) GetSubAccountInfo(
 	}
 	var accountResponse AccountInformationResponse
 	if err := decode(response, &accountResponse); err != nil {
+		fmt.Println(string(response.Raw))
 		return AccountInformationResponse{}, sdkerrors.Decode("tcbs", "account.get_sub_account_info", "decode account response", response.Body, err)
 	}
 	return accountResponse, nil

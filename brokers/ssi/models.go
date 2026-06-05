@@ -260,6 +260,29 @@ type OrderHistoryData struct {
 	OrderHistories []Order `json:"orderHistories,omitempty"`
 }
 
+type OrderBookData struct {
+	Account string  `json:"account,omitempty"`
+	Orders  []Order `json:"orders,omitempty"`
+}
+
+func (d *OrderBookData) UnmarshalJSON(data []byte) error {
+	var object struct {
+		Account string  `json:"account,omitempty"`
+		Orders  []Order `json:"orders,omitempty"`
+	}
+	if err := json.Unmarshal(data, &object); err == nil && object.Orders != nil {
+		d.Account = object.Account
+		d.Orders = object.Orders
+		return nil
+	}
+	var orders []Order
+	if err := json.Unmarshal(data, &orders); err != nil {
+		return err
+	}
+	d.Orders = orders
+	return nil
+}
+
 type StockAccountBalance struct {
 	Account             string           `json:"account,omitempty"`
 	CashBalance         *decimal.Decimal `json:"cashbal,omitempty"`
@@ -295,10 +318,10 @@ type DerivativeAccountBalance struct {
 	RCCall                *decimal.Decimal `json:"rccall,omitempty"`
 	Withdrawable          *decimal.Decimal `json:"withdrawable,omitempty"`
 	NonCashDrawableRCCall *decimal.Decimal `json:"noncashdrawablerccall,omitempty"`
-	InternalAssets        []any            `json:"internalassets,omitempty"`
-	ExchangeAssets        []any            `json:"exchangeassets,omitempty"`
-	InternalMargin        []any            `json:"internalmargin,omitempty"`
-	ExchangeMargin        []any            `json:"exchangemargin,omitempty"`
+	InternalAssets        any              `json:"internalassets,omitempty"`
+	ExchangeAssets        any              `json:"exchangeassets,omitempty"`
+	InternalMargin        any              `json:"internalmargin,omitempty"`
+	ExchangeMargin        any              `json:"exchangemargin,omitempty"`
 	NAV                   *decimal.Decimal `json:"nav,omitempty"`
 	OrigMarginRatio       *decimal.Decimal `json:"origMarginRatio,omitempty"`
 }
@@ -322,14 +345,38 @@ type StockPosition struct {
 	SellT2       *decimal.Decimal `json:"sellT2,omitempty"`
 	AveragePrice *decimal.Decimal `json:"avgPrice,omitempty"`
 	Mortgage     *decimal.Decimal `json:"mortgage,omitempty"`
+	SellableQty  *decimal.Decimal `json:"sellableQty,omitempty"`
 	HoldForTrade *decimal.Decimal `json:"holdForTrade,omitempty"`
 	MarketPrice  *decimal.Decimal `json:"marketPrice,omitempty"`
+	ExchangeID   string           `json:"exchangeID,omitempty"`
+	SellingQty   string           `json:"sellingQty,omitempty"`
+	BuyingQty    string           `json:"buyingQty,omitempty"`
 }
 
 type DerivativePositions struct {
 	Account        string               `json:"account,omitempty"`
 	OpenPositions  []DerivativePosition `json:"openPositions,omitempty"`
 	ClosePositions []DerivativePosition `json:"closePositions,omitempty"`
+}
+
+func (p *DerivativePositions) UnmarshalJSON(data []byte) error {
+	type alias DerivativePositions
+	var payload struct {
+		alias
+		OpenPosition  []DerivativePosition `json:"openPosition,omitempty"`
+		ClosePosition []DerivativePosition `json:"closePosition,omitempty"`
+	}
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+	*p = DerivativePositions(payload.alias)
+	if len(p.OpenPositions) == 0 {
+		p.OpenPositions = payload.OpenPosition
+	}
+	if len(p.ClosePositions) == 0 {
+		p.ClosePositions = payload.ClosePosition
+	}
+	return nil
 }
 
 type DerivativePosition struct {
@@ -347,12 +394,52 @@ type DerivativePosition struct {
 }
 
 type AccountAsset struct {
-	Account          string           `json:"account,omitempty"`
-	TotalAsset       *decimal.Decimal `json:"totalAsset,omitempty"`
-	PurchasingPower  *decimal.Decimal `json:"purchasingPower,omitempty"`
-	MarginRatio      *decimal.Decimal `json:"marginRatio,omitempty"`
-	MaintenanceRatio *decimal.Decimal `json:"maintenanceRatio,omitempty"`
-	WarningRatio     *decimal.Decimal `json:"warningRatio,omitempty"`
+	Account           string           `json:"account,omitempty"`
+	CollateralAsset   *decimal.Decimal `json:"collateralAsset,omitempty"`
+	CallLMW           *decimal.Decimal `json:"callLMW,omitempty"`
+	Liability         *decimal.Decimal `json:"liability,omitempty"`
+	EEOrigin          *decimal.Decimal `json:"eeOrigin,omitempty"`
+	ForceLMV          *decimal.Decimal `json:"forceLMV,omitempty"`
+	Equity            *decimal.Decimal `json:"equity,omitempty"`
+	EE                *decimal.Decimal `json:"ee,omitempty"`
+	CallMargin        *decimal.Decimal `json:"callMargin,omitempty"`
+	CashBalance       *decimal.Decimal `json:"cashBalance,omitempty"`
+	PurchasingPower   *decimal.Decimal `json:"purchasingPower,omitempty"`
+	CallForceSell     *decimal.Decimal `json:"callForceSell,omitempty"`
+	LMV               *decimal.Decimal `json:"lmv,omitempty"`
+	MarginCall        *decimal.Decimal `json:"marginCall,omitempty"`
+	Withdrawal        *decimal.Decimal `json:"withdrawal,omitempty"`
+	CollateralA       *decimal.Decimal `json:"collateralA,omitempty"`
+	Action            string           `json:"action,omitempty"`
+	MarginRatio       *decimal.Decimal `json:"marginRatio,omitempty"`
+	Debt              *decimal.Decimal `json:"debt,omitempty"`
+	AccruedInterest   *decimal.Decimal `json:"accruedInterest,omitempty"`
+	HoldRight         *decimal.Decimal `json:"holdRight,omitempty"`
+	PreLoan           *decimal.Decimal `json:"preLoan,omitempty"`
+	Fees              *decimal.Decimal `json:"fees,omitempty"`
+	BuyUnmatch        *decimal.Decimal `json:"buyUnmatch,omitempty"`
+	AP                *decimal.Decimal `json:"ap,omitempty"`
+	APT1              *decimal.Decimal `json:"apT1,omitempty"`
+	SellUnmatch       *decimal.Decimal `json:"sellUnmatch,omitempty"`
+	CIA               *decimal.Decimal `json:"cia,omitempty"`
+	AR                *decimal.Decimal `json:"ar,omitempty"`
+	ART1              *decimal.Decimal `json:"arT1,omitempty"`
+	PPCredit          *decimal.Decimal `json:"ppCredit,omitempty"`
+	CreditLimit       *decimal.Decimal `json:"creditLimit,omitempty"`
+	TotalAsset        *decimal.Decimal `json:"totalAsset,omitempty"`
+	TotalAssets       *decimal.Decimal `json:"totalAssets,omitempty"`
+	MarginCallLMVSold *decimal.Decimal `json:"marginCallLMVSold,omitempty"`
+	LMVNonMarginable  *decimal.Decimal `json:"lmvNonMarginable,omitempty"`
+	EECredit          *decimal.Decimal `json:"eeCredit,omitempty"`
+	TotalEquity       *decimal.Decimal `json:"totalEquity,omitempty"`
+	EE90              *decimal.Decimal `json:"eE90,omitempty"`
+	EE80              *decimal.Decimal `json:"eE80,omitempty"`
+	EE70              *decimal.Decimal `json:"eE70,omitempty"`
+	EE60              *decimal.Decimal `json:"eE60,omitempty"`
+	EE50              *decimal.Decimal `json:"eE50,omitempty"`
+	Dividend          *decimal.Decimal `json:"dividend,omitempty"`
+	MaintenanceRatio  *decimal.Decimal `json:"maintenanceRatio,omitempty"`
+	WarningRatio      *decimal.Decimal `json:"warningRatio,omitempty"`
 }
 
 type MaxBuyQuantity struct {
@@ -402,13 +489,20 @@ type StockTransferHistory struct {
 }
 
 type CashTransferHistory struct {
-	TransactionID   string           `json:"transactionID,omitempty"`
-	SenderAccount   string           `json:"senderAccount,omitempty"`
-	ReceiverAccount string           `json:"receiverAccount,omitempty"`
-	Amount          *decimal.Decimal `json:"amount,omitempty"`
-	DateTime        string           `json:"dateTime,omitempty"`
-	Status          string           `json:"status,omitempty"`
-	Remark          string           `json:"remark,omitempty"`
+	TransactionID      string           `json:"transactionID,omitempty"`
+	Date               string           `json:"date,omitempty"`
+	Account            string           `json:"account,omitempty"`
+	BeneficiaryAccount string           `json:"beneficiaryAccount,omitempty"`
+	BankName           string           `json:"bankName,omitempty"`
+	BankBranchName     string           `json:"bankBranchName,omitempty"`
+	Beneficiary        string           `json:"beneficiary,omitempty"`
+	Type               string           `json:"type,omitempty"`
+	SenderAccount      string           `json:"senderAccount,omitempty"`
+	ReceiverAccount    string           `json:"receiverAccount,omitempty"`
+	Amount             *decimal.Decimal `json:"amount,omitempty"`
+	DateTime           string           `json:"dateTime,omitempty"`
+	Status             string           `json:"status,omitempty"`
+	Remark             string           `json:"remark,omitempty"`
 }
 
 type CashInAdvance struct {
@@ -461,15 +555,34 @@ type PurchasableRightHistory struct {
 }
 
 type ConditionalOrder struct {
-	FCOID         string           `json:"fcoId,omitempty"`
-	Account       string           `json:"account,omitempty"`
-	InstrumentID  string           `json:"instrumentID,omitempty"`
-	Side          string           `json:"side,omitempty"`
-	Type          string           `json:"type,omitempty"`
-	ProcessStatus string           `json:"processStatus,omitempty"`
-	CreatedDate   string           `json:"createdDate,omitempty"`
-	OrderID       string           `json:"orderID,omitempty"`
-	Quantity      *decimal.Decimal `json:"quantity,omitempty"`
-	Price         *decimal.Decimal `json:"price,omitempty"`
-	OrderStatus   string           `json:"orderStatus,omitempty"`
+	FCOID           string           `json:"fcoId,omitempty"`
+	DCOID           string           `json:"dcoId,omitempty"`
+	Username        string           `json:"username,omitempty"`
+	UserID          string           `json:"userid,omitempty"`
+	Account         string           `json:"account,omitempty"`
+	AccountNo       string           `json:"accountNo,omitempty"`
+	Quantity        *decimal.Decimal `json:"quantity,omitempty"`
+	Price           any              `json:"price,omitempty"`
+	PriceSlip       *decimal.Decimal `json:"priceSlip,omitempty"`
+	InstrumentID    string           `json:"instrumentID,omitempty"`
+	Side            string           `json:"side,omitempty"`
+	Type            string           `json:"type,omitempty"`
+	ProcessStatus   string           `json:"processStatus,omitempty"`
+	OrderType       string           `json:"orderType,omitempty"`
+	RunningMode     bool             `json:"runningMode,omitempty"`
+	MainOrder       bool             `json:"mainOrder,omitempty"`
+	AttachedOrder   bool             `json:"attachedOrder,omitempty"`
+	CreatedDate     string           `json:"createdDate,omitempty"`
+	CreatedTime     string           `json:"createdTime,omitempty"`
+	UpdatedTime     string           `json:"updatedTime,omitempty"`
+	MatchedQuantity *decimal.Decimal `json:"matchedQuantity,omitempty"`
+	MatchedQuality  *decimal.Decimal `json:"matchedQuality,omitempty"`
+	PlaceOrder      bool             `json:"placeOrder,omitempty"`
+	IsPlaceOrder    bool             `json:"isPlaceOrder,omitempty"`
+	Status          string           `json:"status,omitempty"`
+	StatusDetail    string           `json:"statusDetail,omitempty"`
+	Detail          string           `json:"detail,omitempty"`
+	Params          any              `json:"params,omitempty"`
+	OrderID         string           `json:"orderID,omitempty"`
+	OrderStatus     string           `json:"orderStatus,omitempty"`
 }

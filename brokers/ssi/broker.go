@@ -22,9 +22,13 @@ func NewBroker(config Config) *Broker {
 	}
 	b.auth = &AuthService{broker: b}
 	b.trading = &TradingService{
-		accounts:  &TradingAccountsService{broker: b},
-		orders:    &TradingOrdersService{broker: b},
-		positions: &TradingPositionsService{broker: b},
+		accounts:          &TradingAccountsService{broker: b},
+		orders:            &TradingOrdersService{broker: b},
+		positions:         &TradingPositionsService{broker: b},
+		cash:              &TradingCashService{broker: b},
+		stockTransfers:    &TradingStockTransferService{broker: b},
+		rights:            &TradingRightsService{broker: b},
+		conditionalOrders: &TradingConditionalOrdersService{broker: b},
 	}
 	return b
 }
@@ -38,9 +42,13 @@ func (b *Broker) Trading() *TradingService {
 }
 
 type TradingService struct {
-	accounts  *TradingAccountsService
-	orders    *TradingOrdersService
-	positions *TradingPositionsService
+	accounts          *TradingAccountsService
+	orders            *TradingOrdersService
+	positions         *TradingPositionsService
+	cash              *TradingCashService
+	stockTransfers    *TradingStockTransferService
+	rights            *TradingRightsService
+	conditionalOrders *TradingConditionalOrdersService
 }
 
 func (s *TradingService) Accounts() *TradingAccountsService {
@@ -53,4 +61,20 @@ func (s *TradingService) Orders() *TradingOrdersService {
 
 func (s *TradingService) Positions() *TradingPositionsService {
 	return s.positions
+}
+
+func (s *TradingService) Cash() *TradingCashService {
+	return s.cash
+}
+
+func (s *TradingService) StockTransfers() *TradingStockTransferService {
+	return s.stockTransfers
+}
+
+func (s *TradingService) Rights() *TradingRightsService {
+	return s.rights
+}
+
+func (s *TradingService) ConditionalOrders() *TradingConditionalOrdersService {
+	return s.conditionalOrders
 }

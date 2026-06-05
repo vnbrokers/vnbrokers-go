@@ -134,6 +134,66 @@ func TestStockBalanceMapsCommonDomainBalance(t *testing.T) {
 	}
 }
 
+func TestOrdersDecodesSSIOrderBookObjectResponse(t *testing.T) {
+	httpTransport := &fakeHTTPTransport{
+		responses: []transport.HTTPResponse{{
+			StatusCode: 200,
+			Body: map[string]any{
+				"message": "Success",
+				"status":  200,
+				"data": map[string]any{
+					"account": "",
+					"orders": []any{
+						map[string]any{
+							"uniqueID":     "59753588",
+							"orderID":      "26060500251342",
+							"buySell":      "B",
+							"price":        6970.0,
+							"quantity":     1,
+							"filledQty":    0,
+							"orderStatus":  "RS",
+							"marketID":     "VN",
+							"inputTime":    "1780633829138",
+							"modifiedTime": "1780633829138",
+							"instrumentID": "AAA",
+							"orderType":    "LO",
+							"cancelQty":    0,
+							"avgPrice":     0.0,
+							"isForcesell":  "F",
+							"isShortsell":  nil,
+							"rejectReason": "",
+							"note":         "",
+						},
+					},
+				},
+			},
+		}},
+	}
+	broker := NewBroker(Config{
+		BaseURL:       "https://ssi.example",
+		AccessToken:   "access-token",
+		HTTPTransport: httpTransport,
+	})
+
+	orders, err := broker.Trading().Accounts().Orders(context.Background(), "0901351")
+	if err != nil {
+		t.Fatalf("orders: %v", err)
+	}
+	if len(orders) != 1 {
+		t.Fatalf("orders len = %d", len(orders))
+	}
+	order := orders[0]
+	if order.OrderID != "26060500251342" || order.Symbol != "AAA" {
+		t.Fatalf("order = %+v", order)
+	}
+	if order.Status != domain.OrderStatusAccepted {
+		t.Fatalf("status = %s", order.Status)
+	}
+	if !order.Quantity.Equal(decimal.NewFromInt(1)) {
+		t.Fatalf("quantity = %s", order.Quantity)
+	}
+}
+
 func TestSSIJSONStatusErrorReturnsBrokerRejected(t *testing.T) {
 	httpTransport := &fakeHTTPTransport{
 		responses: []transport.HTTPResponse{{

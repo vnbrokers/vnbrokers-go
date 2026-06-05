@@ -3,6 +3,7 @@ package ssi
 import (
 	"context"
 	"net/url"
+	"strconv"
 
 	"github.com/shopspring/decimal"
 	"github.com/vnbrokers/vnbrokers-go/core"
@@ -33,11 +34,17 @@ func (s *TradingAccountsService) Orders(ctx context.Context, accountID string) (
 	}
 	params := url.Values{}
 	params.Set("account", accountID)
-	var response TradingResponse[[]Order]
+	var response TradingResponse[OrderBookData]
 	if err := s.broker.sendAndDecode(ctx, "trading.accounts.orders", "GET", s.broker.query("/api/v2/Trading/OrderBook", params), nil, false, &response); err != nil {
 		return nil, err
 	}
-	return MapOrders(response.Data), nil
+	orders := MapOrders(response.Data.Orders)
+	for i := range orders {
+		if orders[i].AccountID == "" {
+			orders[i].AccountID = firstString(response.Data.Account, accountID)
+		}
+	}
+	return orders, nil
 }
 
 func (s *TradingAccountsService) OrderHistory(
@@ -135,6 +142,56 @@ func (s *TradingAccountsService) MaxBuyQuantity(
 	return response, err
 }
 
+func (s *TradingAccountsService) AuditOrders(
+	ctx context.Context,
+	accountID string,
+) (TradingResponse[OrderBookData], error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersList); err != nil {
+		return TradingResponse[OrderBookData]{}, err
+	}
+	var response TradingResponse[OrderBookData]
+	err := s.broker.getAndDecode(ctx, "trading.accounts.audit_orders", "/api/v2/Trading/auditOrderBook", accountParams(accountID), &response)
+	return response, err
+}
+
+func (s *TradingAccountsService) AccountAsset(
+	ctx context.Context,
+	accountID string,
+) (TradingResponse[AccountAsset], error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingAccountsBalance); err != nil {
+		return TradingResponse[AccountAsset]{}, err
+	}
+	var response TradingResponse[AccountAsset]
+	err := s.broker.getAndDecode(ctx, "trading.accounts.account_asset", "/api/v2/Trading/ppmmraccount", accountParams(accountID), &response)
+	return response, err
+}
+
+func (s *TradingAccountsService) MaxSellQuantity(
+	ctx context.Context,
+	request MaxSellQuantityRequest,
+) (TradingResponse[MaxSellQuantity], error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingBuyingPower); err != nil {
+		return TradingResponse[MaxSellQuantity]{}, err
+	}
+	params := accountParams(request.AccountID)
+	params.Set("instrumentID", request.Symbol)
+	if !request.Price.IsZero() {
+		params.Set("price", request.Price.String())
+	}
+	var response TradingResponse[MaxSellQuantity]
+	err := s.broker.getAndDecode(ctx, "trading.accounts.max_sell_quantity", "/api/v2/Trading/maxSellQty", params, &response)
+	return response, err
+}
+
+func (s *TradingAccountsService) RateLimit(ctx context.Context) (TradingResponse[[]APILimit], error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingAccountsBalance); err != nil {
+		return TradingResponse[[]APILimit]{}, err
+	}
+	var response TradingResponse[[]APILimit]
+	err := s.broker.getAndDecode(ctx, "trading.accounts.rate_limit", "/api/v2/Trading/rateLimit", nil, &response)
+	return response, err
+}
+
 type TradingPositionsService struct {
 	broker *Broker
 }
@@ -165,11 +222,22 @@ func (s *TradingPositionsService) Derivative(
 	ctx context.Context,
 	accountID string,
 ) (TradingResponse[[]DerivativePositions], error) {
+	return s.DerivativeWithRequest(ctx, DerivativePositionRequest{
+		AccountID:    accountID,
+		QuerySummary: true,
+	})
+}
+
+func (s *TradingPositionsService) DerivativeWithRequest(
+	ctx context.Context,
+	request DerivativePositionRequest,
+) (TradingResponse[[]DerivativePositions], error) {
 	if err := s.broker.RequireCapability(core.CapabilityTradingPositionsList); err != nil {
 		return TradingResponse[[]DerivativePositions]{}, err
 	}
 	params := url.Values{}
-	params.Set("account", accountID)
+	params.Set("account", request.AccountID)
+	params.Set("querySummary", strconv.FormatBool(request.QuerySummary))
 	var response TradingResponse[[]DerivativePositions]
 	err := s.broker.sendAndDecode(ctx, "trading.positions.derivative", "GET", s.broker.query("/api/v2/Trading/derivPosition", params), nil, false, &response)
 	return response, err
@@ -263,6 +331,54 @@ func (s *TradingOrdersService) ModifyWithRequest(
 	body := s.broker.modifyOrderBody(request)
 	var response TradingResponse[OrderRequestResponse]
 	err := s.broker.sendAndDecode(ctx, "trading.orders.modify", "POST", s.broker.url("/api/v2/Trading/ModifyOrder"), body, true, &response)
+	return response, err
+}
+
+func (s *TradingOrdersService) DerivativePlaceWithRequest(
+	ctx context.Context,
+	request PlaceOrderRequest,
+) (TradingResponse[OrderRequestResponse], error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersPlace); err != nil {
+		return TradingResponse[OrderRequestResponse]{}, err
+	}
+	if request.MarketID == "" {
+		request.MarketID = "VNFE"
+	}
+	body := s.broker.placeOrderBody(request)
+	var response TradingResponse[OrderRequestResponse]
+	err := s.broker.postAndDecode(ctx, "trading.orders.derivative_place", "/api/v2/Trading/derNewOrder", body, &response)
+	return response, err
+}
+
+func (s *TradingOrdersService) DerivativeCancelWithRequest(
+	ctx context.Context,
+	request CancelOrderRequest,
+) (TradingResponse[OrderRequestResponse], error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersCancel); err != nil {
+		return TradingResponse[OrderRequestResponse]{}, err
+	}
+	if request.MarketID == "" {
+		request.MarketID = "VNFE"
+	}
+	body := s.broker.cancelOrderBody(request)
+	var response TradingResponse[OrderRequestResponse]
+	err := s.broker.postAndDecode(ctx, "trading.orders.derivative_cancel", "/api/v2/Trading/derCancelOrder", body, &response)
+	return response, err
+}
+
+func (s *TradingOrdersService) DerivativeModifyWithRequest(
+	ctx context.Context,
+	request ModifyOrderRequest,
+) (TradingResponse[OrderRequestResponse], error) {
+	if err := s.broker.RequireCapability(core.CapabilityTradingOrdersReplace); err != nil {
+		return TradingResponse[OrderRequestResponse]{}, err
+	}
+	if request.MarketID == "" {
+		request.MarketID = "VNFE"
+	}
+	body := s.broker.modifyOrderBody(request)
+	var response TradingResponse[OrderRequestResponse]
+	err := s.broker.postAndDecode(ctx, "trading.orders.derivative_modify", "/api/v2/Trading/derModifyOrder", body, &response)
 	return response, err
 }
 

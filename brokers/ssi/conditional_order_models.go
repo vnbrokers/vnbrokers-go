@@ -1,6 +1,9 @@
 package ssi
 
-import "github.com/shopspring/decimal"
+import (
+	"github.com/shopspring/decimal"
+	"github.com/vnbrokers/vnbrokers-go/domain"
+)
 
 type ConditionalOrderNewRequest struct {
 	AccountID      string
@@ -107,4 +110,28 @@ type ConditionalOrderStatus struct {
 	Time   string `json:"time,omitempty"`
 	Code   int    `json:"code,omitempty"`
 	Detail string `json:"detail,omitempty"`
+}
+
+type FCOEvent struct {
+	FCOID           string
+	NotifyID        int64
+	Data            any
+	ProcessStatus   string
+	LastAction      string
+	UniqueID        string
+	MatchedQuantity decimal.Decimal
+	IsPlaceOrder    bool
+	IPAddress       string
+	Symbol          string
+	Prefix          string
+	Quantity        decimal.Decimal
+	BrokerID        string
+	Price           string
+	AccountID       string
+	BrokerIDUpdate  string
+	UpdatedTime     string
+	Status          string
+	Message         string
+	Username        string
+	Raw             domain.RawPayload
 }

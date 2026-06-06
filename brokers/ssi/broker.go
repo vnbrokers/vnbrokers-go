@@ -8,6 +8,7 @@ type Broker struct {
 	accessToken string
 	auth        *AuthService
 	trading     *TradingService
+	marketData  *MarketDataService
 }
 
 func NewBroker(config Config) *Broker {
@@ -29,6 +30,10 @@ func NewBroker(config Config) *Broker {
 		stockTransfers:    &TradingStockTransferService{broker: b},
 		rights:            &TradingRightsService{broker: b},
 		conditionalOrders: &TradingConditionalOrdersService{broker: b},
+		realtime:          &TradingRealtimeService{broker: b},
+	}
+	b.marketData = &MarketDataService{
+		realtime: &MarketDataRealtimeService{broker: b},
 	}
 	return b
 }
@@ -41,6 +46,10 @@ func (b *Broker) Trading() *TradingService {
 	return b.trading
 }
 
+func (b *Broker) MarketData() *MarketDataService {
+	return b.marketData
+}
+
 type TradingService struct {
 	accounts          *TradingAccountsService
 	orders            *TradingOrdersService
@@ -49,6 +58,7 @@ type TradingService struct {
 	stockTransfers    *TradingStockTransferService
 	rights            *TradingRightsService
 	conditionalOrders *TradingConditionalOrdersService
+	realtime          *TradingRealtimeService
 }
 
 func (s *TradingService) Accounts() *TradingAccountsService {
@@ -77,4 +87,16 @@ func (s *TradingService) Rights() *TradingRightsService {
 
 func (s *TradingService) ConditionalOrders() *TradingConditionalOrdersService {
 	return s.conditionalOrders
+}
+
+func (s *TradingService) Realtime() *TradingRealtimeService {
+	return s.realtime
+}
+
+type MarketDataService struct {
+	realtime *MarketDataRealtimeService
+}
+
+func (s *MarketDataService) Realtime() *MarketDataRealtimeService {
+	return s.realtime
 }

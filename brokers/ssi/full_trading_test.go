@@ -129,7 +129,7 @@ func TestSSIAdditionalGETEndpointsBuildRequests(t *testing.T) {
 			}
 			broker := NewBroker(Config{
 				BaseURL:       "https://ssi.example",
-				AccessToken:   "access-token",
+				TradingToken:  "trading-token",
 				HTTPTransport: httpTransport,
 			})
 			if err := tt.call(context.Background(), broker); err != nil {
@@ -142,7 +142,7 @@ func TestSSIAdditionalGETEndpointsBuildRequests(t *testing.T) {
 			if request.URL != tt.url {
 				t.Fatalf("url = %s", request.URL)
 			}
-			if request.Headers["Authorization"] != "Bearer access-token" {
+			if request.Headers["Authorization"] != "Bearer trading-token" {
 				t.Fatalf("authorization = %s", request.Headers["Authorization"])
 			}
 			if request.Headers["X-Signature"] != "" {
@@ -262,7 +262,7 @@ func TestSSIAdditionalPOSTEndpointsBuildSignedRequests(t *testing.T) {
 			}
 			broker := NewBroker(Config{
 				BaseURL:       "https://ssi.example",
-				AccessToken:   "access-token",
+				TradingToken:  "trading-token",
 				PrivateKey:    testBase64XMLPrivateKey(key),
 				RequestID:     func() string { return "12345678" },
 				HTTPTransport: httpTransport,
@@ -277,7 +277,7 @@ func TestSSIAdditionalPOSTEndpointsBuildSignedRequests(t *testing.T) {
 			if request.URL != tt.url {
 				t.Fatalf("url = %s", request.URL)
 			}
-			if request.Headers["Authorization"] != "Bearer access-token" {
+			if request.Headers["Authorization"] != "Bearer trading-token" {
 				t.Fatalf("authorization = %s", request.Headers["Authorization"])
 			}
 			if request.Headers["X-Signature"] == "" {

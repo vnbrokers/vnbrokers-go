@@ -16,7 +16,7 @@ func main() {
 	defer stop()
 
 	broker := vnbrokers.NewSSI(ssi.Config{
-		AccessToken: mustEnv("SSI_ACCESS_TOKEN"),
+		TradingToken: mustEnv("SSI_FCTRADING_TOKEN"),
 	})
 	subscription, err := broker.Trading().Realtime().SubscribeOrders(
 		ctx,

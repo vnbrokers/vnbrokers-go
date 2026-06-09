@@ -55,6 +55,7 @@ func startSSIMarketDataSubscription[T any](
 	return startSSISignalRSubscription(
 		ctx,
 		broker,
+		broker.dataToken(),
 		broker.config.MarketDataStreamURL,
 		ssiMarketDataHub,
 		func(client SignalRClient, subscription *realtime.QueueSubscription[T]) {

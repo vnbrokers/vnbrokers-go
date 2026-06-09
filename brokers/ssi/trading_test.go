@@ -35,7 +35,8 @@ func TestPlaceWithRequestBuildsSignedSSIOrderRequest(t *testing.T) {
 	}
 	broker := NewBroker(Config{
 		BaseURL:       "https://ssi.example",
-		AccessToken:   "access-token",
+		DataToken:     "data-token",
+		TradingToken:  "trading-token",
 		PrivateKey:    testBase64XMLPrivateKey(key),
 		ChannelID:     "TA",
 		DeviceID:      "device",
@@ -70,7 +71,7 @@ func TestPlaceWithRequestBuildsSignedSSIOrderRequest(t *testing.T) {
 	if got := request.URL; got != "https://ssi.example/api/v2/Trading/NewOrder" {
 		t.Fatalf("url = %s", got)
 	}
-	if request.Headers["Authorization"] != "Bearer access-token" {
+	if request.Headers["Authorization"] != "Bearer trading-token" {
 		t.Fatalf("authorization = %s", request.Headers["Authorization"])
 	}
 	if request.Headers["X-Signature"] == "" {
@@ -115,7 +116,7 @@ func TestStockBalanceMapsCommonDomainBalance(t *testing.T) {
 	}
 	broker := NewBroker(Config{
 		BaseURL:       "https://ssi.example",
-		AccessToken:   "access-token",
+		TradingToken:  "trading-token",
 		HTTPTransport: httpTransport,
 	})
 
@@ -171,7 +172,7 @@ func TestOrdersDecodesSSIOrderBookObjectResponse(t *testing.T) {
 	}
 	broker := NewBroker(Config{
 		BaseURL:       "https://ssi.example",
-		AccessToken:   "access-token",
+		TradingToken:  "trading-token",
 		HTTPTransport: httpTransport,
 	})
 
@@ -207,7 +208,7 @@ func TestSSIJSONStatusErrorReturnsBrokerRejected(t *testing.T) {
 	}
 	broker := NewBroker(Config{
 		BaseURL:       "https://ssi.example",
-		AccessToken:   "bad-token",
+		TradingToken:  "bad-token",
 		HTTPTransport: httpTransport,
 	})
 

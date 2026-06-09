@@ -13,12 +13,12 @@ import (
 
 func main() {
 	broker := vnbrokers.NewSSI(ssi.Config{
-		AccessToken: mustEnv("SSI_ACCESS_TOKEN"),
-		PrivateKey:  mustEnv("SSI_PRIVATE_KEY"),
-		DeviceID:    "FCTradingExample",
-		UserAgent:   "FCTrading",
-		MarketID:    "VN",
-		ChannelID:   "TA",
+		TradingToken: mustEnv("SSI_FCTRADING_TOKEN"),
+		PrivateKey:   mustEnv("SSI_FCTRADING_PRIVATE_KEY"),
+		DeviceID:     "FCTradingExample",
+		UserAgent:    "FCTrading",
+		MarketID:     "VN",
+		ChannelID:    "TA",
 	})
 	price := decimal.NewFromInt(21000)
 	response, err := broker.Trading().Orders().PlaceWithRequest(

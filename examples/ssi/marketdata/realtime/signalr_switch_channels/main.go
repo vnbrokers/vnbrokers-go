@@ -15,7 +15,7 @@ func main() {
 	defer stop()
 
 	broker := vnbrokers.NewSSI(ssi.Config{
-		AccessToken: mustEnv("SSI_ACCESS_TOKEN"),
+		DataToken: mustEnv("SSI_FCDATA_TOKEN"),
 	})
 	subscription, err := broker.MarketData().Realtime().SubscribeRawChannel(ctx, "X:ALL")
 	if err != nil {

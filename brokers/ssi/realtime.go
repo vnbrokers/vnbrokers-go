@@ -104,6 +104,29 @@ func registerSSIHandler[T any](
 	})
 }
 
+func registerSSIJSONHandler[T any](
+	client SignalRClient,
+	subscription *realtime.QueueSubscription[T],
+	hub string,
+	method string,
+) {
+	client.On(hub, method, func(args []json.RawMessage) {
+		for _, arg := range args {
+			message, err := decodeSSIRealtimeArg(arg)
+			if err != nil {
+				subscription.PublishError(fmt.Errorf("ssi realtime decode %s.%s: %w", hub, method, err))
+				continue
+			}
+			var event T
+			if err := json.Unmarshal(message.Raw, &event); err != nil {
+				subscription.PublishError(fmt.Errorf("ssi realtime decode %s.%s: %w", hub, method, err))
+				continue
+			}
+			subscription.PublishEvent(event)
+		}
+	})
+}
+
 func registerSSIBroadcastHandler[T any](
 	client SignalRClient,
 	subscription *realtime.QueueSubscription[T],

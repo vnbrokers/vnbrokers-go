@@ -23,6 +23,7 @@ func (s *TradingRealtimeService) SubscribeOrders(
 	return startSSISignalRSubscription(
 		ctx,
 		s.broker,
+		s.broker.tradingToken(),
 		s.broker.config.TradingStreamURL,
 		ssiTradingHub,
 		func(client SignalRClient, subscription *realtime.QueueSubscription[domain.OrderEvent]) {
@@ -53,6 +54,7 @@ func (s *TradingRealtimeService) SubscribePositions(
 	return startSSISignalRSubscription(
 		ctx,
 		s.broker,
+		s.broker.tradingToken(),
 		s.broker.config.TradingStreamURL,
 		ssiTradingHub,
 		func(client SignalRClient, subscription *realtime.QueueSubscription[domain.Position]) {
@@ -72,6 +74,7 @@ func (s *TradingRealtimeService) SubscribeFCOEvents(
 	return startSSISignalRSubscription(
 		ctx,
 		s.broker,
+		s.broker.tradingToken(),
 		s.broker.config.TradingStreamURL,
 		ssiTradingHub,
 		func(client SignalRClient, subscription *realtime.QueueSubscription[FCOEvent]) {

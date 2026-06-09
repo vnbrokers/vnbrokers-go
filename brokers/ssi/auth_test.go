@@ -2,14 +2,38 @@ package ssi
 
 import (
 	"context"
+	"errors"
+	"strings"
+	"sync"
 	"testing"
 
+	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/trading"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
 type fakeHTTPTransport struct {
 	requests  []transport.HTTPRequest
 	responses []transport.HTTPResponse
+}
+
+type tokenRefreshTransport struct{}
+
+func (tokenRefreshTransport) Send(_ context.Context, request transport.HTTPRequest) (transport.HTTPResponse, error) {
+	token := "data-token"
+	if strings.Contains(request.URL, "/Trading/") {
+		token = "trading-token"
+	}
+	return transport.HTTPResponse{
+		StatusCode: 200,
+		Body: map[string]any{
+			"message": "Success",
+			"status":  200,
+			"data": map[string]any{
+				"accessToken": token,
+			},
+		},
+	}, nil
 }
 
 func (f *fakeHTTPTransport) Send(_ context.Context, request transport.HTTPRequest) (transport.HTTPResponse, error) {
@@ -88,8 +112,8 @@ func TestGetAccessTokenUsesDataCredentialsWithoutTwoFactor(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get data access token: %v", err)
 	}
-	if token.AccessToken != "data-token" || broker.dataAccessToken != "data-token" {
-		t.Fatalf("token = %+v stored = %q", token, broker.dataAccessToken)
+	if token.AccessToken != "data-token" || broker.dataToken() != "data-token" {
+		t.Fatalf("token = %+v stored = %q", token, broker.dataToken())
 	}
 
 	request := httpTransport.requests[0]
@@ -139,8 +163,8 @@ func TestGetTradingTokenUsesTradingCredentialsAndTwoFactor(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get trading token: %v", err)
 	}
-	if token.AccessToken != "trading-token" || broker.tradingAccessToken != "trading-token" {
-		t.Fatalf("token = %+v stored = %q", token, broker.tradingAccessToken)
+	if token.AccessToken != "trading-token" || broker.tradingToken() != "trading-token" {
+		t.Fatalf("token = %+v stored = %q", token, broker.tradingToken())
 	}
 
 	request := httpTransport.requests[0]
@@ -163,6 +187,75 @@ func TestGetTradingTokenUsesTradingCredentialsAndTwoFactor(t *testing.T) {
 	}
 }
 
+func TestGetAccessTokenRejectsMissingTokenWithoutReplacingExistingToken(t *testing.T) {
+	httpTransport := &fakeHTTPTransport{
+		responses: []transport.HTTPResponse{{
+			StatusCode: 200,
+			Body: map[string]any{
+				"message": "Success",
+				"status":  200,
+				"data":    map[string]any{},
+			},
+		}},
+	}
+	broker := NewBroker(Config{
+		DataToken:     "existing-data-token",
+		HTTPTransport: httpTransport,
+	})
+
+	_, err := broker.Auth().GetAccessToken(context.Background())
+	assertTokenDecodeError(t, err, "auth.get_data_access_token", "data")
+	if broker.dataToken() != "existing-data-token" {
+		t.Fatalf("data access token = %q", broker.dataToken())
+	}
+}
+
+func TestGetTradingTokenRejectsEmptyTokenWithoutReplacingExistingToken(t *testing.T) {
+	httpTransport := &fakeHTTPTransport{
+		responses: []transport.HTTPResponse{{
+			StatusCode: 200,
+			Body: map[string]any{
+				"message": "Success",
+				"status":  200,
+				"data": map[string]any{
+					"accessToken": "",
+				},
+			},
+		}},
+	}
+	broker := NewBroker(Config{
+		TradingToken:  "existing-trading-token",
+		HTTPTransport: httpTransport,
+	})
+
+	_, err := broker.Auth().GetTradingToken(context.Background(), TradingTokenRequest{})
+	assertTokenDecodeError(t, err, "auth.get_trading_token", "trading")
+	if broker.tradingToken() != "existing-trading-token" {
+		t.Fatalf("trading access token = %q", broker.tradingToken())
+	}
+}
+
+func assertTokenDecodeError(t *testing.T, err error, operation string, tokenType string) {
+	t.Helper()
+	if err == nil {
+		t.Fatal("expected decode error")
+	}
+	var brokerError *sdkerrors.BrokerError
+	if !errors.As(err, &brokerError) {
+		t.Fatalf("error type = %T", err)
+	}
+	if brokerError.Category != sdkerrors.CategoryDecode {
+		t.Fatalf("category = %s", brokerError.Category)
+	}
+	if brokerError.Operation != operation {
+		t.Fatalf("operation = %s", brokerError.Operation)
+	}
+	if brokerError.Cause == nil || !strings.Contains(brokerError.Cause.Error(), tokenType) ||
+		!strings.Contains(brokerError.Cause.Error(), "missing accessToken") {
+		t.Fatalf("cause = %v", brokerError.Cause)
+	}
+}
+
 func TestSSIConfigDefaultsDataBaseURL(t *testing.T) {
 	config := Config{}.withDefaults()
 	if config.DataBaseURL != "https://fc-data.ssi.com.vn" {
@@ -172,14 +265,89 @@ func TestSSIConfigDefaultsDataBaseURL(t *testing.T) {
 
 func TestNewBrokerInitializesServiceSpecificAccessTokens(t *testing.T) {
 	broker := NewBroker(Config{
-		DataAccessToken:    "configured-data-token",
-		TradingAccessToken: "configured-trading-token",
+		DataToken:    "configured-data-token",
+		TradingToken: "configured-trading-token",
 	})
 
-	if broker.dataAccessToken != "configured-data-token" {
-		t.Fatalf("data access token = %q", broker.dataAccessToken)
+	if broker.dataToken() != "configured-data-token" {
+		t.Fatalf("data access token = %q", broker.dataToken())
 	}
-	if broker.tradingAccessToken != "configured-trading-token" {
-		t.Fatalf("trading access token = %q", broker.tradingAccessToken)
+	if broker.tradingToken() != "configured-trading-token" {
+		t.Fatalf("trading access token = %q", broker.tradingToken())
+	}
+}
+
+func TestSSIServiceTokensConcurrentRefreshAndRESTRealtimeReads(t *testing.T) {
+	broker := NewBroker(Config{
+		DataToken:     "initial-data-token",
+		TradingToken:  "initial-trading-token",
+		HTTPTransport: tokenRefreshTransport{},
+		SignalRFactory: func(string, []string) SignalRClient {
+			return newFakeSignalRClient()
+		},
+	})
+
+	const iterations = 200
+	start := make(chan struct{})
+	errs := make(chan error, 4)
+	var workers sync.WaitGroup
+	workers.Add(4)
+
+	go func() {
+		defer workers.Done()
+		<-start
+		for range iterations {
+			if _, err := broker.Auth().GetAccessToken(context.Background()); err != nil {
+				errs <- err
+				return
+			}
+		}
+	}()
+	go func() {
+		defer workers.Done()
+		<-start
+		for range iterations {
+			if _, err := broker.Auth().GetTradingToken(context.Background(), TradingTokenRequest{}); err != nil {
+				errs <- err
+				return
+			}
+		}
+	}()
+	go func() {
+		defer workers.Done()
+		<-start
+		for range iterations {
+			header := broker.withTradingAuthorization(nil)["Authorization"]
+			if header != "Bearer initial-trading-token" && header != "Bearer trading-token" {
+				errs <- errors.New("unexpected REST authorization: " + header)
+				return
+			}
+		}
+	}()
+	go func() {
+		defer workers.Done()
+		<-start
+		for range iterations {
+			tradingSubscription, err := broker.Trading().Realtime().SubscribeOrders(context.Background(), trading.SubscribeOrdersRequest{})
+			if err != nil {
+				errs <- err
+				return
+			}
+			_ = tradingSubscription.Close()
+
+			dataSubscription, err := broker.MarketData().Realtime().SubscribeRawChannel(context.Background(), "X:ALL")
+			if err != nil {
+				errs <- err
+				return
+			}
+			_ = dataSubscription.Close()
+		}
+	}()
+
+	close(start)
+	workers.Wait()
+	close(errs)
+	for err := range errs {
+		t.Fatal(err)
 	}
 }

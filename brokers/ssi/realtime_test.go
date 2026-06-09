@@ -69,7 +69,8 @@ func TestSSITradingRealtimePublishesOrderEvents(t *testing.T) {
 	var baseURL string
 	var hubs []string
 	broker := NewBroker(Config{
-		AccessToken: "access-token",
+		DataToken:    "data-token",
+		TradingToken: "trading-token",
 		SignalRFactory: func(url string, names []string) SignalRClient {
 			baseURL = url
 			hubs = names
@@ -89,7 +90,7 @@ func TestSSITradingRealtimePublishesOrderEvents(t *testing.T) {
 	if baseURL != "https://fc-tradehub.ssi.com.vn/v2.0/signalr" || len(hubs) != 1 || hubs[0] != "BroadcastHubV2" {
 		t.Fatalf("connection = %s %+v", baseURL, hubs)
 	}
-	if fake.headers["Authorization"] != "Bearer access-token" || fake.query["notify_id"] != "-1" {
+	if fake.headers["Authorization"] != "Bearer trading-token" || fake.query["notify_id"] != "-1" {
 		t.Fatalf("auth = %+v query = %+v", fake.headers, fake.query)
 	}
 
@@ -109,17 +110,24 @@ func TestSSITradingRealtimePublishesOrderEvents(t *testing.T) {
 	}
 }
 
-func TestSSIRealtimeRequiresAccessToken(t *testing.T) {
-	broker := NewBroker(Config{})
+func TestSSITradingRealtimeRequiresTradingAccessToken(t *testing.T) {
+	broker := NewBroker(Config{DataToken: "data-token"})
+	if _, err := broker.Trading().Realtime().SubscribeOrders(context.Background(), trading.SubscribeOrdersRequest{}); err == nil {
+		t.Fatalf("expected trading access token error")
+	}
+}
+
+func TestSSIMarketDataRealtimeRequiresDataAccessToken(t *testing.T) {
+	broker := NewBroker(Config{TradingToken: "trading-token"})
 	if _, err := broker.MarketData().Realtime().SubscribeRawChannel(context.Background(), "X:ALL"); err == nil {
-		t.Fatalf("expected access token error")
+		t.Fatalf("expected data access token error")
 	}
 }
 
 func TestSSITradingRealtimePublishesPositions(t *testing.T) {
 	fake := newFakeSignalRClient()
 	broker := NewBroker(Config{
-		AccessToken:    "access-token",
+		TradingToken:   "trading-token",
 		SignalRFactory: func(string, []string) SignalRClient { return fake },
 	})
 
@@ -151,7 +159,7 @@ func TestSSITradingRealtimePublishesPositions(t *testing.T) {
 func TestSSITradingRealtimePublishesFCOEvents(t *testing.T) {
 	fake := newFakeSignalRClient()
 	broker := NewBroker(Config{
-		AccessToken:    "access-token",
+		TradingToken:   "trading-token",
 		SignalRFactory: func(string, []string) SignalRClient { return fake },
 	})
 
@@ -189,7 +197,8 @@ func TestSSITradingRealtimePublishesFCOEvents(t *testing.T) {
 func TestSSIMarketDataRealtimeSwitchesChannelAndPublishesTopPrice(t *testing.T) {
 	fake := newFakeSignalRClient()
 	broker := NewBroker(Config{
-		AccessToken:    "access-token",
+		DataToken:      "data-token",
+		TradingToken:   "trading-token",
 		SignalRFactory: func(string, []string) SignalRClient { return fake },
 	})
 
@@ -205,6 +214,9 @@ func TestSSIMarketDataRealtimeSwitchesChannelAndPublishesTopPrice(t *testing.T) 
 	if len(fake.invokes) != 1 || fake.invokes[0].hub != "FcMarketDataV2Hub" ||
 		fake.invokes[0].method != "SwitchChannels" || fake.invokes[0].args[0] != "X:SSI" {
 		t.Fatalf("invokes = %+v", fake.invokes)
+	}
+	if fake.headers["Authorization"] != "Bearer data-token" {
+		t.Fatalf("authorization = %s", fake.headers["Authorization"])
 	}
 
 	fake.emit("FcMarketDataV2Hub", "broadcast", nestedSSIArg(t, "X", map[string]any{
@@ -225,7 +237,7 @@ func TestSSIMarketDataRealtimeSwitchesChannelAndPublishesTopPrice(t *testing.T) 
 func TestSSIMarketDataRealtimePublishesRawChannel(t *testing.T) {
 	fake := newFakeSignalRClient()
 	broker := NewBroker(Config{
-		AccessToken:    "access-token",
+		DataToken:      "data-token",
 		SignalRFactory: func(string, []string) SignalRClient { return fake },
 	})
 

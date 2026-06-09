@@ -1,16 +1,44 @@
 package ssi
 
-import "github.com/vnbrokers/vnbrokers-go/core"
+import (
+	"sync"
+
+	"github.com/vnbrokers/vnbrokers-go/core"
+)
 
 type Broker struct {
 	core.BaseBroker
 	config             Config
+	tokenMu            sync.RWMutex
 	dataAccessToken    string
 	tradingAccessToken string
-	accessToken        string
 	auth               *AuthService
 	trading            *TradingService
 	marketData         *MarketDataService
+}
+
+func (b *Broker) dataToken() string {
+	b.tokenMu.RLock()
+	defer b.tokenMu.RUnlock()
+	return b.dataAccessToken
+}
+
+func (b *Broker) setDataToken(token string) {
+	b.tokenMu.Lock()
+	defer b.tokenMu.Unlock()
+	b.dataAccessToken = token
+}
+
+func (b *Broker) tradingToken() string {
+	b.tokenMu.RLock()
+	defer b.tokenMu.RUnlock()
+	return b.tradingAccessToken
+}
+
+func (b *Broker) setTradingToken(token string) {
+	b.tokenMu.Lock()
+	defer b.tokenMu.Unlock()
+	b.tradingAccessToken = token
 }
 
 func NewBroker(config Config) *Broker {
@@ -21,8 +49,8 @@ func NewBroker(config Config) *Broker {
 			BrokerCapabilities: Capabilities,
 		},
 		config:             config,
-		dataAccessToken:    config.DataAccessToken,
-		tradingAccessToken: config.TradingAccessToken,
+		dataAccessToken:    config.DataToken,
+		tradingAccessToken: config.TradingToken,
 	}
 	b.auth = &AuthService{broker: b}
 	b.trading = &TradingService{

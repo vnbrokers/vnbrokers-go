@@ -15,10 +15,10 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	broker := vnbrokers.NewSSI(ssi.Config{AccessToken: mustEnv("SSI_ACCESS_TOKEN")})
+	broker := vnbrokers.NewSSI(ssi.Config{DataToken: mustEnv("SSI_FCDATA_TOKEN")})
 	subscription, err := broker.MarketData().Realtime().SubscribeTopPrice(
 		ctx,
-		marketdata.SubscribeSymbolRequest{Symbol: "SSI"},
+		marketdata.SubscribeSymbolRequest{Symbol: "ALL"},
 	)
 	if err != nil {
 		panic(err)

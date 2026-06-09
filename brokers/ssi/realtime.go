@@ -36,17 +36,18 @@ type ssiRealtimeMessage struct {
 func startSSISignalRSubscription[T any](
 	ctx context.Context,
 	broker *Broker,
+	accessToken string,
 	baseURL string,
 	hub string,
 	configure func(SignalRClient, *realtime.QueueSubscription[T]),
 	start func(SignalRClient) error,
 ) (realtime.Subscription[T], error) {
-	if broker.accessToken == "" {
+	if accessToken == "" {
 		return nil, sdkerrors.Auth("ssi", "realtime.subscribe", "SSI realtime requires an access token")
 	}
 	childCtx, cancel := context.WithCancel(ctx)
 	client := broker.config.SignalRFactory(baseURL, []string{hub})
-	client.SetHeader("Authorization", "Bearer "+broker.accessToken)
+	client.SetHeader("Authorization", "Bearer "+accessToken)
 
 	subscription := realtime.NewQueueSubscription[T](128, func() error {
 		cancel()

@@ -3,6 +3,7 @@ package ssi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -55,7 +56,10 @@ func (s *AuthService) GetAccessToken(
 	if err := decode(response, &envelope); err != nil {
 		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_data_access_token", "decode SSI data access token response", response.Body, err)
 	}
-	s.broker.dataAccessToken = envelope.Data.AccessToken
+	if envelope.Data.AccessToken == "" {
+		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_data_access_token", "decode SSI data access token response", response.Body, errors.New("SSI data token response missing accessToken"))
+	}
+	s.broker.setDataToken(envelope.Data.AccessToken)
 	return envelope.Data, nil
 }
 
@@ -85,7 +89,10 @@ func (s *AuthService) GetTradingToken(
 	if err := decode(response, &envelope); err != nil {
 		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_trading_token", "decode SSI trading access token response", response.Body, err)
 	}
-	s.broker.tradingAccessToken = envelope.Data.AccessToken
+	if envelope.Data.AccessToken == "" {
+		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_trading_token", "decode SSI trading access token response", response.Body, errors.New("SSI trading token response missing accessToken"))
+	}
+	s.broker.setTradingToken(envelope.Data.AccessToken)
 	return envelope.Data, nil
 }
 
@@ -97,7 +104,7 @@ func (b *Broker) send(
 	request transport.HTTPRequest,
 ) (transport.HTTPResponse, error) {
 	if authenticated {
-		request.Headers = b.withAuthorization(request.Headers)
+		request.Headers = b.withTradingAuthorization(request.Headers)
 	}
 	if sign {
 		signer := Signer{PrivateKey: b.config.PrivateKey}
@@ -140,15 +147,15 @@ func (b *Broker) headers(authenticated bool, includeContentType bool) map[string
 		headers["Content-Type"] = "application/json"
 	}
 	if authenticated {
-		headers = b.withAuthorization(headers)
+		headers = b.withTradingAuthorization(headers)
 	}
 	return headers
 }
 
-func (b *Broker) withAuthorization(headers map[string]string) map[string]string {
+func (b *Broker) withTradingAuthorization(headers map[string]string) map[string]string {
 	out := cloneHeaders(headers)
-	if b.accessToken != "" {
-		out["Authorization"] = "Bearer " + b.accessToken
+	if token := b.tradingToken(); token != "" {
+		out["Authorization"] = "Bearer " + token
 	}
 	return out
 }

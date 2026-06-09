@@ -30,9 +30,8 @@ type Config struct {
 	ConsumerID            string
 	DataConsumerSecret    string
 	TradingConsumerSecret string
-	DataAccessToken       string
-	TradingAccessToken    string
-	AccessToken           string
+	DataToken             string
+	TradingToken          string
 	PrivateKey            string
 	DeviceID              string
 	UserAgent             string

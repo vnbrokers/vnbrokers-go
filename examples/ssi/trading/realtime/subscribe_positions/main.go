@@ -15,7 +15,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	broker := vnbrokers.NewSSI(ssi.Config{AccessToken: mustEnv("SSI_ACCESS_TOKEN")})
+	broker := vnbrokers.NewSSI(ssi.Config{TradingToken: mustEnv("SSI_FCTRADING_TOKEN")})
 	subscription, err := broker.Trading().Realtime().SubscribePositions(
 		ctx,
 		trading.SubscribePositionsRequest{},

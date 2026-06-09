@@ -14,10 +14,18 @@ import (
 
 func main() {
 	broker := vnbrokers.NewSSI(ssi.Config{
-		ConsumerID:     mustEnv("SSI_FCTRADING_CONSUMER_ID"),
-		ConsumerSecret: mustEnv("SSI_FCTRADING_CONSUMER_SECRET"),
+		ConsumerID:            mustEnv("SSI_FCTRADING_CONSUMER_ID"),
+		DataConsumerSecret:    mustEnv("SSI_FCDATA_CONSUMER_SECRET"),
+		TradingConsumerSecret: mustEnv("SSI_FCTRADING_CONSUMER_SECRET"),
 	})
-	response, err := broker.Auth().GetAccessToken(context.Background(), ssi.AccessTokenRequest{
+	ctx := context.Background()
+	dataResponse, err := broker.Auth().GetAccessToken(ctx)
+	if err != nil {
+		panic(err)
+	}
+	printToken("data", dataResponse.AccessToken)
+
+	tradingResponse, err := broker.Auth().GetTradingToken(ctx, ssi.TradingTokenRequest{
 		TwoFactorType: 1,
 		Code:          mustEnv("SSI_FCTRADING_OTP"),
 		IsSave:        false,
@@ -25,9 +33,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("token:", response.AccessToken)
-	printJWTPart("header", response.AccessToken, 0)
-	printJWTPart("payload", response.AccessToken, 1)
+	printToken("trading", tradingResponse.AccessToken)
 }
 
 func mustEnv(key string) string {
@@ -36,6 +42,12 @@ func mustEnv(key string) string {
 		panic(key + " is required")
 	}
 	return value
+}
+
+func printToken(label string, token string) {
+	fmt.Printf("%s token: %s\n", label, token)
+	printJWTPart(label+" header", token, 0)
+	printJWTPart(label+" payload", token, 1)
 }
 
 func printJWTPart(label string, token string, index int) {

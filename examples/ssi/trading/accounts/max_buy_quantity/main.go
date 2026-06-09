@@ -12,7 +12,7 @@ import (
 
 func main() {
 	broker := vnbrokers.NewSSI(ssi.Config{
-		AccessToken: mustEnv("SSI_ACCESS_TOKEN"),
+		TradingToken: mustEnv("SSI_FCTRADING_TOKEN"),
 	})
 	response, err := broker.Trading().Accounts().MaxBuyQuantity(
 		context.Background(),

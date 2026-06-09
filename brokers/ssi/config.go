@@ -25,26 +25,33 @@ type SignalRClient interface {
 type SignalRFactory func(baseURL string, hubs []string) SignalRClient
 
 type Config struct {
-	BaseURL             string
-	ConsumerID          string
-	ConsumerSecret      string
-	AccessToken         string
-	PrivateKey          string
-	DeviceID            string
-	UserAgent           string
-	ChannelID           string
-	MarketID            string
-	HTTPClient          *http.Client
-	HTTPTransport       transport.HTTPTransport
-	RequestID           func() string
-	TradingStreamURL    string
-	MarketDataStreamURL string
-	SignalRFactory      SignalRFactory
+	BaseURL               string
+	DataBaseURL           string
+	ConsumerID            string
+	DataConsumerSecret    string
+	TradingConsumerSecret string
+	DataAccessToken       string
+	TradingAccessToken    string
+	AccessToken           string
+	PrivateKey            string
+	DeviceID              string
+	UserAgent             string
+	ChannelID             string
+	MarketID              string
+	HTTPClient            *http.Client
+	HTTPTransport         transport.HTTPTransport
+	RequestID             func() string
+	TradingStreamURL      string
+	MarketDataStreamURL   string
+	SignalRFactory        SignalRFactory
 }
 
 func (c Config) withDefaults() Config {
 	if c.BaseURL == "" {
 		c.BaseURL = "https://fc-tradeapi.ssi.com.vn"
+	}
+	if c.DataBaseURL == "" {
+		c.DataBaseURL = "https://fc-data.ssi.com.vn"
 	}
 	if c.ChannelID == "" {
 		c.ChannelID = "TA"

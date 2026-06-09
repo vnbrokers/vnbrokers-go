@@ -27,7 +27,7 @@ func (s *AuthService) GetOTP(ctx context.Context) (domain.RawPayload, error) {
 		Headers: s.broker.headers(false, true),
 		JSON: map[string]any{
 			"consumerID":     s.broker.config.ConsumerID,
-			"consumerSecret": s.broker.config.ConsumerSecret,
+			"consumerSecret": s.broker.config.TradingConsumerSecret,
 		},
 	})
 	if err != nil {
@@ -38,18 +38,41 @@ func (s *AuthService) GetOTP(ctx context.Context) (domain.RawPayload, error) {
 
 func (s *AuthService) GetAccessToken(
 	ctx context.Context,
-	request AccessTokenRequest,
+) (AccessTokenResponse, error) {
+	response, err := s.broker.send(ctx, "auth.get_data_access_token", false, false, transport.HTTPRequest{
+		Method:  "POST",
+		URL:     strings.TrimRight(s.broker.config.DataBaseURL, "/") + "/api/v2/Market/AccessToken",
+		Headers: s.broker.headers(false, true),
+		JSON: map[string]any{
+			"consumerID":     s.broker.config.ConsumerID,
+			"consumerSecret": s.broker.config.DataConsumerSecret,
+		},
+	})
+	if err != nil {
+		return AccessTokenResponse{}, err
+	}
+	var envelope TradingResponse[AccessTokenResponse]
+	if err := decode(response, &envelope); err != nil {
+		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_data_access_token", "decode SSI data access token response", response.Body, err)
+	}
+	s.broker.dataAccessToken = envelope.Data.AccessToken
+	return envelope.Data, nil
+}
+
+func (s *AuthService) GetTradingToken(
+	ctx context.Context,
+	request TradingTokenRequest,
 ) (AccessTokenResponse, error) {
 	if err := s.broker.RequireCapability(core.CapabilityTradingAuthTradingToken); err != nil {
 		return AccessTokenResponse{}, err
 	}
-	response, err := s.broker.send(ctx, "auth.get_access_token", false, false, transport.HTTPRequest{
+	response, err := s.broker.send(ctx, "auth.get_trading_token", false, false, transport.HTTPRequest{
 		Method:  "POST",
 		URL:     s.broker.url("/api/v2/Trading/AccessToken"),
 		Headers: s.broker.headers(false, true),
 		JSON: map[string]any{
 			"consumerID":     s.broker.config.ConsumerID,
-			"consumerSecret": s.broker.config.ConsumerSecret,
+			"consumerSecret": s.broker.config.TradingConsumerSecret,
 			"twoFactorType":  request.TwoFactorType,
 			"code":           request.Code,
 			"isSave":         request.IsSave,
@@ -60,9 +83,9 @@ func (s *AuthService) GetAccessToken(
 	}
 	var envelope TradingResponse[AccessTokenResponse]
 	if err := decode(response, &envelope); err != nil {
-		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_access_token", "decode SSI access token response", response.Body, err)
+		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_trading_token", "decode SSI trading access token response", response.Body, err)
 	}
-	s.broker.accessToken = envelope.Data.AccessToken
+	s.broker.tradingAccessToken = envelope.Data.AccessToken
 	return envelope.Data, nil
 }
 

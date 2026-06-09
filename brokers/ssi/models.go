@@ -39,7 +39,7 @@ type TokenResponse struct {
 	IsSave         bool   `json:"isSave,omitempty"`
 }
 
-type AccessTokenRequest struct {
+type TradingTokenRequest struct {
 	TwoFactorType int
 	Code          string
 	IsSave        bool

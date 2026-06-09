@@ -4,11 +4,13 @@ import "github.com/vnbrokers/vnbrokers-go/core"
 
 type Broker struct {
 	core.BaseBroker
-	config      Config
-	accessToken string
-	auth        *AuthService
-	trading     *TradingService
-	marketData  *MarketDataService
+	config             Config
+	dataAccessToken    string
+	tradingAccessToken string
+	accessToken        string
+	auth               *AuthService
+	trading            *TradingService
+	marketData         *MarketDataService
 }
 
 func NewBroker(config Config) *Broker {
@@ -18,8 +20,9 @@ func NewBroker(config Config) *Broker {
 			BrokerName:         "ssi",
 			BrokerCapabilities: Capabilities,
 		},
-		config:      config,
-		accessToken: config.AccessToken,
+		config:             config,
+		dataAccessToken:    config.DataAccessToken,
+		tradingAccessToken: config.TradingAccessToken,
 	}
 	b.auth = &AuthService{broker: b}
 	b.trading = &TradingService{

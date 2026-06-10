@@ -64,6 +64,7 @@ func NewBroker(config Config) *Broker {
 		realtime:          &TradingRealtimeService{broker: b},
 	}
 	b.marketData = &MarketDataService{
+		broker:   b,
 		realtime: &MarketDataRealtimeService{broker: b},
 	}
 	return b
@@ -125,6 +126,7 @@ func (s *TradingService) Realtime() *TradingRealtimeService {
 }
 
 type MarketDataService struct {
+	broker   *Broker
 	realtime *MarketDataRealtimeService
 }
 

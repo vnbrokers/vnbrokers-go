@@ -6,9 +6,12 @@ import (
 	"github.com/vnbrokers/vnbrokers-go/core"
 )
 
-func TestSSIMarketDataCapabilitiesMatchTypedRealtimeAPI(t *testing.T) {
+func TestSSIMarketDataCapabilities(t *testing.T) {
 	broker := NewBroker(Config{})
 
+	if !broker.Supports(core.CapabilityMarketDataSymbolsList) {
+		t.Fatal("expected market data symbols list capability")
+	}
 	if !broker.Supports(core.CapabilityMarketDataRealtimeRaw) {
 		t.Fatal("expected raw market data realtime capability")
 	}

@@ -120,7 +120,7 @@ func TestSSITradingRealtimeRequiresTradingAccessToken(t *testing.T) {
 
 func TestSSIMarketDataRealtimeRequiresDataAccessToken(t *testing.T) {
 	broker := NewBroker(Config{TradingToken: "trading-token"})
-	if _, err := broker.MarketData().Realtime().SubscribeRawChannel(context.Background(), "X:ALL"); err == nil {
+	if _, err := broker.Native().MarketData().Realtime().SubscribeRawChannel(context.Background(), "X:ALL"); err == nil {
 		t.Fatalf("expected data access token error")
 	}
 }
@@ -227,7 +227,7 @@ func TestSSIMarketDataRealtimeTypedChannels(t *testing.T) {
 			name:    "trading status",
 			channel: "F:SSI-PAN",
 			subscribe: func(broker *Broker) error {
-				subscription, err := broker.MarketData().Realtime().SubscribeTradingStatus(
+				subscription, err := broker.Native().MarketData().Realtime().SubscribeTradingStatus(
 					context.Background(), marketdata.SubscribeSymbolRequest{Symbols: []string{"ssi", " pan "}},
 				)
 				if err == nil {
@@ -240,7 +240,7 @@ func TestSSIMarketDataRealtimeTypedChannels(t *testing.T) {
 			name:    "quotes",
 			channel: "X-QUOTE:SSI-PAN",
 			subscribe: func(broker *Broker) error {
-				subscription, err := broker.MarketData().Realtime().SubscribeQuotes(
+				subscription, err := broker.Native().MarketData().Realtime().SubscribeQuotes(
 					context.Background(), marketdata.SubscribeSymbolRequest{Symbols: []string{"ssi", "pan"}},
 				)
 				if err == nil {
@@ -253,7 +253,7 @@ func TestSSIMarketDataRealtimeTypedChannels(t *testing.T) {
 			name:    "trades",
 			channel: "X-TRADE:SSI-PAN",
 			subscribe: func(broker *Broker) error {
-				subscription, err := broker.MarketData().Realtime().SubscribeTrades(
+				subscription, err := broker.Native().MarketData().Realtime().SubscribeTrades(
 					context.Background(), marketdata.SubscribeSymbolRequest{Symbols: []string{"ssi", "pan"}},
 				)
 				if err == nil {
@@ -266,7 +266,7 @@ func TestSSIMarketDataRealtimeTypedChannels(t *testing.T) {
 			name:    "snapshots",
 			channel: "X:SSI-PAN",
 			subscribe: func(broker *Broker) error {
-				subscription, err := broker.MarketData().Realtime().SubscribeSnapshots(
+				subscription, err := broker.Native().MarketData().Realtime().SubscribeSnapshots(
 					context.Background(), marketdata.SubscribeSymbolRequest{Symbols: []string{"ssi", "pan"}},
 				)
 				if err == nil {
@@ -279,7 +279,7 @@ func TestSSIMarketDataRealtimeTypedChannels(t *testing.T) {
 			name:    "foreign rooms",
 			channel: "R:SSI-PAN",
 			subscribe: func(broker *Broker) error {
-				subscription, err := broker.MarketData().Realtime().SubscribeForeignRooms(
+				subscription, err := broker.Native().MarketData().Realtime().SubscribeForeignRooms(
 					context.Background(), marketdata.SubscribeSymbolRequest{Symbols: []string{"ssi", "pan"}},
 				)
 				if err == nil {
@@ -292,7 +292,7 @@ func TestSSIMarketDataRealtimeTypedChannels(t *testing.T) {
 			name:    "market indexes",
 			channel: "MI:VN30-HNXINDEX",
 			subscribe: func(broker *Broker) error {
-				subscription, err := broker.MarketData().Realtime().SubscribeMarketIndexes(
+				subscription, err := broker.Native().MarketData().Realtime().SubscribeMarketIndexes(
 					context.Background(), marketdata.SubscribeSymbolRequest{Symbols: []string{"vn30", "HNXIndex"}},
 				)
 				if err == nil {
@@ -305,7 +305,7 @@ func TestSSIMarketDataRealtimeTypedChannels(t *testing.T) {
 			name:    "ohlcv",
 			channel: "B:SSI-VN30",
 			subscribe: func(broker *Broker) error {
-				subscription, err := broker.MarketData().Realtime().SubscribeOHLCV(
+				subscription, err := broker.Native().MarketData().Realtime().SubscribeOHLCV(
 					context.Background(), marketdata.SubscribeSymbolRequest{Symbols: []string{"ssi", "vn30"}},
 				)
 				if err == nil {
@@ -318,7 +318,7 @@ func TestSSIMarketDataRealtimeTypedChannels(t *testing.T) {
 			name:    "odd lots",
 			channel: "OL:SSI-VND",
 			subscribe: func(broker *Broker) error {
-				subscription, err := broker.MarketData().Realtime().SubscribeOddLots(
+				subscription, err := broker.Native().MarketData().Realtime().SubscribeOddLots(
 					context.Background(), marketdata.SubscribeSymbolRequest{Symbols: []string{"ssi", "vnd"}},
 				)
 				if err == nil {
@@ -363,7 +363,7 @@ func TestSSIMarketDataRealtimePublishesTypedEvents(t *testing.T) {
 
 	t.Run("trading status", func(t *testing.T) {
 		broker, fake := newBroker()
-		subscription, err := broker.MarketData().Realtime().SubscribeTradingStatus(
+		subscription, err := broker.Native().MarketData().Realtime().SubscribeTradingStatus(
 			context.Background(), marketdata.SubscribeSymbolRequest{Symbol: "SSI"},
 		)
 		if err != nil {
@@ -382,7 +382,7 @@ func TestSSIMarketDataRealtimePublishesTypedEvents(t *testing.T) {
 
 	t.Run("quote", func(t *testing.T) {
 		broker, fake := newBroker()
-		subscription, err := broker.MarketData().Realtime().SubscribeQuotes(
+		subscription, err := broker.Native().MarketData().Realtime().SubscribeQuotes(
 			context.Background(), marketdata.SubscribeSymbolRequest{Symbol: "SSI"},
 		)
 		if err != nil {
@@ -401,7 +401,7 @@ func TestSSIMarketDataRealtimePublishesTypedEvents(t *testing.T) {
 
 	t.Run("trade", func(t *testing.T) {
 		broker, fake := newBroker()
-		subscription, err := broker.MarketData().Realtime().SubscribeTrades(
+		subscription, err := broker.Native().MarketData().Realtime().SubscribeTrades(
 			context.Background(), marketdata.SubscribeSymbolRequest{Symbol: "SSI"},
 		)
 		if err != nil {
@@ -420,7 +420,7 @@ func TestSSIMarketDataRealtimePublishesTypedEvents(t *testing.T) {
 
 	t.Run("snapshot", func(t *testing.T) {
 		broker, fake := newBroker()
-		subscription, err := broker.MarketData().Realtime().SubscribeSnapshots(
+		subscription, err := broker.Native().MarketData().Realtime().SubscribeSnapshots(
 			context.Background(), marketdata.SubscribeSymbolRequest{Symbol: "SSI"},
 		)
 		if err != nil {
@@ -439,7 +439,7 @@ func TestSSIMarketDataRealtimePublishesTypedEvents(t *testing.T) {
 
 	t.Run("foreign room", func(t *testing.T) {
 		broker, fake := newBroker()
-		subscription, err := broker.MarketData().Realtime().SubscribeForeignRooms(
+		subscription, err := broker.Native().MarketData().Realtime().SubscribeForeignRooms(
 			context.Background(), marketdata.SubscribeSymbolRequest{Symbol: "SSI"},
 		)
 		if err != nil {
@@ -458,7 +458,7 @@ func TestSSIMarketDataRealtimePublishesTypedEvents(t *testing.T) {
 
 	t.Run("market index", func(t *testing.T) {
 		broker, fake := newBroker()
-		subscription, err := broker.MarketData().Realtime().SubscribeMarketIndexes(
+		subscription, err := broker.Native().MarketData().Realtime().SubscribeMarketIndexes(
 			context.Background(), marketdata.SubscribeSymbolRequest{Symbol: "VN30"},
 		)
 		if err != nil {
@@ -477,7 +477,7 @@ func TestSSIMarketDataRealtimePublishesTypedEvents(t *testing.T) {
 
 	t.Run("ohlcv", func(t *testing.T) {
 		broker, fake := newBroker()
-		subscription, err := broker.MarketData().Realtime().SubscribeOHLCV(
+		subscription, err := broker.Native().MarketData().Realtime().SubscribeOHLCV(
 			context.Background(), marketdata.SubscribeSymbolRequest{Symbol: "SSI"},
 		)
 		if err != nil {
@@ -496,7 +496,7 @@ func TestSSIMarketDataRealtimePublishesTypedEvents(t *testing.T) {
 
 	t.Run("odd lot", func(t *testing.T) {
 		broker, fake := newBroker()
-		subscription, err := broker.MarketData().Realtime().SubscribeOddLots(
+		subscription, err := broker.Native().MarketData().Realtime().SubscribeOddLots(
 			context.Background(), marketdata.SubscribeSymbolRequest{Symbol: "SSI"},
 		)
 		if err != nil {
@@ -520,7 +520,7 @@ func TestSSIMarketDataRealtimeReportsTypedDecodeErrors(t *testing.T) {
 		DataToken:      "data-token",
 		SignalRFactory: func(string, []string) SignalRClient { return fake },
 	})
-	subscription, err := broker.MarketData().Realtime().SubscribeQuotes(
+	subscription, err := broker.Native().MarketData().Realtime().SubscribeQuotes(
 		context.Background(), marketdata.SubscribeSymbolRequest{Symbol: "SSI"},
 	)
 	if err != nil {
@@ -555,7 +555,7 @@ func TestSSIMarketDataRealtimePublishesRawChannel(t *testing.T) {
 		SignalRFactory: func(string, []string) SignalRClient { return fake },
 	})
 
-	subscription, err := broker.MarketData().Realtime().SubscribeRawChannel(context.Background(), "X:ALL")
+	subscription, err := broker.Native().MarketData().Realtime().SubscribeRawChannel(context.Background(), "X:ALL")
 	if err != nil {
 		t.Fatalf("subscribe raw: %v", err)
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/vnbrokers/vnbrokers-go/brokers/ssi/dto"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
 	"github.com/vnbrokers/vnbrokers-go/domain"
 	"github.com/vnbrokers/vnbrokers-go/marketdata"
@@ -18,57 +18,57 @@ type MarketDataRealtimeService struct {
 func (s *MarketDataRealtimeService) SubscribeTradingStatus(
 	ctx context.Context,
 	request marketdata.SubscribeSymbolRequest,
-) (realtime.Subscription[dto.TradingStatusEvent], error) {
-	return subscribeSSIMarketData[dto.TradingStatusEvent](ctx, s.broker, "F", request.SymbolList())
+) (realtime.Subscription[nativedto.TradingStatusEvent], error) {
+	return subscribeSSIMarketData[nativedto.TradingStatusEvent](ctx, s.broker, "F", request.SymbolList())
 }
 
 func (s *MarketDataRealtimeService) SubscribeQuotes(
 	ctx context.Context,
 	request marketdata.SubscribeSymbolRequest,
-) (realtime.Subscription[dto.QuoteEvent], error) {
-	return subscribeSSIMarketData[dto.QuoteEvent](ctx, s.broker, "X-QUOTE", request.SymbolList())
+) (realtime.Subscription[nativedto.QuoteEvent], error) {
+	return subscribeSSIMarketData[nativedto.QuoteEvent](ctx, s.broker, "X-QUOTE", request.SymbolList())
 }
 
 func (s *MarketDataRealtimeService) SubscribeTrades(
 	ctx context.Context,
 	request marketdata.SubscribeSymbolRequest,
-) (realtime.Subscription[dto.TradeEvent], error) {
-	return subscribeSSIMarketData[dto.TradeEvent](ctx, s.broker, "X-TRADE", request.SymbolList())
+) (realtime.Subscription[nativedto.TradeEvent], error) {
+	return subscribeSSIMarketData[nativedto.TradeEvent](ctx, s.broker, "X-TRADE", request.SymbolList())
 }
 
 func (s *MarketDataRealtimeService) SubscribeSnapshots(
 	ctx context.Context,
 	request marketdata.SubscribeSymbolRequest,
-) (realtime.Subscription[dto.SnapshotEvent], error) {
-	return subscribeSSIMarketData[dto.SnapshotEvent](ctx, s.broker, "X", request.SymbolList())
+) (realtime.Subscription[nativedto.SnapshotEvent], error) {
+	return subscribeSSIMarketData[nativedto.SnapshotEvent](ctx, s.broker, "X", request.SymbolList())
 }
 
 func (s *MarketDataRealtimeService) SubscribeForeignRooms(
 	ctx context.Context,
 	request marketdata.SubscribeSymbolRequest,
-) (realtime.Subscription[dto.ForeignRoomEvent], error) {
-	return subscribeSSIMarketData[dto.ForeignRoomEvent](ctx, s.broker, "R", request.SymbolList())
+) (realtime.Subscription[nativedto.ForeignRoomEvent], error) {
+	return subscribeSSIMarketData[nativedto.ForeignRoomEvent](ctx, s.broker, "R", request.SymbolList())
 }
 
 func (s *MarketDataRealtimeService) SubscribeMarketIndexes(
 	ctx context.Context,
 	request marketdata.SubscribeSymbolRequest,
-) (realtime.Subscription[dto.MarketIndexEvent], error) {
-	return subscribeSSIMarketData[dto.MarketIndexEvent](ctx, s.broker, "MI", request.SymbolList())
+) (realtime.Subscription[nativedto.MarketIndexEvent], error) {
+	return subscribeSSIMarketData[nativedto.MarketIndexEvent](ctx, s.broker, "MI", request.SymbolList())
 }
 
 func (s *MarketDataRealtimeService) SubscribeOHLCV(
 	ctx context.Context,
 	request marketdata.SubscribeSymbolRequest,
-) (realtime.Subscription[dto.OHLCVEvent], error) {
-	return subscribeSSIMarketData[dto.OHLCVEvent](ctx, s.broker, "B", request.SymbolList())
+) (realtime.Subscription[nativedto.OHLCVEvent], error) {
+	return subscribeSSIMarketData[nativedto.OHLCVEvent](ctx, s.broker, "B", request.SymbolList())
 }
 
 func (s *MarketDataRealtimeService) SubscribeOddLots(
 	ctx context.Context,
 	request marketdata.SubscribeSymbolRequest,
-) (realtime.Subscription[dto.OddLotEvent], error) {
-	return subscribeSSIMarketData[dto.OddLotEvent](ctx, s.broker, "OL", request.SymbolList())
+) (realtime.Subscription[nativedto.OddLotEvent], error) {
+	return subscribeSSIMarketData[nativedto.OddLotEvent](ctx, s.broker, "OL", request.SymbolList())
 }
 
 func (s *MarketDataRealtimeService) SubscribeRawChannel(

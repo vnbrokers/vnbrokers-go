@@ -21,6 +21,9 @@ func TestSSINativeMarketDataServiceIsExposed(t *testing.T) {
 	if broker.Native().MarketData() == nil {
 		t.Fatal("expected native market data service")
 	}
+	if broker.Native().MarketData().Realtime() == nil {
+		t.Fatal("expected native market data realtime service")
+	}
 }
 
 func TestNativeMarketDataMethodsRequireOwnCapabilities(t *testing.T) {

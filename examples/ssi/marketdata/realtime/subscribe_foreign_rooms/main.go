@@ -16,7 +16,7 @@ func main() {
 	defer stop()
 
 	broker := vnbrokers.NewSSI(ssi.Config{DataToken: mustEnv("SSI_FCDATA_TOKEN")})
-	subscription, err := broker.MarketData().Realtime().SubscribeForeignRooms(
+	subscription, err := broker.Native().MarketData().Realtime().SubscribeForeignRooms(
 		ctx,
 		marketdata.SubscribeSymbolRequest{},
 	)

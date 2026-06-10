@@ -9,7 +9,10 @@ import (
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
+	"github.com/vnbrokers/vnbrokers-go/domain"
 	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	sdkmarketdata "github.com/vnbrokers/vnbrokers-go/marketdata"
+	"github.com/vnbrokers/vnbrokers-go/realtime"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -25,6 +28,7 @@ const (
 )
 
 type Service interface {
+	Realtime() RealtimeService
 	GetSecurities(context.Context, dto.GetSecuritiesRequest) (*dto.GetSecuritiesResponse, error)
 	GetSecuritiesDetails(context.Context, dto.GetSecuritiesDetailsRequest) (*dto.GetSecuritiesDetailsResponse, error)
 	GetIndexComponents(context.Context, dto.GetIndexComponentsRequest) (*dto.GetIndexComponentsResponse, error)
@@ -33,6 +37,18 @@ type Service interface {
 	GetIntradayOhlc(context.Context, dto.GetIntradayOhlcRequest) (*dto.GetIntradayOhlcResponse, error)
 	GetDailyIndex(context.Context, dto.GetDailyIndexRequest) (*dto.GetDailyIndexResponse, error)
 	GetDailyStockPrice(context.Context, dto.GetDailyStockPriceRequest) (*dto.GetDailyStockPriceResponse, error)
+}
+
+type RealtimeService interface {
+	SubscribeTradingStatus(context.Context, sdkmarketdata.SubscribeSymbolRequest) (realtime.Subscription[dto.TradingStatusEvent], error)
+	SubscribeQuotes(context.Context, sdkmarketdata.SubscribeSymbolRequest) (realtime.Subscription[dto.QuoteEvent], error)
+	SubscribeTrades(context.Context, sdkmarketdata.SubscribeSymbolRequest) (realtime.Subscription[dto.TradeEvent], error)
+	SubscribeSnapshots(context.Context, sdkmarketdata.SubscribeSymbolRequest) (realtime.Subscription[dto.SnapshotEvent], error)
+	SubscribeForeignRooms(context.Context, sdkmarketdata.SubscribeSymbolRequest) (realtime.Subscription[dto.ForeignRoomEvent], error)
+	SubscribeMarketIndexes(context.Context, sdkmarketdata.SubscribeSymbolRequest) (realtime.Subscription[dto.MarketIndexEvent], error)
+	SubscribeOHLCV(context.Context, sdkmarketdata.SubscribeSymbolRequest) (realtime.Subscription[dto.OHLCVEvent], error)
+	SubscribeOddLots(context.Context, sdkmarketdata.SubscribeSymbolRequest) (realtime.Subscription[dto.OddLotEvent], error)
+	SubscribeRawChannel(context.Context, string) (realtime.Subscription[domain.RawPayload], error)
 }
 
 type Dependencies struct {
@@ -44,10 +60,15 @@ type Dependencies struct {
 
 type service struct {
 	dependencies Dependencies
+	realtime     RealtimeService
 }
 
-func NewService(dependencies Dependencies) Service {
-	return &service{dependencies: dependencies}
+func NewService(dependencies Dependencies, realtime RealtimeService) Service {
+	return &service{dependencies: dependencies, realtime: realtime}
+}
+
+func (s *service) Realtime() RealtimeService {
+	return s.realtime
 }
 
 func get[T any](ctx context.Context, s *service, capability core.Capability, path string, params url.Values) (*T, error) {

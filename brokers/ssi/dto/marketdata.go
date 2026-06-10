@@ -1,262 +1,257 @@
 package dto
 
-type QuoteEvent struct {
-	TradingDate string `json:"TradingDate"`
-	Time        string `json:"Time"`
-	Exchange    string `json:"Exchange"`
+type SecuritiesRequest struct {
+	Market    string `json:"market"`
+	PageIndex int    `json:"pageIndex"`
+	PageSize  int    `json:"pageSize"`
+}
+
+type SecuritiesResponse struct {
+	Data        []Security `json:"data"`
+	Message     string     `json:"message"`
+	Status      string     `json:"status"`
+	TotalRecord int        `json:"totalRecord"`
+}
+
+type Security struct {
+	Market      string `json:"Market"`
 	Symbol      string `json:"Symbol"`
-	RType       string `json:"RType"`
-
-	AskPrice1  float64 `json:"AskPrice1"`
-	AskPrice2  float64 `json:"AskPrice2"`
-	AskPrice3  float64 `json:"AskPrice3"`
-	AskPrice4  float64 `json:"AskPrice4"`
-	AskPrice5  float64 `json:"AskPrice5"`
-	AskPrice6  float64 `json:"AskPrice6"`
-	AskPrice7  float64 `json:"AskPrice7"`
-	AskPrice8  float64 `json:"AskPrice8"`
-	AskPrice9  float64 `json:"AskPrice9"`
-	AskPrice10 float64 `json:"AskPrice10"`
-
-	AskVol1  float64 `json:"AskVol1"`
-	AskVol2  float64 `json:"AskVol2"`
-	AskVol3  float64 `json:"AskVol3"`
-	AskVol4  float64 `json:"AskVol4"`
-	AskVol5  float64 `json:"AskVol5"`
-	AskVol6  float64 `json:"AskVol6"`
-	AskVol7  float64 `json:"AskVol7"`
-	AskVol8  float64 `json:"AskVol8"`
-	AskVol9  float64 `json:"AskVol9"`
-	AskVol10 float64 `json:"AskVol10"`
-
-	BidPrice1  float64 `json:"BidPrice1"`
-	BidPrice2  float64 `json:"BidPrice2"`
-	BidPrice3  float64 `json:"BidPrice3"`
-	BidPrice4  float64 `json:"BidPrice4"`
-	BidPrice5  float64 `json:"BidPrice5"`
-	BidPrice6  float64 `json:"BidPrice6"`
-	BidPrice7  float64 `json:"BidPrice7"`
-	BidPrice8  float64 `json:"BidPrice8"`
-	BidPrice9  float64 `json:"BidPrice9"`
-	BidPrice10 float64 `json:"BidPrice10"`
-
-	BidVol1  float64 `json:"BidVol1"`
-	BidVol2  float64 `json:"BidVol2"`
-	BidVol3  float64 `json:"BidVol3"`
-	BidVol4  float64 `json:"BidVol4"`
-	BidVol5  float64 `json:"BidVol5"`
-	BidVol6  float64 `json:"BidVol6"`
-	BidVol7  float64 `json:"BidVol7"`
-	BidVol8  float64 `json:"BidVol8"`
-	BidVol9  float64 `json:"BidVol9"`
-	BidVol10 float64 `json:"BidVol10"`
-
-	TradingSession string `json:"TradingSession"`
+	StockName   string `json:"StockName"`
+	StockEnName string `json:"StockEnName"`
 }
 
-type ForeignRoomEvent struct {
-	RType       string  `json:"RType"`
-	TradingDate string  `json:"TradingDate"`
-	Time        string  `json:"Time"`
-	Isin        string  `json:"Isin"`
-	Symbol      string  `json:"Symbol"`
-	TotalRoom   float64 `json:"TotalRoom"`
-	CurrentRoom float64 `json:"CurrentRoom"`
-	BuyVol      float64 `json:"BuyVol"`
-	SellVol     float64 `json:"SellVol"`
-	BuyVal      float64 `json:"BuyVal"`
-	SellVal     float64 `json:"SellVal"`
-	MarketID    string  `json:"MarketId"`
-	Exchange    string  `json:"Exchange"`
+type SecuritiesDetailsRequest struct {
+	Market    string `json:"market"`
+	Symbol    string `json:"symbol"`
+	PageIndex int    `json:"pageIndex"`
+	PageSize  int    `json:"pageSize"`
 }
 
-type TradingStatusEvent struct {
-	RType          string `json:"RType"`
-	MarketID       string `json:"MarketId"`
+type SecuritiesDetailsResponse struct {
+	Data        []SecurityDetailsGroup `json:"data"`
+	Message     string                 `json:"message"`
+	Status      string                 `json:"status"`
+	TotalRecord int                    `json:"totalRecord"`
+}
+
+type SecurityDetailsGroup struct {
+	RType        string           `json:"RType"`
+	ReportDate   string           `json:"ReportDate"`
+	TotalNoSym   string           `json:"TotalNoSym"`
+	RepeatedInfo []SecurityDetail `json:"RepeatedInfo"`
+}
+
+type SecurityDetail struct {
+	Isin               any    `json:"Isin"`
+	Symbol             string `json:"Symbol"`
+	SymbolName         string `json:"SymbolName"`
+	SymbolEngName      string `json:"SymbolEngName"`
+	SecType            string `json:"SecType"`
+	MarketID           string `json:"MarketId"`
+	Exchange           string `json:"Exchange"`
+	Issuer             any    `json:"Issuer"`
+	LotSize            string `json:"LotSize"`
+	IssueDate          string `json:"IssueDate"`
+	MaturityDate       string `json:"MaturityDate"`
+	FirstTradingDate   string `json:"FirstTradingDate"`
+	LastTradingDate    string `json:"LastTradingDate"`
+	ContractMultiplier string `json:"ContractMultiplier"`
+	SettlMethod        string `json:"SettlMethod"`
+	Underlying         any    `json:"Underlying"`
+	PutOrCall          any    `json:"PutOrCall"`
+	ExercisePrice      string `json:"ExercisePrice"`
+	ExerciseStyle      string `json:"ExerciseStyle"`
+	ExcerciseRatio     string `json:"ExcerciseRatio"`
+	ListedShare        string `json:"ListedShare"`
+	TickPrice1         any    `json:"TickPrice1"`
+	TickIncrement1     any    `json:"TickIncrement1"`
+	TickPrice2         any    `json:"TickPrice2"`
+	TickIncrement2     any    `json:"TickIncrement2"`
+	TickPrice3         any    `json:"TickPrice3"`
+	TickIncrement3     any    `json:"TickIncrement3"`
+	TickPrice4         any    `json:"TickPrice4"`
+	TickIncrement4     any    `json:"TickIncrement4"`
+}
+
+type IndexComponentsRequest struct {
+	IndexCode string `json:"indexCode"`
+	PageIndex int    `json:"pageIndex"`
+	PageSize  int    `json:"pageSize"`
+}
+
+type IndexComponentsResponse struct {
+	Data        []IndexComponentGroup `json:"data"`
+	Message     string                `json:"message"`
+	Status      string                `json:"status"`
+	TotalRecord int                   `json:"totalRecord"`
+}
+
+type IndexComponentGroup struct {
+	IndexCode      string               `json:"IndexCode"`
+	IndexName      string               `json:"IndexName"`
+	Exchange       string               `json:"Exchange"`
+	TotalSymbolNo  string               `json:"TotalSymbolNo"`
+	IndexComponent []IndexComponentItem `json:"IndexComponent"`
+}
+
+type IndexComponentItem struct {
+	Isin        string `json:"Isin"`
+	StockSymbol string `json:"StockSymbol"`
+}
+
+type IndexListRequest struct {
+	Exchange  string `json:"exchange"`
+	PageIndex int    `json:"pageIndex"`
+	PageSize  int    `json:"pageSize"`
+}
+
+type IndexListResponse struct {
+	Data        []IndexItem `json:"data"`
+	Message     string      `json:"message"`
+	Status      string      `json:"status"`
+	TotalRecord int         `json:"totalRecord"`
+}
+
+type IndexItem struct {
+	IndexCode string `json:"IndexCode"`
+	IndexName string `json:"IndexName"`
+	Exchange  string `json:"Exchange"`
+}
+
+type DailyOhlcRequest struct {
+	Symbol    string `json:"symbol"`
+	FromDate  string `json:"fromDate"`
+	ToDate    string `json:"toDate"`
+	PageIndex int    `json:"pageIndex"`
+	PageSize  int    `json:"pageSize"`
+	Ascending bool   `json:"ascending"`
+}
+
+type DailyOhlcResponse struct {
+	Data        []OhlcRecord `json:"data"`
+	Message     string       `json:"message"`
+	Status      string       `json:"status"`
+	TotalRecord int          `json:"totalRecord"`
+}
+
+type IntradayOhlcRequest struct {
+	Symbol     string `json:"symbol"`
+	FromDate   string `json:"fromDate"`
+	ToDate     string `json:"toDate"`
+	PageIndex  int    `json:"pageIndex"`
+	PageSize   int    `json:"pageSize"`
+	Ascending  bool   `json:"ascending"`
+	Resolution int    `json:"resolution"`
+}
+
+type IntradayOhlcResponse struct {
+	Data        []OhlcRecord `json:"data"`
+	Message     string       `json:"message"`
+	Status      string       `json:"status"`
+	TotalRecord int          `json:"totalRecord"`
+}
+
+type OhlcRecord struct {
+	Symbol      string `json:"Symbol"`
+	Market      string `json:"Market"`
+	TradingDate string `json:"TradingDate"`
+	Time        any    `json:"Time"`
+	Open        string `json:"Open"`
+	High        string `json:"High"`
+	Low         string `json:"Low"`
+	Close       string `json:"Close"`
+	Volume      string `json:"Volume"`
+	Value       string `json:"Value"`
+}
+
+type DailyIndexRequest struct {
+	IndexID   string `json:"indexId"`
+	FromDate  string `json:"fromDate"`
+	ToDate    string `json:"toDate"`
+	PageIndex int    `json:"pageIndex"`
+	PageSize  int    `json:"pageSize"`
+	Ascending bool   `json:"ascending"`
+}
+
+type DailyIndexResponse struct {
+	Data        []DailyIndexRecord `json:"data"`
+	Message     string             `json:"message"`
+	Status      string             `json:"status"`
+	TotalRecord int                `json:"totalRecord"`
+}
+
+type DailyIndexRecord struct {
+	IndexID        string `json:"IndexId"`
+	IndexValue     string `json:"IndexValue"`
 	TradingDate    string `json:"TradingDate"`
-	Time           string `json:"Time"`
-	Symbol         string `json:"Symbol"`
+	Time           any    `json:"Time"`
+	Change         string `json:"Change"`
+	RatioChange    string `json:"RatioChange"`
+	TotalTrade     string `json:"TotalTrade"`
+	TotalMatchVol  string `json:"TotalMatchVol"`
+	TotalMatchVal  string `json:"TotalMatchVal"`
+	TypeIndex      any    `json:"TypeIndex"`
+	IndexName      string `json:"IndexName"`
+	Advances       string `json:"Advances"`
+	NoChanges      string `json:"NoChanges"`
+	Declines       string `json:"Declines"`
+	Ceilings       string `json:"Ceilings"`
+	Floors         string `json:"Floors"`
+	TotalDealVol   string `json:"TotalDealVol"`
+	TotalDealVal   string `json:"TotalDealVal"`
+	TotalVol       string `json:"TotalVol"`
+	TotalVal       string `json:"TotalVal"`
 	TradingSession string `json:"TradingSession"`
-	TradingStatus  string `json:"TradingStatus"`
+	Market         string `json:"Market"`
 	Exchange       string `json:"Exchange"`
 }
 
-type TradeEvent struct {
-	RType           string  `json:"RType"`
-	TradingDate     string  `json:"TradingDate"`
-	Time            string  `json:"Time"`
-	Isin            string  `json:"Isin"`
-	Symbol          string  `json:"Symbol"`
-	Ceiling         float64 `json:"Ceiling"`
-	Floor           float64 `json:"Floor"`
-	RefPrice        float64 `json:"RefPrice"`
-	AvgPrice        float64 `json:"AvgPrice"`
-	PriorVal        float64 `json:"PriorVal"`
-	LastPrice       float64 `json:"LastPrice"`
-	LastVol         float64 `json:"LastVol"`
-	TotalVal        float64 `json:"TotalVal"`
-	TotalVol        float64 `json:"TotalVol"`
-	MarketID        string  `json:"MarketId"`
-	Exchange        string  `json:"Exchange"`
-	TradingSession  string  `json:"TradingSession"`
-	TradingStatus   string  `json:"TradingStatus"`
-	Change          float64 `json:"Change"`
-	RatioChange     float64 `json:"RatioChange"`
-	EstMatchedPrice float64 `json:"EstMatchedPrice"`
-	Highest         float64 `json:"Highest"`
-	Lowest          float64 `json:"Lowest"`
-	Side            string  `json:"Side"`
+type DailyStockPriceRequest struct {
+	Symbol    string `json:"symbol"`
+	FromDate  string `json:"fromDate"`
+	ToDate    string `json:"toDate"`
+	PageIndex int    `json:"pageIndex"`
+	PageSize  int    `json:"pageSize"`
+	Market    string `json:"market"`
 }
 
-type SnapshotEvent struct {
-	RType       string `json:"RType"`
-	TradingDate string `json:"TradingDate"`
-	Time        string `json:"Time"`
-	Isin        string `json:"Isin"`
-	Symbol      string `json:"Symbol"`
-
-	Ceiling   float64 `json:"Ceiling"`
-	Floor     float64 `json:"Floor"`
-	RefPrice  float64 `json:"RefPrice"`
-	Open      float64 `json:"Open"`
-	High      float64 `json:"High"`
-	Low       float64 `json:"Low"`
-	Close     float64 `json:"Close"`
-	AvgPrice  float64 `json:"AvgPrice"`
-	PriorVal  float64 `json:"PriorVal"`
-	LastPrice float64 `json:"LastPrice"`
-	LastVol   float64 `json:"LastVol"`
-	TotalVal  float64 `json:"TotalVal"`
-	TotalVol  float64 `json:"TotalVol"`
-
-	BidPrice1  float64 `json:"BidPrice1"`
-	BidPrice2  float64 `json:"BidPrice2"`
-	BidPrice3  float64 `json:"BidPrice3"`
-	BidPrice4  float64 `json:"BidPrice4"`
-	BidPrice5  float64 `json:"BidPrice5"`
-	BidPrice6  float64 `json:"BidPrice6"`
-	BidPrice7  float64 `json:"BidPrice7"`
-	BidPrice8  float64 `json:"BidPrice8"`
-	BidPrice9  float64 `json:"BidPrice9"`
-	BidPrice10 float64 `json:"BidPrice10"`
-
-	BidVol1  float64 `json:"BidVol1"`
-	BidVol2  float64 `json:"BidVol2"`
-	BidVol3  float64 `json:"BidVol3"`
-	BidVol4  float64 `json:"BidVol4"`
-	BidVol5  float64 `json:"BidVol5"`
-	BidVol6  float64 `json:"BidVol6"`
-	BidVol7  float64 `json:"BidVol7"`
-	BidVol8  float64 `json:"BidVol8"`
-	BidVol9  float64 `json:"BidVol9"`
-	BidVol10 float64 `json:"BidVol10"`
-
-	AskPrice1  float64 `json:"AskPrice1"`
-	AskPrice2  float64 `json:"AskPrice2"`
-	AskPrice3  float64 `json:"AskPrice3"`
-	AskPrice4  float64 `json:"AskPrice4"`
-	AskPrice5  float64 `json:"AskPrice5"`
-	AskPrice6  float64 `json:"AskPrice6"`
-	AskPrice7  float64 `json:"AskPrice7"`
-	AskPrice8  float64 `json:"AskPrice8"`
-	AskPrice9  float64 `json:"AskPrice9"`
-	AskPrice10 float64 `json:"AskPrice10"`
-
-	AskVol1  float64 `json:"AskVol1"`
-	AskVol2  float64 `json:"AskVol2"`
-	AskVol3  float64 `json:"AskVol3"`
-	AskVol4  float64 `json:"AskVol4"`
-	AskVol5  float64 `json:"AskVol5"`
-	AskVol6  float64 `json:"AskVol6"`
-	AskVol7  float64 `json:"AskVol7"`
-	AskVol8  float64 `json:"AskVol8"`
-	AskVol9  float64 `json:"AskVol9"`
-	AskVol10 float64 `json:"AskVol10"`
-
-	MarketID        string  `json:"MarketId"`
-	Exchange        string  `json:"Exchange"`
-	TradingSession  string  `json:"TradingSession"`
-	TradingStatus   string  `json:"TradingStatus"`
-	Change          float64 `json:"Change"`
-	RatioChange     float64 `json:"RatioChange"`
-	EstMatchedPrice float64 `json:"EstMatchedPrice"`
+type DailyStockPriceResponse struct {
+	Data        []DailyStockPriceRecord `json:"data"`
+	Message     string                  `json:"message"`
+	Status      string                  `json:"status"`
+	TotalRecord int                     `json:"totalRecord"`
 }
 
-type MarketIndexEvent struct {
-	IndexID         string  `json:"IndexId"`
-	IndexValEst     float64 `json:"IndexValEst"`
-	IndexValue      float64 `json:"IndexValue"`
-	PriorIndexValue float64 `json:"PriorIndexValue"`
-	TradingDate     string  `json:"TradingDate"`
-	Time            string  `json:"Time"`
-	TotalTrade      float64 `json:"TotalTrade"`
-	TotalQtty       float64 `json:"TotalQtty"`
-	TotalValue      float64 `json:"TotalValue"`
-	IndexName       string  `json:"IndexName"`
-	Advances        float64 `json:"Advances"`
-	NoChanges       float64 `json:"NoChanges"`
-	Declines        float64 `json:"Declines"`
-	Ceilings        float64 `json:"Ceilings"`
-	Floors          float64 `json:"Floors"`
-	Change          float64 `json:"Change"`
-	RatioChange     float64 `json:"RatioChange"`
-	TotalQttyPt     float64 `json:"TotalQttyPt"`
-	TotalValuePt    float64 `json:"TotalValuePt"`
-	Exchange        string  `json:"Exchange"`
-	AllQty          float64 `json:"AllQty"`
-	AllValue        float64 `json:"AllValue"`
-	IndexType       string  `json:"IndexType"`
-	TradingSession  *string `json:"TradingSession"`
-	MarketID        *string `json:"MarketId"`
-	RType           string  `json:"RType"`
-	TotalQttyOd     float64 `json:"TotalQttyOd"`
-	TotalValueOd    float64 `json:"TotalValueOd"`
-}
-
-type OHLCVEvent struct {
-	RType       string  `json:"RType"`
-	Symbol      string  `json:"Symbol"`
-	TradingTime string  `json:"TradingTime"`
-	Open        float64 `json:"Open"`
-	High        float64 `json:"High"`
-	Low         float64 `json:"Low"`
-	Close       float64 `json:"Close"`
-	Volume      float64 `json:"Volume"`
-	Value       float64 `json:"Value"`
-}
-
-type OddLotEvent struct {
-	RType          string  `json:"RType"`
-	TradingDate    string  `json:"TradingDate"`
-	Time           string  `json:"Time"`
-	StockNo        float64 `json:"StockNo"`
-	Symbol         string  `json:"Symbol"`
-	Ceiling        float64 `json:"Ceiling"`
-	Floor          float64 `json:"Floor"`
-	RefPrice       float64 `json:"RefPrice"`
-	Open           float64 `json:"Open"`
-	High           float64 `json:"High"`
-	Low            float64 `json:"Low"`
-	LastPrice      float64 `json:"LastPrice"`
-	LastVol        float64 `json:"LastVol"`
-	TotalVal       float64 `json:"TotalVal"`
-	TotalVol       float64 `json:"TotalVol"`
-	BidPrice1      float64 `json:"BidPrice1"`
-	BidPrice2      float64 `json:"BidPrice2"`
-	BidPrice3      float64 `json:"BidPrice3"`
-	BidVol1        float64 `json:"BidVol1"`
-	BidVol2        float64 `json:"BidVol2"`
-	BidVol3        float64 `json:"BidVol3"`
-	AskPrice1      float64 `json:"AskPrice1"`
-	AskPrice2      float64 `json:"AskPrice2"`
-	AskPrice3      float64 `json:"AskPrice3"`
-	AskVol1        float64 `json:"AskVol1"`
-	AskVol2        float64 `json:"AskVol2"`
-	AskVol3        float64 `json:"AskVol3"`
-	Exchange       string  `json:"Exchange"`
-	TradingSession string  `json:"TradingSession"`
-	TradingStatus  string  `json:"TradingStatus"`
-	Change         float64 `json:"Change"`
-	RatioChange    float64 `json:"RatioChange"`
-	StockType      string  `json:"StockType"`
+type DailyStockPriceRecord struct {
+	TradingDate         string `json:"TradingDate"`
+	PriceChange         string `json:"PriceChange"`
+	PerPriceChange      string `json:"PerPriceChange"`
+	CeilingPrice        string `json:"CeilingPrice"`
+	FloorPrice          string `json:"FloorPrice"`
+	RefPrice            string `json:"RefPrice"`
+	OpenPrice           string `json:"OpenPrice"`
+	HighestPrice        string `json:"HighestPrice"`
+	LowestPrice         string `json:"LowestPrice"`
+	ClosePrice          string `json:"ClosePrice"`
+	AveragePrice        string `json:"AveragePrice"`
+	ClosePriceAdjusted  string `json:"ClosePriceAdjusted"`
+	TotalMatchVol       string `json:"TotalMatchVol"`
+	TotalMatchVal       string `json:"TotalMatchVal"`
+	TotalDealVal        string `json:"TotalDealVal"`
+	TotalDealVol        string `json:"TotalDealVol"`
+	ForeignBuyVolTotal  string `json:"ForeignBuyVolTotal"`
+	ForeignCurrentRoom  string `json:"ForeignCurrentRoom"`
+	ForeignSellVolTotal string `json:"ForeignSellVolTotal"`
+	ForeignBuyValTotal  string `json:"ForeignBuyValTotal"`
+	ForeignSellValTotal string `json:"ForeignSellValTotal"`
+	TotalBuyTrade       string `json:"TotalBuyTrade"`
+	TotalBuyTradeVol    string `json:"TotalBuyTradeVol"`
+	TotalSellTrade      string `json:"TotalSellTrade"`
+	TotalSellTradeVol   string `json:"TotalSellTradeVol"`
+	NetBuySellVol       string `json:"NetBuySellVol"`
+	NetBuySellVal       string `json:"NetBuySellVal"`
+	TotalTradedVol      string `json:"TotalTradedVol"`
+	TotalTradedValue    string `json:"TotalTradedValue"`
+	Symbol              string `json:"Symbol"`
+	Time                any    `json:"Time"`
 }

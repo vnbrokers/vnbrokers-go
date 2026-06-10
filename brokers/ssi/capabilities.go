@@ -19,5 +19,6 @@ var Capabilities = []core.Capability{
 	core.CapabilityTradingConditionalOrders,
 	core.CapabilityTradingRealtimeOrders,
 	core.CapabilityTradingRealtimePosition,
+	core.CapabilityMarketDataSymbolsList,
 	core.CapabilityMarketDataRealtimeRaw,
 }

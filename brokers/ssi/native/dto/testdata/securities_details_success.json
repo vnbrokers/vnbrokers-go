@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "RType": "y",
+      "ReportDate": "19/01/2023",
+      "TotalNoSym": "1",
+      "RepeatedInfo": [
+        {
+          "Isin": null,
+          "Symbol": "SSI",
+          "SymbolName": "CTCP CHUNG KHOAN SSI",
+          "SymbolEngName": "SSI Securities Corporation",
+          "SecType": "S",
+          "MarketId": "HOSE",
+          "Exchange": "HOSE",
+          "Issuer": null,
+          "LotSize": "100",
+          "Underlying": null,
+          "PutOrCall": null,
+          "UnknownFutureField": "ignored"
+        }
+      ],
+      "UnknownGroupField": 42
+    }
+  ],
+  "message": "Success",
+  "status": "Success",
+  "totalRecord": 1,
+  "unknownEnvelopeField": true
+}

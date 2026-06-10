@@ -2,12 +2,32 @@ package dto
 
 import (
 	"encoding/json"
+	"os"
 	"reflect"
 	"testing"
 )
 
+func TestGetSecuritiesDetailsResponseDecodesFixtureWithNullableAndAdditiveFields(t *testing.T) {
+	raw, err := os.ReadFile("testdata/securities_details_success.json")
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+
+	var response GetSecuritiesDetailsResponse
+	if err := json.Unmarshal(raw, &response); err != nil {
+		t.Fatalf("unmarshal fixture: %v", err)
+	}
+	if response.Status != "Success" || response.TotalRecord != 1 || len(response.Data) != 1 {
+		t.Fatalf("response = %+v", response)
+	}
+	item := response.Data[0].RepeatedInfo[0]
+	if item.Symbol != "SSI" || item.Isin != nil || item.Issuer != nil || item.Underlying != nil {
+		t.Fatalf("item = %+v", item)
+	}
+}
+
 func TestSecuritiesRequestMarshal(t *testing.T) {
-	request := SecuritiesRequest{
+	request := GetSecuritiesRequest{
 		Market:    "hose",
 		PageIndex: 1,
 		PageSize:  10,
@@ -15,7 +35,7 @@ func TestSecuritiesRequestMarshal(t *testing.T) {
 
 	data, err := json.Marshal(request)
 	if err != nil {
-		t.Fatalf("marshal SecuritiesRequest: %v", err)
+		t.Fatalf("marshal GetSecuritiesRequest: %v", err)
 	}
 
 	var got map[string]any
@@ -53,9 +73,9 @@ func TestSecuritiesResponseUnmarshal(t *testing.T) {
 		"totalRecord": 2
 	}`)
 
-	var response SecuritiesResponse
+	var response GetSecuritiesResponse
 	if err := json.Unmarshal(data, &response); err != nil {
-		t.Fatalf("unmarshal SecuritiesResponse: %v", err)
+		t.Fatalf("unmarshal GetSecuritiesResponse: %v", err)
 	}
 
 	if response.Message != "Success" || response.Status != "Success" || response.TotalRecord != 2 {
@@ -81,7 +101,7 @@ func TestSecuritiesResponseUnmarshal(t *testing.T) {
 }
 
 func TestSecuritiesDetailsRequestMarshal(t *testing.T) {
-	request := SecuritiesDetailsRequest{
+	request := GetSecuritiesDetailsRequest{
 		Market:    "HOSE",
 		Symbol:    "SSI",
 		PageIndex: 1,
@@ -90,7 +110,7 @@ func TestSecuritiesDetailsRequestMarshal(t *testing.T) {
 
 	data, err := json.Marshal(request)
 	if err != nil {
-		t.Fatalf("marshal SecuritiesDetailsRequest: %v", err)
+		t.Fatalf("marshal GetSecuritiesDetailsRequest: %v", err)
 	}
 
 	var got map[string]any
@@ -155,9 +175,9 @@ func TestSecuritiesDetailsResponseUnmarshal(t *testing.T) {
 		"totalRecord": 1
 	}`)
 
-	var response SecuritiesDetailsResponse
+	var response GetSecuritiesDetailsResponse
 	if err := json.Unmarshal(data, &response); err != nil {
-		t.Fatalf("unmarshal SecuritiesDetailsResponse: %v", err)
+		t.Fatalf("unmarshal GetSecuritiesDetailsResponse: %v", err)
 	}
 	if response.Status != "Success" || response.TotalRecord != 1 || len(response.Data) != 1 {
 		t.Fatalf("response = %+v", response)
@@ -179,7 +199,7 @@ func TestSecuritiesDetailsResponseUnmarshal(t *testing.T) {
 }
 
 func TestIndexComponentsRequestMarshal(t *testing.T) {
-	request := IndexComponentsRequest{
+	request := GetIndexComponentsRequest{
 		IndexCode: "VN30",
 		PageIndex: 1,
 		PageSize:  10,
@@ -187,7 +207,7 @@ func TestIndexComponentsRequestMarshal(t *testing.T) {
 
 	data, err := json.Marshal(request)
 	if err != nil {
-		t.Fatalf("marshal IndexComponentsRequest: %v", err)
+		t.Fatalf("marshal GetIndexComponentsRequest: %v", err)
 	}
 
 	var got map[string]any
@@ -225,9 +245,9 @@ func TestIndexComponentsResponseUnmarshal(t *testing.T) {
 		"totalRecord": 1
 	}`)
 
-	var response IndexComponentsResponse
+	var response GetIndexComponentsResponse
 	if err := json.Unmarshal(data, &response); err != nil {
-		t.Fatalf("unmarshal IndexComponentsResponse: %v", err)
+		t.Fatalf("unmarshal GetIndexComponentsResponse: %v", err)
 	}
 	if response.TotalRecord != 1 || len(response.Data) != 1 {
 		t.Fatalf("response = %+v", response)
@@ -242,7 +262,7 @@ func TestIndexComponentsResponseUnmarshal(t *testing.T) {
 }
 
 func TestIndexListRequestMarshal(t *testing.T) {
-	request := IndexListRequest{
+	request := GetIndexListRequest{
 		Exchange:  "HOSE",
 		PageIndex: 1,
 		PageSize:  10,
@@ -250,7 +270,7 @@ func TestIndexListRequestMarshal(t *testing.T) {
 
 	data, err := json.Marshal(request)
 	if err != nil {
-		t.Fatalf("marshal IndexListRequest: %v", err)
+		t.Fatalf("marshal GetIndexListRequest: %v", err)
 	}
 
 	var got map[string]any
@@ -278,9 +298,9 @@ func TestIndexListResponseUnmarshal(t *testing.T) {
 		"totalRecord": 2
 	}`)
 
-	var response IndexListResponse
+	var response GetIndexListResponse
 	if err := json.Unmarshal(data, &response); err != nil {
-		t.Fatalf("unmarshal IndexListResponse: %v", err)
+		t.Fatalf("unmarshal GetIndexListResponse: %v", err)
 	}
 	if response.TotalRecord != 2 || len(response.Data) != 2 {
 		t.Fatalf("response = %+v", response)
@@ -291,7 +311,7 @@ func TestIndexListResponseUnmarshal(t *testing.T) {
 }
 
 func TestDailyOhlcRequestMarshal(t *testing.T) {
-	request := DailyOhlcRequest{
+	request := GetDailyOhlcRequest{
 		Symbol:    "SSI",
 		FromDate:  "10/08/2023",
 		ToDate:    "13/08/2023",
@@ -301,7 +321,7 @@ func TestDailyOhlcRequestMarshal(t *testing.T) {
 
 	data, err := json.Marshal(request)
 	if err != nil {
-		t.Fatalf("marshal DailyOhlcRequest: %v", err)
+		t.Fatalf("marshal GetDailyOhlcRequest: %v", err)
 	}
 
 	var got map[string]any
@@ -342,9 +362,9 @@ func TestDailyOhlcResponseUnmarshal(t *testing.T) {
 		"totalRecord": 1
 	}`)
 
-	var response DailyOhlcResponse
+	var response GetDailyOhlcResponse
 	if err := json.Unmarshal(data, &response); err != nil {
-		t.Fatalf("unmarshal DailyOhlcResponse: %v", err)
+		t.Fatalf("unmarshal GetDailyOhlcResponse: %v", err)
 	}
 	if len(response.Data) != 1 || response.Data[0].Open != "28600" || response.Data[0].Value != "663258204999.9850" {
 		t.Fatalf("response = %+v", response)
@@ -352,7 +372,7 @@ func TestDailyOhlcResponseUnmarshal(t *testing.T) {
 }
 
 func TestIntradayOhlcRequestMarshal(t *testing.T) {
-	request := IntradayOhlcRequest{
+	request := GetIntradayOhlcRequest{
 		Symbol:     "SSI",
 		FromDate:   "14/08/2023",
 		ToDate:     "14/08/2023",
@@ -363,7 +383,7 @@ func TestIntradayOhlcRequestMarshal(t *testing.T) {
 
 	data, err := json.Marshal(request)
 	if err != nil {
-		t.Fatalf("marshal IntradayOhlcRequest: %v", err)
+		t.Fatalf("marshal GetIntradayOhlcRequest: %v", err)
 	}
 
 	var got map[string]any
@@ -405,9 +425,9 @@ func TestIntradayOhlcResponseUnmarshal(t *testing.T) {
 		"totalRecord": 1
 	}`)
 
-	var response IntradayOhlcResponse
+	var response GetIntradayOhlcResponse
 	if err := json.Unmarshal(data, &response); err != nil {
-		t.Fatalf("unmarshal IntradayOhlcResponse: %v", err)
+		t.Fatalf("unmarshal GetIntradayOhlcResponse: %v", err)
 	}
 	if len(response.Data) != 1 || response.Data[0].Time != "14:45:04" || response.Data[0].Volume != "529200" {
 		t.Fatalf("response = %+v", response)
@@ -415,7 +435,7 @@ func TestIntradayOhlcResponseUnmarshal(t *testing.T) {
 }
 
 func TestDailyIndexRequestMarshal(t *testing.T) {
-	request := DailyIndexRequest{
+	request := GetDailyIndexRequest{
 		IndexID:   "HNX30",
 		FromDate:  "14/08/2023",
 		ToDate:    "14/08/2023",
@@ -425,7 +445,7 @@ func TestDailyIndexRequestMarshal(t *testing.T) {
 
 	data, err := json.Marshal(request)
 	if err != nil {
-		t.Fatalf("marshal DailyIndexRequest: %v", err)
+		t.Fatalf("marshal GetDailyIndexRequest: %v", err)
 	}
 
 	var got map[string]any
@@ -477,9 +497,9 @@ func TestDailyIndexResponseUnmarshal(t *testing.T) {
 		"totalRecord": 1
 	}`)
 
-	var response DailyIndexResponse
+	var response GetDailyIndexResponse
 	if err := json.Unmarshal(data, &response); err != nil {
-		t.Fatalf("unmarshal DailyIndexResponse: %v", err)
+		t.Fatalf("unmarshal GetDailyIndexResponse: %v", err)
 	}
 	if len(response.Data) != 1 || response.Data[0].IndexID != "HNX30" || response.Data[0].IndexValue != "510.56" {
 		t.Fatalf("response = %+v", response)
@@ -490,7 +510,7 @@ func TestDailyIndexResponseUnmarshal(t *testing.T) {
 }
 
 func TestDailyStockPriceRequestMarshal(t *testing.T) {
-	request := DailyStockPriceRequest{
+	request := GetDailyStockPriceRequest{
 		Symbol:    "SSI",
 		Market:    "HOSE",
 		FromDate:  "19/07/2023",
@@ -501,7 +521,7 @@ func TestDailyStockPriceRequestMarshal(t *testing.T) {
 
 	data, err := json.Marshal(request)
 	if err != nil {
-		t.Fatalf("marshal DailyStockPriceRequest: %v", err)
+		t.Fatalf("marshal GetDailyStockPriceRequest: %v", err)
 	}
 
 	var got map[string]any
@@ -563,9 +583,9 @@ func TestDailyStockPriceResponseUnmarshal(t *testing.T) {
 		"totalRecord": 1
 	}`)
 
-	var response DailyStockPriceResponse
+	var response GetDailyStockPriceResponse
 	if err := json.Unmarshal(data, &response); err != nil {
-		t.Fatalf("unmarshal DailyStockPriceResponse: %v", err)
+		t.Fatalf("unmarshal GetDailyStockPriceResponse: %v", err)
 	}
 	if len(response.Data) != 1 || response.Data[0].Symbol != "HUB" || response.Data[0].ClosePrice != "20000" {
 		t.Fatalf("response = %+v", response)

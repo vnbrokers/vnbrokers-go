@@ -1,9 +1,13 @@
 package ssi
 
 import (
+	"context"
 	"sync"
 
+	nativeapi "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native"
+	nativemarketdata "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/marketdata"
 	"github.com/vnbrokers/vnbrokers-go/core"
+	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
 type Broker struct {
@@ -15,6 +19,7 @@ type Broker struct {
 	auth               *AuthService
 	trading            *TradingService
 	marketData         *MarketDataService
+	native             nativeapi.Service
 }
 
 func (b *Broker) dataToken() string {
@@ -67,6 +72,16 @@ func NewBroker(config Config) *Broker {
 		broker:   b,
 		realtime: &MarketDataRealtimeService{broker: b},
 	}
+	b.native = nativeapi.NewService(nativemarketdata.NewService(nativemarketdata.Dependencies{
+		BaseURL:   b.config.DataBaseURL,
+		DataToken: b.dataToken,
+		RequireCapability: func(capability core.Capability) error {
+			return b.RequireCapability(capability)
+		},
+		Send: func(ctx context.Context, operation string, request transport.HTTPRequest) (transport.HTTPResponse, error) {
+			return b.send(ctx, operation, false, false, request)
+		},
+	}))
 	return b
 }
 
@@ -80,6 +95,10 @@ func (b *Broker) Trading() *TradingService {
 
 func (b *Broker) MarketData() *MarketDataService {
 	return b.marketData
+}
+
+func (b *Broker) Native() nativeapi.Service {
+	return b.native
 }
 
 type TradingService struct {

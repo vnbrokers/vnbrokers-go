@@ -7,12 +7,12 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/ssi"
-	"github.com/vnbrokers/vnbrokers-go/brokers/ssi/dto"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/dto"
 )
 
 func main() {
 	broker := vnbrokers.NewSSI(ssi.Config{DataToken: mustEnv("SSI_FCDATA_TOKEN")})
-	response, err := broker.MarketData().IndexComponents(context.Background(), dto.IndexComponentsRequest{
+	response, err := broker.Native().MarketData().GetIndexComponents(context.Background(), nativedto.GetIndexComponentsRequest{
 		IndexCode: "VN30",
 		PageIndex: 1,
 		PageSize:  50,

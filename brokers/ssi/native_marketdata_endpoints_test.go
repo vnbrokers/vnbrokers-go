@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/vnbrokers/vnbrokers-go/brokers/ssi/dto"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -33,7 +33,7 @@ func TestSecuritiesBuildsSSIDataRequestAndDecodesResponse(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	response, err := broker.MarketData().Securities(context.Background(), dto.SecuritiesRequest{
+	response, err := broker.Native().MarketData().GetSecurities(context.Background(), nativedto.GetSecuritiesRequest{
 		Market:    "HOSE",
 		PageIndex: 2,
 		PageSize:  20,
@@ -82,7 +82,7 @@ func TestSecuritiesUsesPaginationDefaultsAndOmitsEmptyMarket(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	if _, err := broker.MarketData().Securities(context.Background(), dto.SecuritiesRequest{}); err != nil {
+	if _, err := broker.Native().MarketData().GetSecurities(context.Background(), nativedto.GetSecuritiesRequest{}); err != nil {
 		t.Fatalf("securities: %v", err)
 	}
 
@@ -123,7 +123,7 @@ func TestSecuritiesDetailsBuildsSSIDataRequestAndDecodesResponse(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	response, err := broker.MarketData().SecuritiesDetails(context.Background(), dto.SecuritiesDetailsRequest{
+	response, err := broker.Native().MarketData().GetSecuritiesDetails(context.Background(), nativedto.GetSecuritiesDetailsRequest{
 		Market:    "HOSE",
 		Symbol:    "SSI",
 		PageIndex: 2,
@@ -167,7 +167,7 @@ func TestIndexComponentsBuildsSSIDataRequest(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	response, err := broker.MarketData().IndexComponents(context.Background(), dto.IndexComponentsRequest{
+	response, err := broker.Native().MarketData().GetIndexComponents(context.Background(), nativedto.GetIndexComponentsRequest{
 		IndexCode: "VN30",
 		PageIndex: 1,
 		PageSize:  10,
@@ -205,7 +205,7 @@ func TestIndexListBuildsSSIDataRequest(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	response, err := broker.MarketData().IndexList(context.Background(), dto.IndexListRequest{
+	response, err := broker.Native().MarketData().GetIndexList(context.Background(), nativedto.GetIndexListRequest{
 		Exchange:  "HOSE",
 		PageIndex: 1,
 		PageSize:  10,
@@ -243,7 +243,7 @@ func TestDailyOhlcUsesDefaultsAndOmitsEmptyOptionals(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	response, err := broker.MarketData().DailyOhlc(context.Background(), dto.DailyOhlcRequest{
+	response, err := broker.Native().MarketData().GetDailyOhlc(context.Background(), nativedto.GetDailyOhlcRequest{
 		Symbol:   "SSI",
 		FromDate: "10/08/2023",
 		ToDate:   "13/08/2023",
@@ -281,7 +281,7 @@ func TestIntradayOhlcIncludesResolutionAndAscending(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	response, err := broker.MarketData().IntradayOhlc(context.Background(), dto.IntradayOhlcRequest{
+	response, err := broker.Native().MarketData().GetIntradayOhlc(context.Background(), nativedto.GetIntradayOhlcRequest{
 		Symbol:     "SSI",
 		FromDate:   "14/08/2023",
 		ToDate:     "14/08/2023",
@@ -323,7 +323,7 @@ func TestDailyIndexBuildsSSIDataRequest(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	response, err := broker.MarketData().DailyIndex(context.Background(), dto.DailyIndexRequest{
+	response, err := broker.Native().MarketData().GetDailyIndex(context.Background(), nativedto.GetDailyIndexRequest{
 		IndexID:   "HNX30",
 		FromDate:  "14/08/2023",
 		ToDate:    "14/08/2023",
@@ -363,7 +363,7 @@ func TestDailyStockPriceBuildsSSIDataRequest(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	response, err := broker.MarketData().DailyStockPrice(context.Background(), dto.DailyStockPriceRequest{
+	response, err := broker.Native().MarketData().GetDailyStockPrice(context.Background(), nativedto.GetDailyStockPriceRequest{
 		Symbol:    "SSI",
 		Market:    "HOSE",
 		FromDate:  "19/07/2023",

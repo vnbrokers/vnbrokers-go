@@ -1,6 +1,20 @@
 package ssi
 
-import "github.com/vnbrokers/vnbrokers-go/core"
+import (
+	nativemarketdata "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/marketdata"
+	"github.com/vnbrokers/vnbrokers-go/core"
+)
+
+const (
+	CapabilityNativeMarketDataSecurities        = nativemarketdata.CapabilitySecurities
+	CapabilityNativeMarketDataSecuritiesDetails = nativemarketdata.CapabilitySecuritiesDetails
+	CapabilityNativeMarketDataIndexComponents   = nativemarketdata.CapabilityIndexComponents
+	CapabilityNativeMarketDataIndexList         = nativemarketdata.CapabilityIndexList
+	CapabilityNativeMarketDataDailyOhlc         = nativemarketdata.CapabilityDailyOhlc
+	CapabilityNativeMarketDataIntradayOhlc      = nativemarketdata.CapabilityIntradayOhlc
+	CapabilityNativeMarketDataDailyIndex        = nativemarketdata.CapabilityDailyIndex
+	CapabilityNativeMarketDataDailyStockPrice   = nativemarketdata.CapabilityDailyStockPrice
+)
 
 var Capabilities = []core.Capability{
 	core.CapabilityTradingAuthSendOTP,
@@ -19,6 +33,13 @@ var Capabilities = []core.Capability{
 	core.CapabilityTradingConditionalOrders,
 	core.CapabilityTradingRealtimeOrders,
 	core.CapabilityTradingRealtimePosition,
-	core.CapabilityMarketDataSymbolsList,
+	CapabilityNativeMarketDataSecurities,
+	CapabilityNativeMarketDataSecuritiesDetails,
+	CapabilityNativeMarketDataIndexComponents,
+	CapabilityNativeMarketDataIndexList,
+	CapabilityNativeMarketDataDailyOhlc,
+	CapabilityNativeMarketDataIntradayOhlc,
+	CapabilityNativeMarketDataDailyIndex,
+	CapabilityNativeMarketDataDailyStockPrice,
 	core.CapabilityMarketDataRealtimeRaw,
 }

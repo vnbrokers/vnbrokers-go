@@ -7,12 +7,12 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/ssi"
-	"github.com/vnbrokers/vnbrokers-go/brokers/ssi/dto"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/dto"
 )
 
 func main() {
 	broker := vnbrokers.NewSSI(ssi.Config{DataToken: mustEnv("SSI_FCDATA_TOKEN")})
-	response, err := broker.MarketData().DailyStockPrice(context.Background(), dto.DailyStockPriceRequest{
+	response, err := broker.Native().MarketData().GetDailyStockPrice(context.Background(), nativedto.GetDailyStockPriceRequest{
 		Symbol:    "SSI",
 		Market:    "HOSE",
 		FromDate:  "19/07/2023",

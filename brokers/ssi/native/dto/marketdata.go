@@ -1,12 +1,12 @@
 package dto
 
-type SecuritiesRequest struct {
+type GetSecuritiesRequest struct {
 	Market    string `json:"market"`
 	PageIndex int    `json:"pageIndex"`
 	PageSize  int    `json:"pageSize"`
 }
 
-type SecuritiesResponse struct {
+type GetSecuritiesResponse struct {
 	Data        []Security `json:"data"`
 	Message     string     `json:"message"`
 	Status      string     `json:"status"`
@@ -20,14 +20,14 @@ type Security struct {
 	StockEnName string `json:"StockEnName"`
 }
 
-type SecuritiesDetailsRequest struct {
+type GetSecuritiesDetailsRequest struct {
 	Market    string `json:"market"`
 	Symbol    string `json:"symbol"`
 	PageIndex int    `json:"pageIndex"`
 	PageSize  int    `json:"pageSize"`
 }
 
-type SecuritiesDetailsResponse struct {
+type GetSecuritiesDetailsResponse struct {
 	Data        []SecurityDetailsGroup `json:"data"`
 	Message     string                 `json:"message"`
 	Status      string                 `json:"status"`
@@ -73,13 +73,13 @@ type SecurityDetail struct {
 	TickIncrement4     any    `json:"TickIncrement4"`
 }
 
-type IndexComponentsRequest struct {
+type GetIndexComponentsRequest struct {
 	IndexCode string `json:"indexCode"`
 	PageIndex int    `json:"pageIndex"`
 	PageSize  int    `json:"pageSize"`
 }
 
-type IndexComponentsResponse struct {
+type GetIndexComponentsResponse struct {
 	Data        []IndexComponentGroup `json:"data"`
 	Message     string                `json:"message"`
 	Status      string                `json:"status"`
@@ -99,13 +99,13 @@ type IndexComponentItem struct {
 	StockSymbol string `json:"StockSymbol"`
 }
 
-type IndexListRequest struct {
+type GetIndexListRequest struct {
 	Exchange  string `json:"exchange"`
 	PageIndex int    `json:"pageIndex"`
 	PageSize  int    `json:"pageSize"`
 }
 
-type IndexListResponse struct {
+type GetIndexListResponse struct {
 	Data        []IndexItem `json:"data"`
 	Message     string      `json:"message"`
 	Status      string      `json:"status"`
@@ -118,7 +118,7 @@ type IndexItem struct {
 	Exchange  string `json:"Exchange"`
 }
 
-type DailyOhlcRequest struct {
+type GetDailyOhlcRequest struct {
 	Symbol    string `json:"symbol"`
 	FromDate  string `json:"fromDate"`
 	ToDate    string `json:"toDate"`
@@ -127,14 +127,14 @@ type DailyOhlcRequest struct {
 	Ascending bool   `json:"ascending"`
 }
 
-type DailyOhlcResponse struct {
+type GetDailyOhlcResponse struct {
 	Data        []OhlcRecord `json:"data"`
 	Message     string       `json:"message"`
 	Status      string       `json:"status"`
 	TotalRecord int          `json:"totalRecord"`
 }
 
-type IntradayOhlcRequest struct {
+type GetIntradayOhlcRequest struct {
 	Symbol     string `json:"symbol"`
 	FromDate   string `json:"fromDate"`
 	ToDate     string `json:"toDate"`
@@ -144,7 +144,7 @@ type IntradayOhlcRequest struct {
 	Resolution int    `json:"resolution"`
 }
 
-type IntradayOhlcResponse struct {
+type GetIntradayOhlcResponse struct {
 	Data        []OhlcRecord `json:"data"`
 	Message     string       `json:"message"`
 	Status      string       `json:"status"`
@@ -164,7 +164,7 @@ type OhlcRecord struct {
 	Value       string `json:"Value"`
 }
 
-type DailyIndexRequest struct {
+type GetDailyIndexRequest struct {
 	IndexID   string `json:"indexId"`
 	FromDate  string `json:"fromDate"`
 	ToDate    string `json:"toDate"`
@@ -173,7 +173,7 @@ type DailyIndexRequest struct {
 	Ascending bool   `json:"ascending"`
 }
 
-type DailyIndexResponse struct {
+type GetDailyIndexResponse struct {
 	Data        []DailyIndexRecord `json:"data"`
 	Message     string             `json:"message"`
 	Status      string             `json:"status"`
@@ -206,7 +206,7 @@ type DailyIndexRecord struct {
 	Exchange       string `json:"Exchange"`
 }
 
-type DailyStockPriceRequest struct {
+type GetDailyStockPriceRequest struct {
 	Symbol    string `json:"symbol"`
 	FromDate  string `json:"fromDate"`
 	ToDate    string `json:"toDate"`
@@ -215,7 +215,7 @@ type DailyStockPriceRequest struct {
 	Market    string `json:"market"`
 }
 
-type DailyStockPriceResponse struct {
+type GetDailyStockPriceResponse struct {
 	Data        []DailyStockPriceRecord `json:"data"`
 	Message     string                  `json:"message"`
 	Status      string                  `json:"status"`

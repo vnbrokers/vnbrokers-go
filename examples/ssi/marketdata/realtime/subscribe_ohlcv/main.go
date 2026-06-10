@@ -18,7 +18,7 @@ func main() {
 	broker := vnbrokers.NewSSI(ssi.Config{DataToken: mustEnv("SSI_FCDATA_TOKEN")})
 	subscription, err := broker.Native().MarketData().Realtime().SubscribeOHLCV(
 		ctx,
-		marketdata.SubscribeSymbolRequest{Symbols: []string{"SSI", "VN30"}},
+		marketdata.SubscribeSymbolRequest{Symbols: []string{"41I1G6000"}},
 	)
 	if err != nil {
 		panic(err)

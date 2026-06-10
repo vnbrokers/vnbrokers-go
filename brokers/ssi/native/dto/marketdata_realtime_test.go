@@ -185,7 +185,7 @@ func TestSnapshotEventUnmarshal(t *testing.T) {
 		"High":22300.0,
 		"Low":21300.0,
 		"Close":21800.0,
-		"AvgPrice":21784.0,
+		"AvgPrice": 21784.0,
 		"PriorVal":21300.0,
 		"LastPrice":21800.0,
 		"LastVol":100.0,
@@ -222,7 +222,7 @@ func TestSnapshotEventUnmarshal(t *testing.T) {
 	if event.Ceiling != 23400 || event.Floor != 19200 || event.RefPrice != 21300 {
 		t.Fatalf("unexpected reference levels: ceiling=%v floor=%v ref=%v", event.Ceiling, event.Floor, event.RefPrice)
 	}
-	if event.Open != 21300 || event.High != 22300 || event.Low != 21300 || event.Close != 21800 || event.AvgPrice != 21784 {
+	if event.Open != 21300 || event.High != 22300 || event.Low != 21300 || event.Close != 21800 || event.AvgPrice != 21784.0 {
 		t.Fatalf("unexpected OHLC data: open=%v high=%v low=%v close=%v avg=%v", event.Open, event.High, event.Low, event.Close, event.AvgPrice)
 	}
 	if event.LastPrice != 21800 || event.LastVol != 100 || event.TotalVal != 27946100000 || event.TotalVol != 1282900 {
@@ -239,6 +239,22 @@ func TestSnapshotEventUnmarshal(t *testing.T) {
 	}
 	if event.Change != 500 || event.RatioChange != 2.35 || event.EstMatchedPrice != 0 {
 		t.Fatalf("unexpected price movement: change=%v ratio=%v est=%v", event.Change, event.RatioChange, event.EstMatchedPrice)
+	}
+}
+
+func TestSnapshotEventUnmarshalNaNAvgPrice(t *testing.T) {
+	data := []byte(`{
+		"RType":"X",
+		"AvgPrice": "NaN"
+	}`)
+
+	var event SnapshotEvent
+	if err := json.Unmarshal(data, &event); err != nil {
+		t.Fatalf("unmarshal SnapshotEvent: %v", err)
+	}
+
+	if event.AvgPrice != 0 {
+		t.Fatalf("unexpected OHLC data: avg=%v", event.AvgPrice)
 	}
 }
 
@@ -309,7 +325,7 @@ func TestOHLCVEventUnmarshal(t *testing.T) {
 	data := []byte(`{
 		"RType":"B",
 		"Symbol":"X26",
-		"TradingTime":"14:28:33",
+		"Time":"14:28:33",
 		"Open":16000,
 		"High":16000,
 		"Low":16000,
@@ -323,8 +339,8 @@ func TestOHLCVEventUnmarshal(t *testing.T) {
 		t.Fatalf("unmarshal OHLCVEvent: %v", err)
 	}
 
-	if event.RType != "B" || event.Symbol != "X26" || event.TradingTime != "14:28:33" {
-		t.Fatalf("unexpected OHLCV identity: rtype=%q symbol=%q tradingTime=%q", event.RType, event.Symbol, event.TradingTime)
+	if event.RType != "B" || event.Symbol != "X26" || event.Time != "14:28:33" {
+		t.Fatalf("unexpected OHLCV identity: rtype=%q symbol=%q time=%q", event.RType, event.Symbol, event.Time)
 	}
 	if event.Open != 16000 || event.High != 16000 || event.Low != 16000 || event.Close != 16000 {
 		t.Fatalf("unexpected OHLC values: open=%v high=%v low=%v close=%v", event.Open, event.High, event.Low, event.Close)

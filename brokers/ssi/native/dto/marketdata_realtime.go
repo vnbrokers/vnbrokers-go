@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/vnbrokers/vnbrokers-go/internal/numberic"
+
 type QuoteEvent struct {
 	TradingDate string `json:"TradingDate"`
 	Time        string `json:"Time"`
@@ -115,19 +117,19 @@ type SnapshotEvent struct {
 	Isin        string `json:"Isin"`
 	Symbol      string `json:"Symbol"`
 
-	Ceiling   float64 `json:"Ceiling"`
-	Floor     float64 `json:"Floor"`
-	RefPrice  float64 `json:"RefPrice"`
-	Open      float64 `json:"Open"`
-	High      float64 `json:"High"`
-	Low       float64 `json:"Low"`
-	Close     float64 `json:"Close"`
-	AvgPrice  float64 `json:"AvgPrice"`
-	PriorVal  float64 `json:"PriorVal"`
-	LastPrice float64 `json:"LastPrice"`
-	LastVol   float64 `json:"LastVol"`
-	TotalVal  float64 `json:"TotalVal"`
-	TotalVol  float64 `json:"TotalVol"`
+	Ceiling   float64             `json:"Ceiling"`
+	Floor     float64             `json:"Floor"`
+	RefPrice  float64             `json:"RefPrice"`
+	Open      float64             `json:"Open"`
+	High      float64             `json:"High"`
+	Low       float64             `json:"Low"`
+	Close     float64             `json:"Close"`
+	AvgPrice  numberic.NaNFloat64 `json:"AvgPrice"`
+	PriorVal  float64             `json:"PriorVal"`
+	LastPrice float64             `json:"LastPrice"`
+	LastVol   float64             `json:"LastVol"`
+	TotalVal  float64             `json:"TotalVal"`
+	TotalVol  float64             `json:"TotalVol"`
 
 	BidPrice1  float64 `json:"BidPrice1"`
 	BidPrice2  float64 `json:"BidPrice2"`
@@ -180,6 +182,8 @@ type SnapshotEvent struct {
 	Change          float64 `json:"Change"`
 	RatioChange     float64 `json:"RatioChange"`
 	EstMatchedPrice float64 `json:"EstMatchedPrice"`
+	Side            string  `json:"Side"`
+	CloseQtty       float64 `json:"CloseQtty"`
 }
 
 type MarketIndexEvent struct {
@@ -216,7 +220,8 @@ type MarketIndexEvent struct {
 type OHLCVEvent struct {
 	RType       string  `json:"RType"`
 	Symbol      string  `json:"Symbol"`
-	TradingTime string  `json:"TradingTime"`
+	TradingDate string  `json:"TradingDate"`
+	Time        string  `json:"Time"`
 	Open        float64 `json:"Open"`
 	High        float64 `json:"High"`
 	Low         float64 `json:"Low"`

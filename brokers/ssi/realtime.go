@@ -119,7 +119,7 @@ func registerSSIJSONHandler[T any](
 			}
 			var event T
 			if err := json.Unmarshal(message.Raw, &event); err != nil {
-				subscription.PublishError(fmt.Errorf("ssi realtime decode %s.%s: %w", hub, method, err))
+				subscription.PublishError(fmt.Errorf("ssi realtime decode %s.%s: %w %s", hub, method, err, message.Raw))
 				continue
 			}
 			subscription.PublishEvent(event)

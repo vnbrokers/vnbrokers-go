@@ -335,7 +335,7 @@ func TestSSIServiceTokensConcurrentRefreshAndRESTRealtimeReads(t *testing.T) {
 			}
 			_ = tradingSubscription.Close()
 
-			dataSubscription, err := broker.MarketData().Realtime().SubscribeRawChannel(context.Background(), "X:ALL")
+			dataSubscription, err := broker.Native().MarketData().Realtime().SubscribeRawChannel(context.Background(), "X:ALL")
 			if err != nil {
 				errs <- err
 				return

@@ -18,7 +18,6 @@ type Broker struct {
 	tradingAccessToken string
 	auth               *AuthService
 	trading            *TradingService
-	marketData         *MarketDataService
 	native             nativeapi.Service
 }
 
@@ -68,10 +67,7 @@ func NewBroker(config Config) *Broker {
 		conditionalOrders: &TradingConditionalOrdersService{broker: b},
 		realtime:          &TradingRealtimeService{broker: b},
 	}
-	b.marketData = &MarketDataService{
-		broker:   b,
-		realtime: &MarketDataRealtimeService{broker: b},
-	}
+	realtimeMarketData := &MarketDataRealtimeService{broker: b}
 	b.native = nativeapi.NewService(nativemarketdata.NewService(nativemarketdata.Dependencies{
 		BaseURL:   b.config.DataBaseURL,
 		DataToken: b.dataToken,
@@ -81,7 +77,7 @@ func NewBroker(config Config) *Broker {
 		Send: func(ctx context.Context, operation string, request transport.HTTPRequest) (transport.HTTPResponse, error) {
 			return b.send(ctx, operation, false, false, request)
 		},
-	}))
+	}, realtimeMarketData))
 	return b
 }
 
@@ -91,10 +87,6 @@ func (b *Broker) Auth() *AuthService {
 
 func (b *Broker) Trading() *TradingService {
 	return b.trading
-}
-
-func (b *Broker) MarketData() *MarketDataService {
-	return b.marketData
 }
 
 func (b *Broker) Native() nativeapi.Service {
@@ -141,14 +133,5 @@ func (s *TradingService) ConditionalOrders() *TradingConditionalOrdersService {
 }
 
 func (s *TradingService) Realtime() *TradingRealtimeService {
-	return s.realtime
-}
-
-type MarketDataService struct {
-	broker   *Broker
-	realtime *MarketDataRealtimeService
-}
-
-func (s *MarketDataService) Realtime() *MarketDataRealtimeService {
 	return s.realtime
 }

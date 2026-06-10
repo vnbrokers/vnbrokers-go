@@ -17,7 +17,7 @@ func main() {
 	broker := vnbrokers.NewSSI(ssi.Config{
 		DataToken: mustEnv("SSI_FCDATA_TOKEN"),
 	})
-	subscription, err := broker.MarketData().Realtime().SubscribeRawChannel(ctx, "X:ALL")
+	subscription, err := broker.Native().MarketData().Realtime().SubscribeRawChannel(ctx, "X:ALL")
 	if err != nil {
 		panic(err)
 	}

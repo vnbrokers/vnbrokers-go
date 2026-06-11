@@ -16,7 +16,7 @@ func main() {
 	defer stop()
 
 	broker := vnbrokers.NewSSI(ssi.Config{TradingToken: mustEnv("SSI_FCTRADING_TOKEN")})
-	subscription, err := broker.Trading().Realtime().SubscribePositions(
+	subscription, err := broker.Native().Trading().Realtime().SubscribePositions(
 		ctx,
 		trading.SubscribePositionsRequest{},
 	)

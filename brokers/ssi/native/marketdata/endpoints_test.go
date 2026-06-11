@@ -1,10 +1,11 @@
-package ssi
+package marketdata_test
 
 import (
 	"context"
 	"testing"
 
 	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/dto"
+	ssi "github.com/vnbrokers/vnbrokers-go/brokers/ssi"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -27,7 +28,7 @@ func TestSecuritiesBuildsSSIDataRequestAndDecodesResponse(t *testing.T) {
 			},
 		}},
 	}
-	broker := NewBroker(Config{
+	broker := ssi.NewBroker(ssi.Config{
 		DataBaseURL:   "https://data.ssi.example",
 		DataToken:     "data-token",
 		HTTPTransport: httpTransport,
@@ -76,7 +77,7 @@ func TestSecuritiesUsesPaginationDefaultsAndOmitsEmptyMarket(t *testing.T) {
 			},
 		}},
 	}
-	broker := NewBroker(Config{
+	broker := ssi.NewBroker(ssi.Config{
 		DataBaseURL:   "https://data.ssi.example/",
 		DataToken:     "data-token",
 		HTTPTransport: httpTransport,
@@ -117,7 +118,7 @@ func TestSecuritiesDetailsBuildsSSIDataRequestAndDecodesResponse(t *testing.T) {
 			},
 		}},
 	}
-	broker := NewBroker(Config{
+	broker := ssi.NewBroker(ssi.Config{
 		DataBaseURL:   "https://data.ssi.example",
 		DataToken:     "data-token",
 		HTTPTransport: httpTransport,
@@ -161,7 +162,7 @@ func TestIndexComponentsBuildsSSIDataRequest(t *testing.T) {
 			},
 		}},
 	}
-	broker := NewBroker(Config{
+	broker := ssi.NewBroker(ssi.Config{
 		DataBaseURL:   "https://data.ssi.example",
 		DataToken:     "data-token",
 		HTTPTransport: httpTransport,
@@ -199,7 +200,7 @@ func TestIndexListBuildsSSIDataRequest(t *testing.T) {
 			},
 		}},
 	}
-	broker := NewBroker(Config{
+	broker := ssi.NewBroker(ssi.Config{
 		DataBaseURL:   "https://data.ssi.example",
 		DataToken:     "data-token",
 		HTTPTransport: httpTransport,
@@ -237,7 +238,7 @@ func TestDailyOhlcUsesDefaultsAndOmitsEmptyOptionals(t *testing.T) {
 			},
 		}},
 	}
-	broker := NewBroker(Config{
+	broker := ssi.NewBroker(ssi.Config{
 		DataBaseURL:   "https://data.ssi.example",
 		DataToken:     "data-token",
 		HTTPTransport: httpTransport,
@@ -275,7 +276,7 @@ func TestIntradayOhlcIncludesResolutionAndAscending(t *testing.T) {
 			},
 		}},
 	}
-	broker := NewBroker(Config{
+	broker := ssi.NewBroker(ssi.Config{
 		DataBaseURL:   "https://data.ssi.example",
 		DataToken:     "data-token",
 		HTTPTransport: httpTransport,
@@ -317,7 +318,7 @@ func TestDailyIndexBuildsSSIDataRequest(t *testing.T) {
 			},
 		}},
 	}
-	broker := NewBroker(Config{
+	broker := ssi.NewBroker(ssi.Config{
 		DataBaseURL:   "https://data.ssi.example",
 		DataToken:     "data-token",
 		HTTPTransport: httpTransport,
@@ -357,7 +358,7 @@ func TestDailyStockPriceBuildsSSIDataRequest(t *testing.T) {
 			},
 		}},
 	}
-	broker := NewBroker(Config{
+	broker := ssi.NewBroker(ssi.Config{
 		DataBaseURL:   "https://data.ssi.example",
 		DataToken:     "data-token",
 		HTTPTransport: httpTransport,

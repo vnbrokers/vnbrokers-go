@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"strings"
+	"net/url"
 	"testing"
 
 	"github.com/shopspring/decimal"
@@ -53,65 +53,6 @@ func TestSSIAdditionalGETEndpointsBuildRequests(t *testing.T) {
 				return err
 			},
 			url: "https://ssi.example/api/v2/Trading/rateLimit",
-		},
-		{
-			name: "cash in advance amount",
-			call: func(ctx context.Context, b *Broker) error {
-				_, err := b.Trading().Cash().CashInAdvanceAmount(ctx, "0901351")
-				return err
-			},
-			url: "https://ssi.example/api/v2/cash/cashInAdvanceAmount?account=0901351",
-		},
-		{
-			name: "unsettled sold transactions",
-			call: func(ctx context.Context, b *Broker) error {
-				_, err := b.Trading().Cash().UnsettledSoldTransactions(ctx, CashUnsettledSoldTransactionsRequest{
-					AccountID:  "0901351",
-					SettleDate: "10/03/2023",
-				})
-				return err
-			},
-			url: "https://ssi.example/api/v2/cash/unsettleSoldTransaction?account=0901351&settleDate=10%2F03%2F2023",
-		},
-		{
-			name: "cash transfer histories",
-			call: func(ctx context.Context, b *Broker) error {
-				_, err := b.Trading().Cash().TransferHistories(ctx, CashTransferHistoriesRequest{
-					AccountID: "0901351",
-					FromDate:  "10/01/2023",
-					ToDate:    "10/02/2023",
-				})
-				return err
-			},
-			url: "https://ssi.example/api/v2/cash/transferHistories?account=0901351&fromDate=10%2F01%2F2023&toDate=10%2F02%2F2023",
-		},
-		{
-			name: "stock transferable",
-			call: func(ctx context.Context, b *Broker) error {
-				_, err := b.Trading().StockTransfers().Transferable(ctx, "0901351")
-				return err
-			},
-			url: "https://ssi.example/api/v2/stock/transferable?account=0901351",
-		},
-		{
-			name: "rights dividends",
-			call: func(ctx context.Context, b *Broker) error {
-				_, err := b.Trading().Rights().Dividends(ctx, "0901351")
-				return err
-			},
-			url: "https://ssi.example/api/v2/ors/dividend?account=0901351",
-		},
-		{
-			name: "conditional order list",
-			call: func(ctx context.Context, b *Broker) error {
-				_, err := b.Trading().ConditionalOrders().List(ctx, ConditionalOrderListRequest{
-					AccountID: "0901351",
-					PageIndex: 1,
-					PageSize:  50,
-				})
-				return err
-			},
-			url: "https://ssi.example/api/v2/fco/list?account=0901351&pageIndex=1&pageSize=50",
 		},
 	}
 
@@ -182,70 +123,6 @@ func TestSSIAdditionalPOSTEndpointsBuildSignedRequests(t *testing.T) {
 			},
 			url: "https://ssi.example/api/v2/Trading/derNewOrder",
 		},
-		{
-			name: "cash transfer internal",
-			call: func(ctx context.Context, b *Broker) error {
-				_, err := b.Trading().Cash().TransferInternalWithRequest(ctx, CashTransferInternalRequest{
-					AccountID:          "0901351",
-					BeneficiaryAccount: "0901356",
-					Amount:             decimal.NewFromInt(50000),
-					Remark:             "test",
-					Code:               "123456",
-				})
-				return err
-			},
-			url: "https://ssi.example/api/v2/cash/transferInternal",
-		},
-		{
-			name: "stock transfer",
-			call: func(ctx context.Context, b *Broker) error {
-				_, err := b.Trading().StockTransfers().TransferWithRequest(ctx, StockTransferRequest{
-					AccountID:          "0901351",
-					BeneficiaryAccount: "0901356",
-					ExchangeID:         "HOSE",
-					Symbol:             "SSI",
-					Quantity:           decimal.NewFromInt(100),
-					Code:               "123456",
-				})
-				return err
-			},
-			url: "https://ssi.example/api/v2/stock/transfer",
-		},
-		{
-			name: "rights create",
-			call: func(ctx context.Context, b *Broker) error {
-				_, err := b.Trading().Rights().CreateWithRequest(ctx, RightsCreateRequest{
-					AccountID:     "0901351",
-					Symbol:        "SSI",
-					EntitlementID: "913312",
-					Quantity:      decimal.NewFromInt(100),
-					Amount:        decimal.NewFromInt(1000),
-					Code:          "123456",
-				})
-				return err
-			},
-			url: "https://ssi.example/api/v2/ors/create",
-		},
-		{
-			name: "conditional new order",
-			call: func(ctx context.Context, b *Broker) error {
-				_, err := b.Trading().ConditionalOrders().NewWithRequest(ctx, ConditionalOrderNewRequest{
-					AccountID: "0901351",
-					Symbol:    "SSI",
-					Side:      "B",
-					Type:      "stop",
-					Price:     "21000",
-					Quantity:  decimal.NewFromInt(100),
-					StopPrice: decimal.NewFromInt(21100),
-					Operator:  "greater_or_equal",
-					Code:      "123456",
-					DeviceID:  "device",
-					UserAgent: "FCTrading",
-				})
-				return err
-			},
-			url: "https://ssi.example/api/v2/fco/neworder",
-		},
 	}
 
 	for _, tt := range tests {
@@ -290,15 +167,205 @@ func TestSSIAdditionalPOSTEndpointsBuildSignedRequests(t *testing.T) {
 	}
 }
 
-func TestSSIRawServicesAreExposed(t *testing.T) {
-	broker := NewBroker(Config{})
-	services := []string{
-		"cash", "stock transfers", "rights", "conditional orders",
+func TestSSINativeTradingGETEndpointsBuildRequests(t *testing.T) {
+	tests := []struct {
+		name string
+		call func(context.Context, *Broker) error
+		url  string
+	}{
+		{
+			name: "cash in advance amount",
+			call: func(ctx context.Context, b *Broker) error {
+				_, err := b.Native().Trading().CashInAdvanceAmount(ctx, "0901351")
+				return err
+			},
+			url: "https://ssi.example/api/v2/cash/cashInAdvanceAmount?account=0901351",
+		},
+		{
+			name: "unsettle sold transaction",
+			call: func(ctx context.Context, b *Broker) error {
+				_, err := b.Native().Trading().UnsettleSoldTransaction(ctx, "0901351", "10/03/2023")
+				return err
+			},
+			url: "https://ssi.example/api/v2/cash/unsettleSoldTransaction?account=0901351&settleDate=10%2F03%2F2023",
+		},
+		{
+			name: "cash transfer histories",
+			call: func(ctx context.Context, b *Broker) error {
+				_, err := b.Native().Trading().TransferHistories(ctx, "0901351", "10/01/2023", "10/02/2023")
+				return err
+			},
+			url: "https://ssi.example/api/v2/cash/transferHistories?account=0901351&fromDate=10%2F01%2F2023&toDate=10%2F02%2F2023",
+		},
+		{
+			name: "stock transferable",
+			call: func(ctx context.Context, b *Broker) error {
+				_, err := b.Native().Trading().Transferable(ctx, "0901351")
+				return err
+			},
+			url: "https://ssi.example/api/v2/stock/transferable?account=0901351",
+		},
+		{
+			name: "rights dividends",
+			call: func(ctx context.Context, b *Broker) error {
+				_, err := b.Native().Trading().Dividend(ctx, "0901351")
+				return err
+			},
+			url: "https://ssi.example/api/v2/ors/dividend?account=0901351",
+		},
+		{
+			name: "conditional order list",
+			call: func(ctx context.Context, b *Broker) error {
+				_, err := b.Native().Trading().FcoList(ctx, url.Values{
+					"account":   {"0901351"},
+					"pageIndex": {"1"},
+					"pageSize":  {"50"},
+				})
+				return err
+			},
+			url: "https://ssi.example/api/v2/fco/list?account=0901351&pageIndex=1&pageSize=50",
+		},
 	}
-	if broker.Trading().Cash() == nil ||
-		broker.Trading().StockTransfers() == nil ||
-		broker.Trading().Rights() == nil ||
-		broker.Trading().ConditionalOrders() == nil {
-		t.Fatalf("missing services: %s", strings.Join(services, ", "))
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			httpTransport := &fakeHTTPTransport{
+				responses: []transport.HTTPResponse{{
+					StatusCode: 200,
+					Body: map[string]any{
+						"message": "Success",
+						"status":  200,
+						"data":    nil,
+					},
+				}},
+			}
+			broker := NewBroker(Config{
+				BaseURL:       "https://ssi.example",
+				TradingToken:  "trading-token",
+				HTTPTransport: httpTransport,
+			})
+			if err := tt.call(context.Background(), broker); err != nil {
+				t.Fatalf("call: %v", err)
+			}
+			request := httpTransport.requests[0]
+			if request.Method != "GET" {
+				t.Fatalf("method = %s", request.Method)
+			}
+			if request.URL != tt.url {
+				t.Fatalf("url = %s", request.URL)
+			}
+			if request.Headers["Authorization"] != "Bearer trading-token" {
+				t.Fatalf("authorization = %s", request.Headers["Authorization"])
+			}
+			if request.Headers["X-Signature"] != "" {
+				t.Fatalf("GET should not be signed")
+			}
+		})
+	}
+}
+
+func TestSSINativeTradingPOSTEndpointsBuildSignedRequests(t *testing.T) {
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		t.Fatalf("generate key: %v", err)
+	}
+	tests := []struct {
+		name string
+		call func(context.Context, *Broker) error
+		url  string
+	}{
+		{
+			name: "cash transfer internal",
+			call: func(ctx context.Context, b *Broker) error {
+				_, err := b.Native().Trading().TransferInternal(ctx, "0901351", "0901356", "50000", "test", "123456")
+				return err
+			},
+			url: "https://ssi.example/api/v2/cash/transferInternal",
+		},
+		{
+			name: "stock transfer",
+			call: func(ctx context.Context, b *Broker) error {
+				_, err := b.Native().Trading().StockTransfer(ctx, map[string]any{
+					"account":            "0901351",
+					"beneficiaryAccount": "0901356",
+					"exchangeID":         "HOSE",
+					"instrumentID":       "SSI",
+					"quantity":           100,
+					"code":               "123456",
+				})
+				return err
+			},
+			url: "https://ssi.example/api/v2/stock/transfer",
+		},
+		{
+			name: "rights create",
+			call: func(ctx context.Context, b *Broker) error {
+				_, err := b.Native().Trading().CreateRight(ctx, map[string]any{
+					"account":       "0901351",
+					"instrumentID":  "SSI",
+					"entitlementID": "913312",
+					"quantity":      100,
+					"amount":        1000,
+					"code":          "123456",
+				})
+				return err
+			},
+			url: "https://ssi.example/api/v2/ors/create",
+		},
+		{
+			name: "conditional new order",
+			call: func(ctx context.Context, b *Broker) error {
+				_, err := b.Native().Trading().FcoNewOrder(ctx, map[string]any{
+					"instrumentID": "SSI",
+					"side":         "B",
+					"type":         "stop",
+					"price":        "21000",
+					"quantity":     100,
+					"account":      "0901351",
+					"stopPrice":    21100,
+					"operator":     "greater_or_equal",
+					"code":         "123456",
+				})
+				return err
+			},
+			url: "https://ssi.example/api/v2/fco/neworder",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			httpTransport := &fakeHTTPTransport{
+				responses: []transport.HTTPResponse{{
+					StatusCode: 200,
+					Body: map[string]any{
+						"message": "Success",
+						"status":  200,
+						"data":    nil,
+					},
+				}},
+			}
+			broker := NewBroker(Config{
+				BaseURL:       "https://ssi.example",
+				TradingToken:  "trading-token",
+				PrivateKey:    testBase64XMLPrivateKey(key),
+				HTTPTransport: httpTransport,
+			})
+			if err := tt.call(context.Background(), broker); err != nil {
+				t.Fatalf("call: %v", err)
+			}
+			request := httpTransport.requests[0]
+			if request.Method != "POST" {
+				t.Fatalf("method = %s", request.Method)
+			}
+			if request.URL != tt.url {
+				t.Fatalf("url = %s", request.URL)
+			}
+			if request.Headers["Authorization"] != "Bearer trading-token" {
+				t.Fatalf("authorization = %s", request.Headers["Authorization"])
+			}
+			if request.Headers["X-Signature"] == "" {
+				t.Fatalf("missing signature")
+			}
+		})
 	}
 }

@@ -12,6 +12,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
@@ -31,6 +32,9 @@ func (s signedJSON) MarshalJSON() ([]byte, error) {
 }
 
 func (s Signer) Sign(_ context.Context, request transport.HTTPRequest) (transport.HTTPRequest, error) {
+	if strings.ToUpper(request.Method) == "GET" {
+		return request, nil
+	}
 	if s.PrivateKey == "" {
 		return request, fmt.Errorf("ssi private key is required for signed request")
 	}

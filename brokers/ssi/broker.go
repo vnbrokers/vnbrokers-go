@@ -6,6 +6,7 @@ import (
 
 	nativeapi "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native"
 	nativemarketdata "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/marketdata"
+	nativetrading "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/trading"
 	"github.com/vnbrokers/vnbrokers-go/core"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
@@ -58,26 +59,34 @@ func NewBroker(config Config) *Broker {
 	}
 	b.auth = &AuthService{broker: b}
 	b.trading = &TradingService{
-		accounts:          &TradingAccountsService{broker: b},
-		orders:            &TradingOrdersService{broker: b},
-		positions:         &TradingPositionsService{broker: b},
-		cash:              &TradingCashService{broker: b},
-		stockTransfers:    &TradingStockTransferService{broker: b},
-		rights:            &TradingRightsService{broker: b},
-		conditionalOrders: &TradingConditionalOrdersService{broker: b},
-		realtime:          &TradingRealtimeService{broker: b},
+		accounts:  &TradingAccountsService{broker: b},
+		orders:    &TradingOrdersService{broker: b},
+		positions: &TradingPositionsService{broker: b},
+		realtime:  &TradingRealtimeService{broker: b},
 	}
 	realtimeMarketData := &MarketDataRealtimeService{broker: b}
-	b.native = nativeapi.NewService(nativemarketdata.NewService(nativemarketdata.Dependencies{
-		BaseURL:   b.config.DataBaseURL,
-		DataToken: b.dataToken,
-		RequireCapability: func(capability core.Capability) error {
-			return b.RequireCapability(capability)
-		},
-		Send: func(ctx context.Context, operation string, request transport.HTTPRequest) (transport.HTTPResponse, error) {
-			return b.send(ctx, operation, false, false, request)
-		},
-	}, realtimeMarketData))
+	b.native = nativeapi.NewService(
+		nativemarketdata.NewService(nativemarketdata.Dependencies{
+			BaseURL:   b.config.DataBaseURL,
+			DataToken: b.dataToken,
+			RequireCapability: func(capability core.Capability) error {
+				return b.RequireCapability(capability)
+			},
+			Send: func(ctx context.Context, operation string, request transport.HTTPRequest) (transport.HTTPResponse, error) {
+				return b.send(ctx, operation, false, false, request)
+			},
+		}, realtimeMarketData),
+		nativetrading.NewService(nativetrading.Dependencies{
+			BaseURL:      b.config.BaseURL,
+			TradingToken: b.tradingToken,
+			RequireCapability: func(capability core.Capability) error {
+				return b.RequireCapability(capability)
+			},
+			Send: func(ctx context.Context, operation string, request transport.HTTPRequest) (transport.HTTPResponse, error) {
+				return b.send(ctx, operation, true, true, request)
+			},
+		}, nil),
+	)
 	return b
 }
 
@@ -94,14 +103,10 @@ func (b *Broker) Native() nativeapi.Service {
 }
 
 type TradingService struct {
-	accounts          *TradingAccountsService
-	orders            *TradingOrdersService
-	positions         *TradingPositionsService
-	cash              *TradingCashService
-	stockTransfers    *TradingStockTransferService
-	rights            *TradingRightsService
-	conditionalOrders *TradingConditionalOrdersService
-	realtime          *TradingRealtimeService
+	accounts  *TradingAccountsService
+	orders    *TradingOrdersService
+	positions *TradingPositionsService
+	realtime  *TradingRealtimeService
 }
 
 func (s *TradingService) Accounts() *TradingAccountsService {
@@ -114,22 +119,6 @@ func (s *TradingService) Orders() *TradingOrdersService {
 
 func (s *TradingService) Positions() *TradingPositionsService {
 	return s.positions
-}
-
-func (s *TradingService) Cash() *TradingCashService {
-	return s.cash
-}
-
-func (s *TradingService) StockTransfers() *TradingStockTransferService {
-	return s.stockTransfers
-}
-
-func (s *TradingService) Rights() *TradingRightsService {
-	return s.rights
-}
-
-func (s *TradingService) ConditionalOrders() *TradingConditionalOrdersService {
-	return s.conditionalOrders
 }
 
 func (s *TradingService) Realtime() *TradingRealtimeService {

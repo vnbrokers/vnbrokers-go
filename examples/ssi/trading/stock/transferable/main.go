@@ -22,7 +22,7 @@ func main() {
 	}
 	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
 	for _, item := range response.Data.TransferableStocks {
-		fmt.Printf("symbol=%s quantity=%s type=%s\n", item.InstrumentID, item.Quantity, item.InstrumentType)
+		fmt.Printf("symbol=%s quantity=%d type=%s\n", item.InstrumentID, item.Quantity, item.InstrumentType)
 	}
 }
 

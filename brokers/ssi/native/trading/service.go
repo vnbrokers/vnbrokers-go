@@ -9,10 +9,8 @@ import (
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
-	"github.com/vnbrokers/vnbrokers-go/domain"
 	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
 	"github.com/vnbrokers/vnbrokers-go/realtime"
-	sdktrading "github.com/vnbrokers/vnbrokers-go/trading"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -60,62 +58,63 @@ type Service interface {
 	Realtime() RealtimeService
 
 	// Cash
-	CashInAdvanceAmount(context.Context, string) (*dto.TradingResponse[dto.CashInAdvanceAmountData], error)
-	UnsettleSoldTransaction(context.Context, string, string) (*dto.TradingResponse[dto.UnsettledSoldTransactionsData], error)
-	TransferHistories(context.Context, string, string, string) (*dto.TradingResponse[dto.TransferHistoriesData], error)
-	CashInAdvanceHistories(context.Context, string, string, string) (*dto.TradingResponse[dto.CashInAdvanceHistoriesData], error)
-	EstCashInAdvanceFee(context.Context, string, string, string) (*dto.TradingResponse[dto.EstimateCashInAdvanceFeeData], error)
-	VSDCashDW(context.Context, string, string, string, string, string) (*dto.TradingResponse[dto.TransactionResponse], error)
-	TransferInternal(context.Context, string, string, string, string, string) (*dto.TradingResponse[dto.TransactionResponse], error)
-	CreateCashInAdvance(context.Context, string, string, string, string) (*dto.TradingResponse[dto.TransactionResponse], error)
+	CashInAdvanceAmount(context.Context, string) (*dto.CashInAdvanceAmountResponse, error)
+	UnsettleSoldTransaction(context.Context, string, string) (*dto.UnsettleSoldTransactionResponse, error)
+	TransferHistories(context.Context, string, string, string) (*dto.CashTransferHistoriesResponse, error)
+	CashInAdvanceHistories(context.Context, string, string, string) (*dto.CashInAdvanceHistoriesResponse, error)
+	EstCashInAdvanceFee(context.Context, string, string, string) (*dto.EstCashInAdvanceFeeResponse, error)
+	VSDCashDW(context.Context, string, string, string, string, string) (*dto.VSDCashDWResponse, error)
+	TransferInternal(context.Context, string, string, string, string, string) (*dto.TransferInternalResponse, error)
+	CreateCashInAdvance(context.Context, string, string, string, string) (*dto.CreateCashInAdvanceResponse, error)
 
 	// Core Trading - Accounts
-	CashAcctBal(context.Context, string) (*dto.TradingResponse[[]dto.StockAccountBalance], error)
-	DerivAcctBal(context.Context, string) (*dto.TradingResponse[[]dto.DerivativeAccountBalance], error)
-	MaxBuyQty(context.Context, string, string, string) (*dto.TradingResponse[[]dto.MaxBuyQuantityData], error)
-	MaxSellQty(context.Context, string, string, string) (*dto.TradingResponse[dto.MaxSellQuantityData], error)
-	PpmrAccount(context.Context, string) (*dto.TradingResponse[dto.AccountAssetData], error)
-	RateLimit(context.Context) (*dto.TradingResponse[[]dto.APILimitData], error)
+	CashAcctBal(context.Context, string) (*dto.CashAccountBalanceResponse, error)
+	DerivAcctBal(context.Context, string) (*dto.DerivativeAccountBalanceResponse, error)
+	MaxBuyQty(context.Context, string, string, string) (*dto.MaxBuyQtyResponse, error)
+	MaxSellQty(context.Context, string, string, string) (*dto.MaxSellQtyResponse, error)
+	PpmrAccount(context.Context, string) (*dto.PpmmrAccountResponse, error)
+	RateLimit(context.Context) (*dto.RateLimitResponse, error)
 
 	// Core Trading - Orders
-	OrderBook(context.Context, string) (*dto.TradingResponse[dto.OrderBookData], error)
-	OrderHistory(context.Context, string, string, string, int) (*dto.TradingResponse[dto.OrderHistoryData], error)
-	NewOrder(context.Context, map[string]any) (*dto.TradingResponse[dto.PlaceOrderResponse], error)
-	CancelOrder(context.Context, map[string]any) (*dto.TradingResponse[dto.PlaceOrderResponse], error)
-	ModifyOrder(context.Context, map[string]any) (*dto.TradingResponse[dto.PlaceOrderResponse], error)
-	DerNewOrder(context.Context, map[string]any) (*dto.TradingResponse[dto.PlaceOrderResponse], error)
-	DerCancelOrder(context.Context, map[string]any) (*dto.TradingResponse[dto.PlaceOrderResponse], error)
-	DerModifyOrder(context.Context, map[string]any) (*dto.TradingResponse[dto.PlaceOrderResponse], error)
-	AuditOrderBook(context.Context, string) (*dto.TradingResponse[dto.OrderBookData], error)
+	OrderBook(context.Context, string) (*dto.OrderBookResponse, error)
+	OrderHistory(context.Context, string, string, string, int) (*dto.OrderHistoryResponse, error)
+	NewOrder(context.Context, map[string]any) (*dto.NewOrderResponse, error)
+	CancelOrder(context.Context, map[string]any) (*dto.CancelOrderResponse, error)
+	ModifyOrder(context.Context, map[string]any) (*dto.ModifyOrderResponse, error)
+	DerNewOrder(context.Context, map[string]any) (*dto.DerNewOrderResponse, error)
+	DerCancelOrder(context.Context, map[string]any) (*dto.DerCancelOrderResponse, error)
+	DerModifyOrder(context.Context, map[string]any) (*dto.DerModifyOrderResponse, error)
+	AuditOrderBook(context.Context, string) (*dto.AuditOrderBookResponse, error)
 
 	// Core Trading - Positions
-	StockPosition(context.Context, string) (*dto.TradingResponse[[]dto.StockPortfolioData], error)
-	DerivPosition(context.Context, string, bool) (*dto.TradingResponse[[]dto.DerivativePositionsData], error)
+	StockPosition(context.Context, string) (*dto.StockPositionResponse, error)
+	DerivPosition(context.Context, string, bool) (*dto.DerivativePositionResponse, error)
 
 	// Stock Transfer
-	Transferable(context.Context, string) (*dto.TradingResponse[dto.TransferableStockAccountData], error)
-	StockTransferHistories(context.Context, string, string, string) (*dto.TradingResponse[dto.StockTransferHistoryAccountData], error)
-	StockTransfer(context.Context, map[string]any) (*dto.TradingResponse[dto.TransactionResponse], error)
+	Transferable(context.Context, string) (*dto.TransferableResponse, error)
+	StockTransferHistories(context.Context, string, string, string) (*dto.StockTransferHistoriesResponse, error)
+	StockTransfer(context.Context, map[string]any) (*dto.StockTransferResponse, error)
 
 	// Rights
-	Dividend(context.Context, string) (*dto.TradingResponse[dto.DividendsData], error)
-	ExercisableQuantity(context.Context, string) (*dto.TradingResponse[dto.ExercisableQuantitiesData], error)
-	RightsHistories(context.Context, string, string, string) (*dto.TradingResponse[dto.RightsHistoriesData], error)
-	CreateRight(context.Context, map[string]any) (*dto.TradingResponse[dto.TransactionResponse], error)
+	Dividend(context.Context, string) (*dto.DividendResponse, error)
+	ExercisableQuantity(context.Context, string) (*dto.ExercisableQuantityResponse, error)
+	RightsHistories(context.Context, string, string, string) (*dto.RightsHistoriesResponse, error)
+	CreateRight(context.Context, map[string]any) (*dto.RightsCreateResponse, error)
 
 	// Conditional Orders (FCO)
-	FcoNewOrder(context.Context, map[string]any) (*dto.ConditionalOrderResponse, error)
-	FcoCancelOrder(context.Context, map[string]any) (*dto.ConditionalOrderResponse, error)
-	FcoOrderBook(context.Context, string, int, int) (*dto.ConditionalOrderPage[dto.ConditionalTriggeredOrder], error)
-	FcoStatusHistory(context.Context, string, int, int) (*dto.ConditionalOrderPage[dto.ConditionalOrderStatus], error)
-	FcoList(context.Context, url.Values) (*dto.ConditionalOrderPage[dto.ConditionalOrder], error)
+	FcoNewOrder(context.Context, map[string]any) (*dto.FCONewOrderResponse, error)
+	FcoCancelOrder(context.Context, map[string]any) (*dto.FCOCancelOrderResponse, error)
+	FcoOrderBook(context.Context, string, int, int) (*dto.FCOOrderBookResponse, error)
+	FcoStatusHistory(context.Context, string, int, int) (*dto.FCOStatusHistoryResponse, error)
+	FcoList(context.Context, url.Values) (*dto.FCOListResponse, error)
 }
 
 type RealtimeService interface {
-	SubscribeOrders(context.Context, sdktrading.SubscribeOrdersRequest) (realtime.Subscription[domain.OrderEvent], error)
-	SubscribePositions(context.Context, sdktrading.SubscribePositionsRequest) (realtime.Subscription[domain.Position], error)
+	SubscribeOrderEvents(context.Context) (realtime.Subscription[dto.OrderEvent], error)
+	SubscribeOrderErrors(context.Context) (realtime.Subscription[dto.OrderError], error)
+	SubscribeOrderMatchEvents(context.Context) (realtime.Subscription[dto.OrderMatchEvent], error)
+	SubscribeClientPortfolioEvents(context.Context) (realtime.Subscription[dto.ClientPortfolioEvent], error)
 	SubscribeFCOEvents(context.Context) (realtime.Subscription[dto.FCOEvent], error)
-	SubscribeConditionalOrders(context.Context) (realtime.Subscription[dto.FCOEvent], error)
 }
 
 type Dependencies struct {

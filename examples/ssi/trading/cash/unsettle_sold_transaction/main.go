@@ -23,7 +23,7 @@ func main() {
 	}
 	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
 	for _, item := range response.Data.UnsettledSoldTransactions {
-		fmt.Printf("tradeDate=%s symbol=%s netSellValue=%s qty=%s price=%s\n",
+		fmt.Printf("tradeDate=%s symbol=%s netSellValue=%v qty=%d price=%v\n",
 			item.TradeDate, item.InstrumentID, item.NetSellValue, item.Quantity, item.Price)
 	}
 }

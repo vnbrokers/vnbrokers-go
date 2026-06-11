@@ -22,7 +22,7 @@ func main() {
 	}
 	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
 	for _, order := range response.Data.Orders {
-		fmt.Printf("orderID=%s symbol=%s side=%s price=%s qty=%s status=%s\n",
+		fmt.Printf("orderID=%s symbol=%s side=%s price=%v qty=%d status=%s\n",
 			order.OrderID, order.InstrumentID, order.BuySell, order.Price, order.Quantity, order.OrderStatus)
 	}
 }

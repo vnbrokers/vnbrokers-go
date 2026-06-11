@@ -21,9 +21,8 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
-	for _, bal := range response.Data {
-		fmt.Printf("account=%s balance=%s withdrawable=%s\n", bal.Account, bal.AccountBalance, bal.Withdrawable)
-	}
+	fmt.Printf("account=%s balance=%v withdrawable=%v\n",
+		response.Data.Account, response.Data.AccountBalance, response.Data.Withdrawable)
 }
 
 func mustEnv(key string) string {

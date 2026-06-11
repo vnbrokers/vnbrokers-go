@@ -7,6 +7,7 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 )
 
 func main() {
@@ -14,11 +15,7 @@ func main() {
 		APIKey:    os.Getenv("DNSE_API_KEY"),
 		APISecret: os.Getenv("DNSE_API_SECRET"),
 	})
-	payload, err := broker.MarketData().Symbols().SecurityDefinition(
-		context.Background(),
-		"ACB",
-		"G1",
-	)
+	payload, err := broker.Native().MarketData().GetSecurityDefinition(context.Background(), nativedto.GetSecurityDefinitionRequest{Symbol: "ACB", BoardID: "G1"})
 	if err != nil {
 		panic(err)
 	}

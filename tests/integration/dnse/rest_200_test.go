@@ -10,7 +10,7 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
-	"github.com/vnbrokers/vnbrokers-go/domain"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 )
 
 func TestDNSERestServicesAccept200Responses(t *testing.T) {
@@ -35,6 +35,7 @@ func TestDNSERestServicesAccept200Responses(t *testing.T) {
 	defer server.Close()
 
 	price := decimal.NewFromInt(23000)
+	orderPrice, _ := price.Float64()
 	broker := dnse.NewBroker(dnse.Config{
 		BaseURL:      server.URL,
 		APIKey:       "key",
@@ -46,80 +47,76 @@ func TestDNSERestServicesAccept200Responses(t *testing.T) {
 	if _, err := broker.Auth().SendEmailOTP(context.Background()); err != nil {
 		t.Fatalf("send otp: %v", err)
 	}
-	if _, err := broker.Auth().GetTradingToken(context.Background(), "EMAIL", "123456"); err != nil {
+	if _, err := broker.Auth().GetTradingToken(context.Background(), nativedto.GetTradingTokenRequest{OTPType: "EMAIL", Passcode: "123456"}); err != nil {
 		t.Fatalf("trading token: %v", err)
 	}
-	if _, err := broker.Trading().Accounts().List(context.Background()); err != nil {
+	if _, err := broker.Native().Trading().GetAccounts(context.Background(), nativedto.GetAccountsRequest{}); err != nil {
 		t.Fatalf("accounts: %v", err)
 	}
-	if _, err := broker.Trading().Accounts().Balance(context.Background(), "0001179019"); err != nil {
+	if _, err := broker.Native().Trading().GetAccountBalances(context.Background(), nativedto.GetAccountBalancesRequest{AccountNo: "0001179019"}); err != nil {
 		t.Fatalf("balance: %v", err)
 	}
-	if _, err := broker.Trading().Accounts().Orders(context.Background(), "0001179019"); err != nil {
+	if _, err := broker.Native().Trading().GetOrders(context.Background(), nativedto.GetOrdersRequest{AccountNo: "0001179019", MarketType: "STOCK", OrderCategory: "NORMAL"}); err != nil {
 		t.Fatalf("orders: %v", err)
 	}
-	if _, err := broker.Trading().Accounts().OrderHistory(context.Background(), "0001179019", "2026-05-01", "2026-05-23", 0); err != nil {
+	if _, err := broker.Native().Trading().GetOrderHistory(context.Background(), nativedto.GetOrderHistoryRequest{AccountNo: "0001179019", MarketType: "STOCK", From: "2026-05-01", To: "2026-05-23"}); err != nil {
 		t.Fatalf("order history: %v", err)
 	}
-	if _, err := broker.Trading().Accounts().Executions(context.Background(), "0001179019", "42"); err != nil {
+	if _, err := broker.Native().Trading().GetExecutions(context.Background(), nativedto.GetExecutionsRequest{AccountNo: "0001179019", OrderID: "42", MarketType: "STOCK"}); err != nil {
 		t.Fatalf("executions: %v", err)
 	}
-	if _, err := broker.Trading().Accounts().PPSE(context.Background(), "0001179019", "ACB", price, nil); err != nil {
+	if _, err := broker.Native().Trading().GetPPSE(context.Background(), nativedto.GetPPSERequest{AccountNo: "0001179019", Symbol: "ACB", MarketType: "STOCK", Price: &price}); err != nil {
 		t.Fatalf("ppse: %v", err)
 	}
-	if _, err := broker.Trading().Accounts().LoanPackages(context.Background(), "0001179019", "ACB"); err != nil {
+	if _, err := broker.Native().Trading().GetLoanPackages(context.Background(), nativedto.GetLoanPackagesRequest{AccountNo: "0001179019", Symbol: "ACB", MarketType: "STOCK"}); err != nil {
 		t.Fatalf("loan packages: %v", err)
 	}
-	if _, err := broker.Trading().Positions().List(context.Background(), "0001179019"); err != nil {
+	if _, err := broker.Native().Trading().GetPositions(context.Background(), nativedto.GetPositionsRequest{AccountNo: "0001179019", MarketType: "STOCK"}); err != nil {
 		t.Fatalf("positions: %v", err)
 	}
-	if _, err := broker.Trading().Positions().Get(context.Background(), "177796763592657"); err != nil {
+	if _, err := broker.Native().Trading().GetPosition(context.Background(), nativedto.GetPositionRequest{PositionID: "177796763592657", MarketType: "STOCK"}); err != nil {
 		t.Fatalf("position: %v", err)
 	}
-	if _, err := broker.Trading().Positions().Close(context.Background(), "177796763592657"); err != nil {
+	if _, err := broker.Native().Trading().ClosePosition(context.Background(), nativedto.ClosePositionRequest{PositionID: "177796763592657", MarketType: "STOCK"}); err != nil {
 		t.Fatalf("close position: %v", err)
 	}
-	if _, err := broker.Trading().Orders().Place(context.Background(), domain.PlaceOrderRequest{
-		AccountID: "0001179019",
-		Symbol:    "ACB",
-		Side:      domain.OrderSideBuy,
-		Type:      domain.OrderTypeLimit,
-		Quantity:  decimal.NewFromInt(1),
-		Price:     &price,
+	if _, err := broker.Native().Trading().PlaceOrder(context.Background(), nativedto.PlaceOrderRequest{
+		AccountNo: "0001179019", Symbol: "ACB", Side: "NB", OrderType: "LO",
+		Quantity: 1, Price: &orderPrice, MarketType: "STOCK", OrderCategory: "NORMAL",
 	}); err != nil {
 		t.Fatalf("place order: %v", err)
 	}
-	if err := broker.Trading().Orders().Cancel(context.Background(), "0001179019", "42"); err != nil {
+	if _, err := broker.Native().Trading().CancelOrder(context.Background(), nativedto.CancelOrderRequest{AccountNo: "0001179019", OrderID: "42", MarketType: "STOCK", OrderCategory: "NORMAL"}); err != nil {
 		t.Fatalf("cancel order: %v", err)
 	}
-	if _, err := broker.Trading().Orders().Get(context.Background(), "0001179019", "42"); err != nil {
+	if _, err := broker.Native().Trading().GetOrder(context.Background(), nativedto.GetOrderRequest{AccountNo: "0001179019", OrderID: "42", MarketType: "STOCK", OrderCategory: "NORMAL"}); err != nil {
 		t.Fatalf("get order: %v", err)
 	}
-	if _, err := broker.Trading().Orders().Update(context.Background(), "0001179019", "42", price, 1); err != nil {
+	if _, err := broker.Native().Trading().ReplaceOrder(context.Background(), nativedto.ReplaceOrderRequest{AccountNo: "0001179019", OrderID: "42", Price: &orderPrice, Quantity: 1, MarketType: "STOCK", OrderCategory: "NORMAL"}); err != nil {
 		t.Fatalf("update order: %v", err)
 	}
-	if _, err := broker.MarketData().Symbols().List(context.Background(), "ACB", "", "", "", 10, 0); err != nil {
+	if _, err := broker.Native().MarketData().GetInstruments(context.Background(), nativedto.GetInstrumentsRequest{Symbol: "ACB", Limit: 10}); err != nil {
 		t.Fatalf("symbols: %v", err)
 	}
-	if _, err := broker.MarketData().Symbols().SecurityDefinition(context.Background(), "HPG", "G1"); err != nil {
+	if _, err := broker.Native().MarketData().GetSecurityDefinition(context.Background(), nativedto.GetSecurityDefinitionRequest{Symbol: "HPG", BoardID: "G1"}); err != nil {
 		t.Fatalf("secdef: %v", err)
 	}
-	if _, err := broker.MarketData().Symbols().WorkingDates(context.Background()); err != nil {
+	if _, err := broker.Native().MarketData().GetWorkingDates(context.Background(), nativedto.GetWorkingDatesRequest{}); err != nil {
 		t.Fatalf("working dates: %v", err)
 	}
-	if _, err := broker.MarketData().Quotes().Get(context.Background(), "ACB", "G1"); err != nil {
+	if _, err := broker.Native().MarketData().GetLatestTrades(context.Background(), nativedto.GetLatestTradesRequest{Symbol: "ACB", BoardID: "G1"}); err != nil {
 		t.Fatalf("quote: %v", err)
 	}
-	if _, err := broker.MarketData().Quotes().PriceTrades(context.Background(), "ACB", 1773182637, 1773183637, "G1", 100); err != nil {
+	if _, err := broker.Native().MarketData().GetTradeHistory(context.Background(), nativedto.GetTradeHistoryRequest{Symbol: "ACB", From: 1773182637, To: 1773183637, BoardID: "G1", Limit: 100}); err != nil {
 		t.Fatalf("price trades: %v", err)
 	}
-	if _, err := broker.MarketData().Quotes().ClosePrice(context.Background(), "HPG", "G1"); err != nil {
+	if _, err := broker.Native().MarketData().GetClosePrice(context.Background(), nativedto.GetClosePriceRequest{Symbol: "HPG", BoardID: "G1"}); err != nil {
 		t.Fatalf("close price: %v", err)
 	}
-	if _, err := broker.MarketData().Candles().Get(context.Background(), "ACB", "15", 1773657310, 1773830110, "STOCK"); err != nil {
+	if _, err := broker.Native().MarketData().GetOHLC(context.Background(), nativedto.GetOHLCRequest{Symbol: "ACB", Resolution: "15", From: 1773657310, To: 1773830110, Type: "STOCK"}); err != nil {
 		t.Fatalf("candles: %v", err)
 	}
-	if _, err := broker.Brokerage().CareByAccounts(context.Background(), ""); err != nil {
+	if _, err := broker.Native().Brokerage().GetCareByAccounts(context.Background(), nativedto.GetCareByAccountsRequest{}); err != nil {
 		t.Fatalf("brokerage care by: %v", err)
 	}
 
@@ -153,7 +150,7 @@ func responseFor(method string, path string) any {
 	case "GET /accounts/positions/177796763592657":
 		return positionPayload()
 	case "POST /accounts/positions/177796763592657/close":
-		return map[string]any{"id": "close"}
+		return map[string]any{"id": 1}
 	case "POST /accounts/orders":
 		return orderPayload()
 	case "DELETE /accounts/0001179019/orders/42":
@@ -169,7 +166,7 @@ func responseFor(method string, path string) any {
 	case "GET /market/working-dates":
 		return map[string]any{"workingDates": []any{"2026-05-25"}}
 	case "GET /price/ACB/trades/latest":
-		return map[string]any{"trades": []any{map[string]any{"price": 23000, "time": 1773183637}}}
+		return map[string]any{"trades": []any{map[string]any{"matchPrice": 23000, "time": "1773183637"}}}
 	case "GET /price/ACB/trades":
 		return map[string]any{"trades": []any{map[string]any{"price": 23000}}, "nextPageToken": "next"}
 	case "GET /price/HPG/close":

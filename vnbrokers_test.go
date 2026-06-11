@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
+	nativemarketdata "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/marketdata"
 	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
 	"github.com/vnbrokers/vnbrokers-go/core"
 )
@@ -16,7 +17,7 @@ func TestNewBrokerBuildsDNSEBroker(t *testing.T) {
 	if broker.Name() != "dnse" {
 		t.Fatalf("broker name = %q", broker.Name())
 	}
-	if !broker.Supports(core.CapabilityMarketDataRealtimeTop) {
+	if !broker.Supports(nativemarketdata.CapabilityRealtimeQuotes) {
 		t.Fatalf("expected dnse top price realtime capability")
 	}
 }

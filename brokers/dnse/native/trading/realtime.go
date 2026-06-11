@@ -1,0 +1,85 @@
+package trading
+
+import (
+	"context"
+	"encoding/json"
+
+	"github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
+	nativerealtime "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/realtime"
+	"github.com/vnbrokers/vnbrokers-go/core"
+	"github.com/vnbrokers/vnbrokers-go/realtime"
+)
+
+type realtimeService struct {
+	dependencies      nativerealtime.Dependencies
+	requireCapability func(core.Capability) error
+}
+
+func NewRealtimeService(dependencies nativerealtime.Dependencies, requireCapability func(core.Capability) error) RealtimeService {
+	return &realtimeService{dependencies: dependencies, requireCapability: requireCapability}
+}
+func (s *realtimeService) SubscribeOrders(ctx context.Context, r dto.SubscribeTradingRequest) (realtime.Subscription[dto.OrderEvent], error) {
+	return subscribeTrading[dto.OrderEvent](ctx, s, CapabilityRealtimeOrders, "order", r)
+}
+func (s *realtimeService) SubscribePositions(ctx context.Context, r dto.SubscribeTradingRequest) (realtime.Subscription[dto.PositionEvent], error) {
+	return subscribeTrading[dto.PositionEvent](ctx, s, CapabilityRealtimePositions, "position", r)
+}
+func subscribeTrading[T any](ctx context.Context, s *realtimeService, capability core.Capability, kind string, r dto.SubscribeTradingRequest) (realtime.Subscription[T], error) {
+	if err := s.requireCapability(capability); err != nil {
+		return nil, err
+	}
+	marketType := r.MarketType
+	if marketType == "" {
+		marketType = "STOCK"
+	}
+	return nativerealtime.Subscribe(ctx, s.dependencies, buildSubscribeMessage(kind, marketType, s.dependencies.Encoding), isPayload, func(message map[string]any) (T, error) { return decodeEvent[T](messageData(message)) })
+}
+func buildSubscribeMessage(kind, marketType, encoding string) map[string]any {
+	if encoding == "" {
+		encoding = "msgpack"
+	}
+	return map[string]any{"action": "subscribe", "channels": []any{map[string]any{"name": kind + "." + marketType + "." + encoding, "symbols": []any{}}}}
+}
+func messageData(message map[string]any) map[string]any {
+	if data, ok := message["data"].(map[string]any); ok {
+		return data
+	}
+	if message["T"] == "eo" {
+		if order, ok := message["order"].(map[string]any); ok {
+			return order
+		}
+	}
+	if message["T"] == "ep" {
+		if position, ok := message["position"].(map[string]any); ok {
+			return position
+		}
+	}
+	if order, ok := message["order"].(map[string]any); ok {
+		return order
+	}
+	if position, ok := message["position"].(map[string]any); ok {
+		return position
+	}
+	return message
+}
+func isPayload(message map[string]any) bool {
+	if message["T"] == "eo" {
+		_, ok := message["order"].(map[string]any)
+		return ok
+	}
+	if message["T"] == "ep" {
+		_, ok := message["position"].(map[string]any)
+		return ok
+	}
+	data := messageData(message)
+	return data["accountNo"] != nil && (data["id"] != nil || data["orderId"] != nil || data["symbol"] != nil)
+}
+func decodeEvent[T any](message map[string]any) (T, error) {
+	var out T
+	payload, err := json.Marshal(message)
+	if err != nil {
+		return out, err
+	}
+	err = json.Unmarshal(payload, &out)
+	return out, err
+}

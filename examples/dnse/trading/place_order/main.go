@@ -8,7 +8,7 @@ import (
 	"github.com/shopspring/decimal"
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
-	"github.com/vnbrokers/vnbrokers-go/domain"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 )
 
 func main() {
@@ -21,12 +21,8 @@ func main() {
 		TradingToken: os.Getenv("DNSE_TRADING_TOKEN"),
 		MarketType:   "STOCK",
 	})
-	secdef, err := broker.MarketData().Symbols().SecurityDefinition(ctx, symbol, "G1")
+	secdefs, err := broker.Native().MarketData().GetSecurityDefinition(ctx, nativedto.GetSecurityDefinitionRequest{Symbol: symbol, BoardID: "G1"})
 	if err != nil {
-		panic(err)
-	}
-	var secdefs dnse.SecurityDefinitionList
-	if err := dnse.UnmarshalRawPayload(secdef, &secdefs); err != nil {
 		panic(err)
 	}
 	price, ok := secdefs.FloorPrice(symbol)
@@ -35,16 +31,11 @@ func main() {
 	}
 	price = price.Mul(decimal.NewFromInt(1000))
 	fmt.Println("Floor price: ", price.String())
+	orderPrice, _ := price.Float64()
 
-	_, err = broker.Trading().Orders().PlaceWithRequest(ctx, dnse.PlaceOrderRequest{
-		PlaceOrderRequest: domain.PlaceOrderRequest{
-			AccountID: os.Getenv("DNSE_ACCOUNT_NO"),
-			Symbol:    symbol,
-			Side:      domain.OrderSideBuy,
-			Type:      domain.OrderTypeLimit,
-			Quantity:  decimal.NewFromInt(1),
-			Price:     &price,
-		},
+	_, err = broker.Native().Trading().PlaceOrder(ctx, nativedto.PlaceOrderRequest{
+		AccountNo: os.Getenv("DNSE_ACCOUNT_NO"), Symbol: symbol, Side: "NB", OrderType: "LO",
+		Quantity: 1, Price: &orderPrice, MarketType: "STOCK", OrderCategory: "NORMAL",
 		LoanPackageID: &loanPackageID,
 	})
 	if err != nil {

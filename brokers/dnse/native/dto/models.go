@@ -1,21 +1,12 @@
-package dnse
+package dto
 
 import (
-	"encoding/json"
-
 	"github.com/shopspring/decimal"
-	"github.com/vnbrokers/vnbrokers-go/domain"
 )
 
-func UnmarshalRawPayload(payload domain.RawPayload, out any) error {
-	if len(payload.Bytes) > 0 {
-		return json.Unmarshal(payload.Bytes, out)
-	}
-	bytes, err := json.Marshal(payload.Data)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(bytes, out)
+type GetTradingTokenRequest struct {
+	OTPType  string `json:"otpType"`
+	Passcode string `json:"passcode"`
 }
 
 type ErrorResponse struct {
@@ -60,13 +51,13 @@ type AccountBalancesResponse struct {
 type GetAccountBalancesResponse = AccountBalancesResponse
 
 type StockBalance struct {
-	TotalCash              *decimal.Decimal `json:"totalCash,omitempty"`
-	AvailableCash          *decimal.Decimal `json:"availableCash,omitempty"`
-	DepositInterest        *decimal.Decimal `json:"depositInterest,omitempty"`
-	TotalDebt              *decimal.Decimal `json:"totalDebt,omitempty"`
-	DepositFeeAmount       *decimal.Decimal `json:"depositFeeAmount,omitempty"`
-	WithdrawableCash       *decimal.Decimal `json:"withdrawableCash,omitempty"`
-	CashDividendReceiving  *decimal.Decimal `json:"cashDividendReceiving,omitempty"`
+	TotalCash             *decimal.Decimal `json:"totalCash,omitempty"`
+	AvailableCash         *decimal.Decimal `json:"availableCash,omitempty"`
+	DepositInterest       *decimal.Decimal `json:"depositInterest,omitempty"`
+	TotalDebt             *decimal.Decimal `json:"totalDebt,omitempty"`
+	DepositFeeAmount      *decimal.Decimal `json:"depositFeeAmount,omitempty"`
+	WithdrawableCash      *decimal.Decimal `json:"withdrawableCash,omitempty"`
+	CashDividendReceiving *decimal.Decimal `json:"cashDividendReceiving,omitempty"`
 }
 
 type DerivativeBalance struct {
@@ -80,7 +71,7 @@ type DerivativeBalance struct {
 
 type CorporateActionHistoryResponse struct {
 	AccountNo  string               `json:"accountNo,omitempty"`
-	Data       *CorporateActionData  `json:"data,omitempty"`
+	Data       *CorporateActionData `json:"data,omitempty"`
 	Pagination *Pagination          `json:"pagination,omitempty"`
 }
 
@@ -161,30 +152,30 @@ type OrdersHistoryResponse struct {
 type GetOrdersHistoryResponse = OrdersHistoryResponse
 
 type Order struct {
-	ID               any              `json:"id,omitempty"`
-	Side             string           `json:"side,omitempty"`
-	AccountNo        string           `json:"accountNo,omitempty"`
-	Symbol           string           `json:"symbol,omitempty"`
-	Price            *decimal.Decimal `json:"price,omitempty"`
-	PriceSecure      *decimal.Decimal `json:"priceSecure,omitempty"`
-	AveragePrice     *decimal.Decimal `json:"averagePrice,omitempty"`
-	Quantity         *decimal.Decimal `json:"quantity,omitempty"`
-	FillQuantity     *decimal.Decimal `json:"fillQuantity,omitempty"`
-	CanceledQuantity *decimal.Decimal `json:"canceledQuantity,omitempty"`
-	LeaveQuantity    *decimal.Decimal `json:"leaveQuantity,omitempty"`
-	LastQuantity     *decimal.Decimal `json:"lastQuantity,omitempty"`
-	LastPrice        *decimal.Decimal `json:"lastPrice,omitempty"`
-	OrderType        string           `json:"orderType,omitempty"`
-	OrderCategory    string           `json:"orderCategory,omitempty"`
-	OrderStatus      string           `json:"orderStatus,omitempty"`
-	LoanPackageID    any              `json:"loanPackageId,omitempty"`
-	MarketType       string           `json:"marketType,omitempty"`
-	TransDate        string           `json:"transDate,omitempty"`
-	TaxRate          *decimal.Decimal `json:"taxRate,omitempty"`
-	ExchangeFeeRate  *decimal.Decimal `json:"exchangeFeeRate,omitempty"`
-	FeeRate          *decimal.Decimal `json:"feeRate,omitempty"`
-	Error            string           `json:"error,omitempty"`
-	Metadata         string           `json:"metadata,omitempty"`
+	ID               int64             `json:"id,omitempty"`
+	Side             string            `json:"side,omitempty"`
+	AccountNo        string            `json:"accountNo,omitempty"`
+	Symbol           string            `json:"symbol,omitempty"`
+	Price            *decimal.Decimal  `json:"price,omitempty"`
+	PriceSecure      *decimal.Decimal  `json:"priceSecure,omitempty"`
+	AveragePrice     *decimal.Decimal  `json:"averagePrice,omitempty"`
+	Quantity         *decimal.Decimal  `json:"quantity,omitempty"`
+	FillQuantity     *decimal.Decimal  `json:"fillQuantity,omitempty"`
+	CanceledQuantity *decimal.Decimal  `json:"canceledQuantity,omitempty"`
+	LeaveQuantity    *decimal.Decimal  `json:"leaveQuantity,omitempty"`
+	LastQuantity     *decimal.Decimal  `json:"lastQuantity,omitempty"`
+	LastPrice        *decimal.Decimal  `json:"lastPrice,omitempty"`
+	OrderType        string            `json:"orderType,omitempty"`
+	OrderCategory    string            `json:"orderCategory,omitempty"`
+	OrderStatus      string            `json:"orderStatus,omitempty"`
+	LoanPackageID    int64             `json:"loanPackageId,omitempty"`
+	MarketType       string            `json:"marketType,omitempty"`
+	TransDate        string            `json:"transDate,omitempty"`
+	TaxRate          *decimal.Decimal  `json:"taxRate,omitempty"`
+	ExchangeFeeRate  *decimal.Decimal  `json:"exchangeFeeRate,omitempty"`
+	FeeRate          *decimal.Decimal  `json:"feeRate,omitempty"`
+	Error            string            `json:"error,omitempty"`
+	Metadata         string            `json:"metadata,omitempty"`
 	Reports          []ExecutionReport `json:"reports,omitempty"`
 	CreatedDate      string            `json:"createdDate,omitempty"`
 	ModifiedDate     string            `json:"modifiedDate,omitempty"`
@@ -218,12 +209,12 @@ type GetPositionByIDResponse = PositionByIDResponse
 type GetPositionByIdResponse = PositionByIDResponse
 
 type Position struct {
-	ID                 any              `json:"id,omitempty"`
+	ID                 int64            `json:"id,omitempty"`
 	Symbol             string           `json:"symbol,omitempty"`
 	MarketType         string           `json:"marketType,omitempty"`
 	AccountNo          string           `json:"accountNo,omitempty"`
 	Status             string           `json:"status,omitempty"`
-	LoanPackageID      any              `json:"loanPackageId,omitempty"`
+	LoanPackageID      int64            `json:"loanPackageId,omitempty"`
 	Side               string           `json:"side,omitempty"`
 	AccumulateQuantity *decimal.Decimal `json:"accumulateQuantity,omitempty"`
 	TradeQuantity      *decimal.Decimal `json:"tradeQuantity,omitempty"`
@@ -257,16 +248,16 @@ type LoanPackage struct {
 }
 
 type TradingFee struct {
-	ID                         int                  `json:"id,omitempty"`
-	Name                       string               `json:"name,omitempty"`
-	Scope                      string               `json:"scope,omitempty"`
-	Channel                    string               `json:"channel,omitempty"`
-	SchemaType                 string               `json:"schemaType,omitempty"`
-	CreatedDate                string               `json:"createdDate,omitempty"`
-	ModifiedDate               string               `json:"modifiedDate,omitempty"`
-	FixedTradingFee            int                  `json:"fixedTradingFee,omitempty"`
-	FixedDailyCloseTradingFee  int                  `json:"fixedDailyCloseTradingFee,omitempty"`
-	ProgressTradingFee         []ProgressTradingFee `json:"progressTradingFee,omitempty"`
+	ID                           int                  `json:"id,omitempty"`
+	Name                         string               `json:"name,omitempty"`
+	Scope                        string               `json:"scope,omitempty"`
+	Channel                      string               `json:"channel,omitempty"`
+	SchemaType                   string               `json:"schemaType,omitempty"`
+	CreatedDate                  string               `json:"createdDate,omitempty"`
+	ModifiedDate                 string               `json:"modifiedDate,omitempty"`
+	FixedTradingFee              int                  `json:"fixedTradingFee,omitempty"`
+	FixedDailyCloseTradingFee    int                  `json:"fixedDailyCloseTradingFee,omitempty"`
+	ProgressTradingFee           []ProgressTradingFee `json:"progressTradingFee,omitempty"`
 	ProgressDailyCloseTradingFee []ProgressTradingFee `json:"progressDailyCloseTradingFee,omitempty"`
 }
 
@@ -288,8 +279,8 @@ type GetPPSECreditResponse = PPSECredit
 type GetPpseResponse = PPSECredit
 
 type ExecutionReport struct {
-	ID               any              `json:"id,omitempty"`
-	OrderID          any              `json:"orderId,omitempty"`
+	ID               int64            `json:"id,omitempty"`
+	OrderID          int64            `json:"orderId,omitempty"`
 	ExecID           string           `json:"execId,omitempty"`
 	Side             string           `json:"side,omitempty"`
 	AccountNo        string           `json:"accountNo,omitempty"`
@@ -371,20 +362,20 @@ type GetLatestTradesResponse = TradesResponse
 type GetHistoryTradesResponse = TradesResponse
 
 type Trade struct {
-	MarketID           string           `json:"marketId,omitempty"`
-	BoardID            string           `json:"boardId,omitempty"`
-	ISIN               string           `json:"isin,omitempty"`
-	Symbol             string           `json:"symbol,omitempty"`
-	MatchPrice         *decimal.Decimal `json:"matchPrice,omitempty"`
-	MatchQuantity      *decimal.Decimal `json:"matchQtty,omitempty"`
-	Side               string           `json:"side,omitempty"`
-	AveragePrice       *decimal.Decimal `json:"avgPrice,omitempty"`
-	TotalVolumeTraded  *decimal.Decimal `json:"totalVolumeTraded,omitempty"`
-	GrossTradeAmount   *decimal.Decimal `json:"grossTradeAmount,omitempty"`
-	HighestPrice       *decimal.Decimal `json:"highestPrice,omitempty"`
-	LowestPrice        *decimal.Decimal `json:"lowestPrice,omitempty"`
-	OpenPrice          *decimal.Decimal `json:"openPrice,omitempty"`
-	Time               string           `json:"time,omitempty"`
+	MarketID          string           `json:"marketId,omitempty"`
+	BoardID           string           `json:"boardId,omitempty"`
+	ISIN              string           `json:"isin,omitempty"`
+	Symbol            string           `json:"symbol,omitempty"`
+	MatchPrice        *decimal.Decimal `json:"matchPrice,omitempty"`
+	MatchQuantity     *decimal.Decimal `json:"matchQtty,omitempty"`
+	Side              string           `json:"side,omitempty"`
+	AveragePrice      *decimal.Decimal `json:"avgPrice,omitempty"`
+	TotalVolumeTraded *decimal.Decimal `json:"totalVolumeTraded,omitempty"`
+	GrossTradeAmount  *decimal.Decimal `json:"grossTradeAmount,omitempty"`
+	HighestPrice      *decimal.Decimal `json:"highestPrice,omitempty"`
+	LowestPrice       *decimal.Decimal `json:"lowestPrice,omitempty"`
+	OpenPrice         *decimal.Decimal `json:"openPrice,omitempty"`
+	Time              string           `json:"time,omitempty"`
 }
 
 type OhlcResponse struct {
@@ -394,7 +385,7 @@ type OhlcResponse struct {
 	L        []*decimal.Decimal `json:"l,omitempty"`
 	C        []*decimal.Decimal `json:"c,omitempty"`
 	V        []*decimal.Decimal `json:"v,omitempty"`
-	NextTime int               `json:"nextTime,omitempty"`
+	NextTime int                `json:"nextTime,omitempty"`
 }
 
 type GetOhlcResponse = OhlcResponse
@@ -436,22 +427,22 @@ func (items SecdefResponse) FloorPrice(symbol string) (decimal.Decimal, bool) {
 }
 
 type SecurityDefinition struct {
-	MarketID                         string           `json:"marketId,omitempty"`
-	BoardID                          string           `json:"boardId,omitempty"`
-	ISIN                             string           `json:"isin,omitempty"`
-	Symbol                           string           `json:"symbol,omitempty"`
-	ProductGrpID                     string           `json:"productGrpId,omitempty"`
-	SecurityGroupID                  string           `json:"securityGroupId,omitempty"`
-	BasicPrice                       *decimal.Decimal `json:"basicPrice,omitempty"`
-	CeilingPrice                     *decimal.Decimal `json:"ceilingPrice,omitempty"`
-	FloorPrice                       *decimal.Decimal `json:"floorPrice,omitempty"`
-	SecurityStatus                   string           `json:"securityStatus,omitempty"`
-	SymbolAdminStatusCode            string           `json:"symbolAdminStatusCode,omitempty"`
-	SymbolTradingMethodStatusCode    string           `json:"symbolTradingMethodStatusCode,omitempty"`
-	SymbolTradingSanctionStatusCode  string           `json:"symbolTradingSanctionStatusCode,omitempty"`
-	FinalTradeDate                   any              `json:"finalTradeDate,omitempty"`
-	ListingDate                      string           `json:"listingDate,omitempty"`
-	Time                             string           `json:"time,omitempty"`
+	MarketID                        string           `json:"marketId,omitempty"`
+	BoardID                         string           `json:"boardId,omitempty"`
+	ISIN                            string           `json:"isin,omitempty"`
+	Symbol                          string           `json:"symbol,omitempty"`
+	ProductGrpID                    string           `json:"productGrpId,omitempty"`
+	SecurityGroupID                 string           `json:"securityGroupId,omitempty"`
+	BasicPrice                      *decimal.Decimal `json:"basicPrice,omitempty"`
+	CeilingPrice                    *decimal.Decimal `json:"ceilingPrice,omitempty"`
+	FloorPrice                      *decimal.Decimal `json:"floorPrice,omitempty"`
+	SecurityStatus                  string           `json:"securityStatus,omitempty"`
+	SymbolAdminStatusCode           string           `json:"symbolAdminStatusCode,omitempty"`
+	SymbolTradingMethodStatusCode   string           `json:"symbolTradingMethodStatusCode,omitempty"`
+	SymbolTradingSanctionStatusCode string           `json:"symbolTradingSanctionStatusCode,omitempty"`
+	FinalTradeDate                  string           `json:"finalTradeDate,omitempty"`
+	ListingDate                     string           `json:"listingDate,omitempty"`
+	Time                            string           `json:"time,omitempty"`
 }
 
 type WorkingDatesResponse struct {

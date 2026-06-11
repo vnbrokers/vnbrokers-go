@@ -7,12 +7,13 @@ import (
 	"testing"
 	"time"
 
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/realtime"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
 func TestMarketDataSubscribeMessageSupportsMultipleSymbols(t *testing.T) {
-	message := BuildMarketDataSubscribeMessage("top_price.G1.json", []string{"ACB", "HPG"})
+	message := buildMarketDataSubscribeMessage("top_price.G1.json", []string{"ACB", "HPG"})
 	channels := message["channels"].([]any)
 	channel := channels[0].(map[string]any)
 	symbols := channel["symbols"].([]any)
@@ -23,7 +24,7 @@ func TestMarketDataSubscribeMessageSupportsMultipleSymbols(t *testing.T) {
 }
 
 func TestMarketDataSubscribeMessageSupportsAllSymbols(t *testing.T) {
-	message := BuildMarketDataSubscribeMessage("top_price.G1.json", nil)
+	message := buildMarketDataSubscribeMessage("top_price.G1.json", nil)
 	channels := message["channels"].([]any)
 	channel := channels[0].(map[string]any)
 
@@ -33,7 +34,7 @@ func TestMarketDataSubscribeMessageSupportsAllSymbols(t *testing.T) {
 }
 
 func TestMarketDataChannelDefaultsToMsgpackEncoding(t *testing.T) {
-	channel := BuildMarketDataChannel("top_price", "G1", "", "", "")
+	channel := buildMarketDataChannel("top_price", "G1", "", "", "")
 
 	if channel != "top_price.G1.msgpack" {
 		t.Fatalf("channel = %s", channel)
@@ -41,7 +42,7 @@ func TestMarketDataChannelDefaultsToMsgpackEncoding(t *testing.T) {
 }
 
 func TestTradingSubscribeOrdersMessageUsesEncoding(t *testing.T) {
-	message := BuildStreamSubscribeOrdersMessage("STOCK", "msgpack")
+	message := buildStreamSubscribeOrdersMessage("STOCK", "msgpack")
 	channels := message["channels"].([]any)
 	channel := channels[0].(map[string]any)
 
@@ -51,14 +52,14 @@ func TestTradingSubscribeOrdersMessageUsesEncoding(t *testing.T) {
 }
 
 func TestTradingSubscribeMessagesDefaultToMsgpackEncoding(t *testing.T) {
-	orders := BuildStreamSubscribeOrdersMessage("STOCK", "")
+	orders := buildStreamSubscribeOrdersMessage("STOCK", "")
 	orderChannels := orders["channels"].([]any)
 	orderChannel := orderChannels[0].(map[string]any)
 	if orderChannel["name"] != "order.STOCK.msgpack" {
 		t.Fatalf("order channel = %s", orderChannel["name"])
 	}
 
-	positions := BuildStreamSubscribePositionsMessage("STOCK", "")
+	positions := buildStreamSubscribePositionsMessage("STOCK", "")
 	positionChannels := positions["channels"].([]any)
 	positionChannel := positionChannels[0].(map[string]any)
 	if positionChannel["name"] != "position.STOCK.msgpack" {
@@ -148,7 +149,7 @@ func TestStreamSendsProactivePong(t *testing.T) {
 }
 
 func TestDecodeCandleUsesResolutionAndTime(t *testing.T) {
-	candle := decodeCandle(map[string]any{
+	candle, err := decodeNativeEvent[nativedto.OHLCEvent](marketDataMessageData(map[string]any{
 		"data": map[string]any{
 			"symbol":     "ACB",
 			"resolution": "15",
@@ -159,7 +160,10 @@ func TestDecodeCandleUsesResolutionAndTime(t *testing.T) {
 			"close":      10.5,
 			"volume":     1000,
 		},
-	})
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if candle.Resolution != "15" {
 		t.Fatalf("resolution = %q", candle.Resolution)

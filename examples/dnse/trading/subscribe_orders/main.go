@@ -7,7 +7,7 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
-	"github.com/vnbrokers/vnbrokers-go/trading"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 		APISecret:      os.Getenv("DNSE_API_SECRET"),
 		StreamEncoding: "msgpack",
 	})
-	sub, err := broker.Trading().Realtime().SubscribeOrders(context.Background(), trading.SubscribeOrdersRequest{
+	sub, err := broker.Native().Trading().Realtime().SubscribeOrders(context.Background(), nativedto.SubscribeTradingRequest{
 		MarketType: "STOCK",
 	})
 	if err != nil {

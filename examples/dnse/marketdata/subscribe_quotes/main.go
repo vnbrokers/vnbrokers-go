@@ -7,6 +7,7 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 )
 
 func main() {
@@ -15,11 +16,7 @@ func main() {
 		APISecret:      os.Getenv("DNSE_API_SECRET"),
 		StreamEncoding: "msgpack",
 	})
-	sub, err := broker.MarketData().Realtime().SubscribeRawChannel(
-		context.Background(),
-		"top_price.G1.msgpack",
-		[]string{"ACB"},
-	)
+	sub, err := broker.Native().MarketData().Realtime().SubscribeQuotes(context.Background(), nativedto.SubscribeSymbolsRequest{Symbols: []string{"ACB"}, BoardID: "G1"})
 	if err != nil {
 		panic(err)
 	}

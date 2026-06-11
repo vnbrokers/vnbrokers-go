@@ -7,6 +7,7 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 )
 
 func main() {
@@ -14,7 +15,7 @@ func main() {
 		APIKey:    os.Getenv("DNSE_API_KEY"),
 		APISecret: os.Getenv("DNSE_API_SECRET"),
 	})
-	payload, err := broker.MarketData().Symbols().WorkingDates(context.Background())
+	payload, err := broker.Native().MarketData().GetWorkingDates(context.Background(), nativedto.GetWorkingDatesRequest{})
 	if err != nil {
 		panic(err)
 	}

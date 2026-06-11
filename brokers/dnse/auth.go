@@ -7,15 +7,15 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
 	"time"
 
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
-	"github.com/vnbrokers/vnbrokers-go/domain"
 	"github.com/vnbrokers/vnbrokers-go/errors"
-	sdktrading "github.com/vnbrokers/vnbrokers-go/trading"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -84,9 +84,9 @@ type AuthService struct {
 	broker *Broker
 }
 
-func (s *AuthService) SendEmailOTP(ctx context.Context) (domain.RawPayload, error) {
+func (s *AuthService) SendEmailOTP(ctx context.Context) (*nativedto.SendEmailOtpResponse, error) {
 	if err := s.broker.RequireCapability(core.CapabilityTradingAuthSendOTP); err != nil {
-		return domain.RawPayload{}, err
+		return nil, err
 	}
 	response, err := s.broker.send(ctx, "auth.send_email_otp", transport.HTTPRequest{
 		Method:  "POST",
@@ -94,42 +94,44 @@ func (s *AuthService) SendEmailOTP(ctx context.Context) (domain.RawPayload, erro
 		Headers: s.broker.apiHeaders(),
 	})
 	if err != nil {
-		return domain.RawPayload{}, err
+		return nil, err
 	}
-	return rawPayload(response.Body, response.Raw), nil
+	return decodeResponse[nativedto.SendEmailOtpResponse]("auth.send_email_otp", response)
 }
 
 func (s *AuthService) GetTradingToken(
 	ctx context.Context,
-	otpType string,
-	passcode string,
-) (domain.RawPayload, error) {
-	return s.GetTradingTokenWithRequest(ctx, sdktrading.TradingTokenRequest{
-		OTPType:  sdktrading.OTPType(otpType),
-		Passcode: passcode,
-	})
-}
-
-func (s *AuthService) GetTradingTokenWithRequest(
-	ctx context.Context,
-	request sdktrading.TradingTokenRequest,
-) (domain.RawPayload, error) {
+	request nativedto.GetTradingTokenRequest,
+) (*nativedto.TradingTokenResponse, error) {
 	if err := s.broker.RequireCapability(core.CapabilityTradingAuthTradingToken); err != nil {
-		return domain.RawPayload{}, err
+		return nil, err
 	}
 	response, err := s.broker.send(ctx, "auth.get_trading_token", transport.HTTPRequest{
 		Method:  "POST",
 		URL:     s.broker.url("/registration/trading-token"),
 		Headers: withContentType(s.broker.apiHeaders()),
-		JSON: map[string]any{
-			"otpType":  string(request.OTPType),
-			"passcode": request.Passcode,
-		},
+		JSON:    request,
 	})
 	if err != nil {
-		return domain.RawPayload{}, err
+		return nil, err
 	}
-	return rawPayload(response.Body, response.Raw), nil
+	return decodeResponse[nativedto.TradingTokenResponse]("auth.get_trading_token", response)
+}
+
+func decodeResponse[T any](operation string, response transport.HTTPResponse) (*T, error) {
+	payload := response.Raw
+	if len(payload) == 0 {
+		var err error
+		payload, err = json.Marshal(response.Body)
+		if err != nil {
+			return nil, err
+		}
+	}
+	result := new(T)
+	if err := json.Unmarshal(payload, result); err != nil {
+		return nil, errors.Decode("dnse", operation, "decode DNSE auth response", response.Body, err)
+	}
+	return result, nil
 }
 
 func (b *Broker) signer() *Signer {

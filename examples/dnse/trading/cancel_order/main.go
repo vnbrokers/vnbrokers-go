@@ -7,7 +7,7 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
-	"github.com/vnbrokers/vnbrokers-go/trading"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 )
 
 func main() {
@@ -17,11 +17,11 @@ func main() {
 		TradingToken: os.Getenv("DNSE_TRADING_TOKEN"),
 		MarketType:   "STOCK",
 	})
-	payload, err := broker.Trading().Orders().CancelWithRequest(context.Background(), trading.CancelOrderRequest{
-		AccountID:     requiredString("DNSE_ACCOUNT_NO"),
+	payload, err := broker.Native().Trading().CancelOrder(context.Background(), nativedto.CancelOrderRequest{
+		AccountNo:     requiredString("DNSE_ACCOUNT_NO"),
 		OrderID:       "123456",
-		MarketType:    trading.MarketTypeStock,
-		OrderCategory: trading.OrderCategoryNormal,
+		MarketType:    "STOCK",
+		OrderCategory: "NORMAL",
 	})
 	if err != nil {
 		panic(err)

@@ -7,6 +7,7 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 )
 
 func main() {
@@ -14,11 +15,9 @@ func main() {
 		APIKey:    os.Getenv("DNSE_API_KEY"),
 		APISecret: os.Getenv("DNSE_API_SECRET"),
 	})
-	accounts, err := broker.Trading().Accounts().List(context.Background())
+	accounts, err := broker.Native().Trading().GetAccounts(context.Background(), nativedto.GetAccountsRequest{})
 	if err != nil {
 		panic(err)
 	}
-	for _, account := range accounts {
-		fmt.Println(account)
-	}
+	fmt.Println(accounts)
 }

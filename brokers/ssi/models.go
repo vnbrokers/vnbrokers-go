@@ -55,6 +55,17 @@ type MaxBuyQuantityRequest struct {
 	Price     decimal.Decimal
 }
 
+type MaxSellQuantityRequest struct {
+	AccountID string
+	Symbol    string
+	Price     decimal.Decimal
+}
+
+type DerivativePositionRequest struct {
+	AccountID    string
+	QuerySummary bool
+}
+
 type PlaceOrderRequest struct {
 	domain.PlaceOrderRequest
 	MarketID  string
@@ -585,4 +596,28 @@ type ConditionalOrder struct {
 	Params          any              `json:"params,omitempty"`
 	OrderID         string           `json:"orderID,omitempty"`
 	OrderStatus     string           `json:"orderStatus,omitempty"`
+}
+
+type FCOEvent struct {
+	FCOID           string
+	NotifyID        int64
+	Data            any
+	ProcessStatus   string
+	LastAction      string
+	UniqueID        string
+	MatchedQuantity decimal.Decimal
+	IsPlaceOrder    bool
+	IPAddress       string
+	Symbol          string
+	Prefix          string
+	Quantity        decimal.Decimal
+	BrokerID        string
+	Price           string
+	AccountID       string
+	BrokerIDUpdate  string
+	UpdatedTime     string
+	Status          string
+	Message         string
+	Username        string
+	Raw             domain.RawPayload
 }

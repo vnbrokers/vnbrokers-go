@@ -13,15 +13,19 @@ func main() {
 	broker := vnbrokers.NewSSI(ssi.Config{
 		TradingToken: mustEnv("SSI_FCTRADING_TOKEN"),
 	})
-	orders, err := broker.Trading().Accounts().Orders(
+	response, err := broker.Native().Trading().StockPosition(
 		context.Background(),
 		mustEnv("SSI_ACCOUNT_NO"),
 	)
 	if err != nil {
 		panic(err)
 	}
-	for _, order := range orders {
-		fmt.Printf("%+v\n", order)
+	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
+	for _, item := range response.Data {
+		for _, pos := range item.StockPositions {
+			fmt.Printf("symbol=%s onHand=%s sellable=%s marketPrice=%s\n",
+				pos.InstrumentID, pos.OnHand, pos.SellableQty, pos.MarketPrice)
+		}
 	}
 }
 

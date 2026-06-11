@@ -7,32 +7,35 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/ssi"
-	"github.com/vnbrokers/vnbrokers-go/domain"
 )
 
 func main() {
 	broker := vnbrokers.NewSSI(ssi.Config{
 		TradingToken: mustEnv("SSI_FCTRADING_TOKEN"),
 		PrivateKey:   mustEnv("SSI_FCTRADING_PRIVATE_KEY"),
-		DeviceID:     "FCTradingExample",
+		DeviceID:     "Example",
 		UserAgent:    "FCTrading",
 		MarketID:     "VN",
 		ChannelID:    "TA",
 	})
-	response, err := broker.Trading().Orders().CancelWithRequest(
+	response, err := broker.Native().Trading().NewOrder(
 		context.Background(),
-		ssi.CancelOrderRequest{
-			AccountID: mustEnv("SSI_ACCOUNT_NO"),
-			OrderID:   "12658867",
-			Symbol:    "SSI",
-			Side:      domain.OrderSideBuy,
-			Code:      "123456",
+		map[string]any{
+			"account":      mustEnv("SSI_ACCOUNT_NO"),
+			"instrumentID": "SSI",
+			"marketID":     "VN",
+			"buySell":      "B",
+			"orderType":    "LO",
+			"price":        21000,
+			"quantity":     100,
+			"code":         "123456",
 		},
 	)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v\n", response.Data)
+	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
+	fmt.Printf("orderID=%s\n", response.Data.OrderID)
 }
 
 func mustEnv(key string) string {

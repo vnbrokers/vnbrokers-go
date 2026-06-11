@@ -22,7 +22,7 @@ func main() {
 	}
 	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
 	for _, item := range response.Data.CIAAmounts {
-		fmt.Printf("dueDate=%s sellValue=%s advance=%s\n", item.DueDate, item.SellValue, item.Advance)
+		fmt.Printf("dueDate=%s sellValue=%v advance=%v\n", item.DueDate, item.SellValue, item.Advance)
 	}
 }
 

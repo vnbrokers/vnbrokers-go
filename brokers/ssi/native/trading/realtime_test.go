@@ -9,8 +9,6 @@ import (
 
 	nativetrading "github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/trading"
 	"github.com/vnbrokers/vnbrokers-go/core"
-	"github.com/vnbrokers/vnbrokers-go/domain"
-	sdktrading "github.com/vnbrokers/vnbrokers-go/trading"
 )
 
 type fakeSignalRClient struct {
@@ -93,6 +91,15 @@ func receiveEvent[T any](t *testing.T, events <-chan T) T {
 	}
 }
 
+func requireNoEvent[T any](t *testing.T, events <-chan T) {
+	t.Helper()
+	select {
+	case event := <-events:
+		t.Fatalf("unexpected event: %+v", event)
+	case <-time.After(20 * time.Millisecond):
+	}
+}
+
 func TestTradingRealtimeRequiresTradingAccessToken(t *testing.T) {
 	svc := nativetrading.NewRealtimeService(nativetrading.RealtimeDependencies{
 		TradingToken:      func() string { return "" },
@@ -102,7 +109,7 @@ func TestTradingRealtimeRequiresTradingAccessToken(t *testing.T) {
 			return newFakeSignalRClient()
 		},
 	})
-	if _, err := svc.SubscribeOrders(context.Background(), sdktrading.SubscribeOrdersRequest{}); err == nil {
+	if _, err := svc.SubscribeOrderEvents(context.Background()); err == nil {
 		t.Fatalf("expected trading access token error")
 	}
 }
@@ -122,10 +129,7 @@ func TestTradingRealtimePublishesOrderEvents(t *testing.T) {
 		},
 	})
 
-	subscription, err := svc.SubscribeOrders(
-		context.Background(),
-		sdktrading.SubscribeOrdersRequest{},
-	)
+	subscription, err := svc.SubscribeOrderEvents(context.Background())
 	if err != nil {
 		t.Fatalf("subscribe orders: %v", err)
 	}
@@ -138,23 +142,67 @@ func TestTradingRealtimePublishesOrderEvents(t *testing.T) {
 		t.Fatalf("auth = %+v query = %+v", fake.headers, fake.query)
 	}
 
-	fake.emit("BroadcastHubV2", "Broadcast", broadcastSSIArg(t, "orderMatchEvent", map[string]any{
-		"Account":      "0901351",
-		"OrderID":      "26060500251341",
-		"InstrumentID": "SSI",
-		"OrderStatus":  "PF",
-		"FilledQty":    50,
-		"ModifiedTime": "1780633829138",
+	fake.emit("BroadcastHubV2", "Broadcast", broadcastSSIArg(t, "orderError", map[string]any{
+		"errorCode": "IGNORED",
+	}))
+	requireNoEvent(t, subscription.Events())
+
+	fake.emit("BroadcastHubV2", "Broadcast", broadcastSSIArg(t, "orderEvent", map[string]any{
+		"orderID":             "26061100279501",
+		"notifyID":            420825,
+		"data":                nil,
+		"instrumentID":        "AAA",
+		"lastAction":          "NEW_ORDER",
+		"uniqueID":            "60736013",
+		"buySell":             "B",
+		"orderType":           "LO",
+		"ipAddress":           "171.225.132.124, 10.232.81.28, 10.236.229.4",
+		"price":               7070.0,
+		"prefix":              "dgd",
+		"quantity":            1,
+		"brokerId":            "",
+		"marketID":            "VN",
+		"origOrderId":         "26061100279501",
+		"brokerIdUpdate":      nil,
+		"cancelQty":           0,
+		"osQty":               1,
+		"filledQty":           0,
+		"avgPrice":            0.0,
+		"channel":             "IM",
+		"inputTime":           "1781159807172",
+		"modifiedTime":        "1781159807194",
+		"isForceSell":         "F",
+		"isShortSell":         nil,
+		"orderStatus":         "QU",
+		"rejectReason":        "",
+		"origRequestID":       "60736013",
+		"stopOrder":           false,
+		"stopPrice":           0.0,
+		"stopType":            "",
+		"stopStep":            0.0,
+		"profitPrice":         0.0,
+		"modifiable":          true,
+		"note":                "",
+		"approveComment":      "",
+		"orderApproval":       false,
+		"taxRate":             0.0,
+		"feeRate":             0.0035,
+		"source":              "LFO",
+		"lastOrderUpdateTime": "1781159807194",
+		"exchangeReplyTime":   "1781159807194",
+		"isCloseout":          false,
+		"isOrderMM":           false,
 	}))
 
 	event := receiveEvent(t, subscription.Events())
-	if event.Broker != "ssi" || event.AccountID != "0901351" || event.OrderID != "26060500251341" ||
-		event.Symbol != "SSI" || event.Status != domain.OrderStatusPartiallyFilled || event.FilledQuantity != "50" {
-		t.Fatalf("event = %+v", event)
+	if event.OrderID != "26061100279501" || event.NotifyID != 420825 ||
+		event.LastAction != "NEW_ORDER" || event.OSQuantity != 1 ||
+		event.FeeRate != 0.0035 || event.BrokerIDUpdate != nil {
+		t.Fatalf("order = %+v", event)
 	}
 }
 
-func TestTradingRealtimePublishesPositions(t *testing.T) {
+func TestTradingRealtimePublishesOrderErrors(t *testing.T) {
 	fake := newFakeSignalRClient()
 	svc := nativetrading.NewRealtimeService(nativetrading.RealtimeDependencies{
 		TradingToken:      func() string { return "trading-token" },
@@ -165,28 +213,118 @@ func TestTradingRealtimePublishesPositions(t *testing.T) {
 		},
 	})
 
-	subscription, err := svc.SubscribePositions(
-		context.Background(),
-		sdktrading.SubscribePositionsRequest{},
-	)
+	subscription, err := svc.SubscribeOrderErrors(context.Background())
+	if err != nil {
+		t.Fatalf("subscribe order errors: %v", err)
+	}
+	defer subscription.Close()
+
+	fake.emit("BroadcastHubV2", "Broadcast", broadcastSSIArg(t, "orderError", map[string]any{
+		"message":      "This channel has been block; disallow to place order ",
+		"notifyID":     0,
+		"errorCode":    "ORD015",
+		"uniqueID":     "6163422",
+		"orderID":      "T20230504w3806163422",
+		"instrumentID": "SSI",
+		"price":        19600,
+		"quantity":     200,
+		"modifiable":   false,
+	}))
+
+	event := receiveEvent(t, subscription.Events())
+	if event.ErrorCode != "ORD015" || event.Message == "" ||
+		event.OrderID != "T20230504w3806163422" || event.Quantity != 200 {
+		t.Fatalf("order error = %+v", event)
+	}
+}
+
+func TestTradingRealtimePublishesOrderMatchEvents(t *testing.T) {
+	fake := newFakeSignalRClient()
+	svc := nativetrading.NewRealtimeService(nativetrading.RealtimeDependencies{
+		TradingToken:      func() string { return "trading-token" },
+		TradingStreamURL:  "https://fc-tradehub.ssi.com.vn/v2.0/signalr",
+		RequireCapability: func(core.Capability) error { return nil },
+		NewSignalRClient: func(string, []string) nativetrading.SignalRClient {
+			return fake
+		},
+	})
+
+	subscription, err := svc.SubscribeOrderMatchEvents(context.Background())
+	if err != nil {
+		t.Fatalf("subscribe order match events: %v", err)
+	}
+	defer subscription.Close()
+
+	fake.emit("BroadcastHubV2", "Broadcast", broadcastSSIArg(t, "orderMatchEvent", map[string]any{
+		"orderID":      "16201867",
+		"notifyID":     101180,
+		"instrumentID": "BVS",
+		"uniqueID":     "24194396",
+		"buySell":      "B",
+		"matchPrice":   1000,
+		"matchQty":     100,
+		"matchTime":    "1656665019000",
+	}))
+
+	event := receiveEvent(t, subscription.Events())
+	if event.OrderID != "16201867" || event.MatchPrice != 1000 ||
+		event.MatchQuantity != 100 || event.MatchTime != "1656665019000" {
+		t.Fatalf("order match = %+v", event)
+	}
+}
+
+func TestTradingRealtimePublishesClientPortfolioEvents(t *testing.T) {
+	fake := newFakeSignalRClient()
+	svc := nativetrading.NewRealtimeService(nativetrading.RealtimeDependencies{
+		TradingToken:      func() string { return "trading-token" },
+		TradingStreamURL:  "https://fc-tradehub.ssi.com.vn/v2.0/signalr",
+		RequireCapability: func(core.Capability) error { return nil },
+		NewSignalRClient: func(string, []string) nativetrading.SignalRClient {
+			return fake
+		},
+	})
+
+	subscription, err := svc.SubscribeClientPortfolioEvents(context.Background())
 	if err != nil {
 		t.Fatalf("subscribe positions: %v", err)
 	}
 	defer subscription.Close()
 
 	fake.emit("BroadcastHubV2", "Broadcast", broadcastSSIArg(t, "clientPortfolioEvent", map[string]any{
-		"Account":      "0901351",
-		"InstrumentID": "SSI",
-		"OnHand":       100,
-		"SellableQty":  80,
-		"AvgPrice":     21000,
-		"MarketPrice":  22000,
+		"account":  "0901358",
+		"notifyID": 27,
+		"data":     nil,
+		"clientPortfoliosOpen": []map[string]any{
+			{
+				"martketID":    "VNFE",
+				"instrumentID": "VN30F2106",
+				"longQty":      9,
+				"shortQty":     0,
+				"net":          9,
+				"bidAvgPrice":  1402.4000244140625,
+				"askAvgPrice":  0,
+				"tradePrice":   0,
+				"marketPrice":  873,
+				"floatingPL":   -476460000,
+				"tradingPL":    0,
+			},
+		},
+		"uniqueID":              nil,
+		"clientPortfoliosClose": nil,
+		"connectionID":          "",
+		"ipAddress":             nil,
+		"prefix":                nil,
 	}))
 
-	position := receiveEvent(t, subscription.Events())
-	if position.AccountID != "0901351" || position.Symbol != "SSI" ||
-		position.Quantity.String() != "100" || position.AvailableQuantity.String() != "80" {
-		t.Fatalf("position = %+v", position)
+	event := receiveEvent(t, subscription.Events())
+	if event.Account != "0901358" || event.NotifyID != 27 || len(event.ClientPortfoliosOpen) != 1 ||
+		event.ClientPortfoliosClose != nil || event.UniqueID != nil || event.IPAddress != nil {
+		t.Fatalf("portfolio event = %+v", event)
+	}
+	position := event.ClientPortfoliosOpen[0]
+	if position.MarketID != "VNFE" || position.InstrumentID != "VN30F2106" ||
+		position.LongQuantity != 9 || position.Net != 9 || position.FloatingPL != -476460000 {
+		t.Fatalf("portfolio = %+v", position)
 	}
 }
 
@@ -225,9 +363,9 @@ func TestTradingRealtimePublishesFCOEvents(t *testing.T) {
 
 	event := receiveEvent(t, subscription.Events())
 	if event.FCOID != "7528ac20-a340-4233-8bb7-a2379fc3c638" || event.NotifyID != 6840196 ||
-		event.ProcessStatus != "INIT" || event.MatchedQuantity.String() != "0" ||
+		event.ProcessStatus != "INIT" || event.MatchedQuantity != 0 ||
 		event.IsPlaceOrder || event.Symbol != "ssi" || event.AccountID != "" ||
-		event.Quantity.String() != "4000" || event.Price != "MP" {
+		event.Quantity != 4000 || event.Price != "MP" || event.Status != "200" || event.Username != "123149" {
 		t.Fatalf("event = %+v", event)
 	}
 }

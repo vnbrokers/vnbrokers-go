@@ -35,7 +35,7 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
-	fmt.Printf("orderID=%s\n", response.Data.OrderID)
+	fmt.Printf("requestID=%s\n", response.Data.RequestID)
 }
 
 func mustEnv(key string) string {

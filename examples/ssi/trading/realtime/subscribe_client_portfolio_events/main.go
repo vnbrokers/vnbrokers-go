@@ -8,7 +8,6 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/ssi"
-	"github.com/vnbrokers/vnbrokers-go/trading"
 )
 
 func main() {
@@ -16,10 +15,7 @@ func main() {
 	defer stop()
 
 	broker := vnbrokers.NewSSI(ssi.Config{TradingToken: mustEnv("SSI_FCTRADING_TOKEN")})
-	subscription, err := broker.Native().Trading().Realtime().SubscribePositions(
-		ctx,
-		trading.SubscribePositionsRequest{},
-	)
+	subscription, err := broker.Native().Trading().Realtime().SubscribeClientPortfolioEvents(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -28,9 +24,11 @@ func main() {
 	for {
 		select {
 		case event := <-subscription.Events():
-			fmt.Printf("%+v\n", event)
+			fmt.Printf("client portfolio event: %+v\n", event)
 		case err := <-subscription.Errors():
 			fmt.Printf("stream error: %v\n", err)
+		case status := <-subscription.Status():
+			fmt.Printf("status: %s\n", status)
 		case <-ctx.Done():
 			return
 		}

@@ -23,9 +23,7 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
-	for _, item := range response.Data {
-		fmt.Printf("account=%s maxBuyQty=%s\n", item.Account, item.MaxBuyQty)
-	}
+	fmt.Printf("account=%s maxBuyQty=%d\n", response.Data.Account, response.Data.MaxBuyQty)
 }
 
 func mustEnv(key string) string {

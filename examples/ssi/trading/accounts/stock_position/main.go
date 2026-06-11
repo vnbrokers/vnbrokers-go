@@ -21,11 +21,9 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
-	for _, item := range response.Data {
-		for _, pos := range item.StockPositions {
-			fmt.Printf("symbol=%s onHand=%s sellable=%s marketPrice=%s\n",
-				pos.InstrumentID, pos.OnHand, pos.SellableQty, pos.MarketPrice)
-		}
+	for _, pos := range response.Data.StockPositions {
+		fmt.Printf("symbol=%s onHand=%d sellable=%d marketPrice=%v\n",
+			pos.InstrumentID, pos.OnHand, pos.SellableQty, pos.MarketPrice)
 	}
 }
 

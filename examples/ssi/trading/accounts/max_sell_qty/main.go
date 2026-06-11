@@ -23,7 +23,7 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("status=%d message=%s\n", response.Status, response.Message)
-	fmt.Printf("account=%s maxSellQty=%s\n", response.Data.Account, response.Data.MaxSellQty)
+	fmt.Printf("account=%s maxSellQty=%d\n", response.Data.Account, response.Data.MaxSellQty)
 }
 
 func mustEnv(key string) string {

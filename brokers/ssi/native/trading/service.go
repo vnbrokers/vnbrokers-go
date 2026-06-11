@@ -9,7 +9,10 @@ import (
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
+	"github.com/vnbrokers/vnbrokers-go/domain"
 	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/realtime"
+	sdktrading "github.com/vnbrokers/vnbrokers-go/trading"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -109,6 +112,10 @@ type Service interface {
 }
 
 type RealtimeService interface {
+	SubscribeOrders(context.Context, sdktrading.SubscribeOrdersRequest) (realtime.Subscription[domain.OrderEvent], error)
+	SubscribePositions(context.Context, sdktrading.SubscribePositionsRequest) (realtime.Subscription[domain.Position], error)
+	SubscribeFCOEvents(context.Context) (realtime.Subscription[dto.FCOEvent], error)
+	SubscribeConditionalOrders(context.Context) (realtime.Subscription[dto.FCOEvent], error)
 }
 
 type Dependencies struct {
@@ -210,11 +217,5 @@ func setOptionalString(params url.Values, key string, value string) {
 func setOptionalInt(params url.Values, key string, value int) {
 	if value > 0 {
 		params.Set(key, strconv.Itoa(value))
-	}
-}
-
-func setOptionalBool(params url.Values, key string, value bool) {
-	if value {
-		params.Set(key, "true")
 	}
 }

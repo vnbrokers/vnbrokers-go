@@ -1,5 +1,10 @@
 package dto
 
+import (
+	"github.com/shopspring/decimal"
+	"github.com/vnbrokers/vnbrokers-go/domain"
+)
+
 // ──────────────────────────────── Cash ────────────────────────────────
 
 type CashInAdvanceAmountData struct {
@@ -466,6 +471,32 @@ type ConditionalOrder struct {
 	Params          any     `json:"params,omitempty"`
 	OrderID         string  `json:"orderID,omitempty"`
 	OrderStatus     string  `json:"orderStatus,omitempty"`
+}
+
+// ──────────────────────────────── FCO Event ────────────────────────────────
+
+type FCOEvent struct {
+	FCOID           string          `json:"fcoId,omitempty"`
+	NotifyID        int64           `json:"notifyID,omitempty"`
+	Data            any             `json:"data,omitempty"`
+	ProcessStatus   string          `json:"processStatus,omitempty"`
+	LastAction      string          `json:"lastAction,omitempty"`
+	UniqueID        string          `json:"uniqueID,omitempty"`
+	MatchedQuantity decimal.Decimal `json:"-"`
+	IsPlaceOrder    bool            `json:"isPlaceOrder,omitempty"`
+	IPAddress       string          `json:"ipAddress,omitempty"`
+	Symbol          string          `json:"instrumentID,omitempty"`
+	Prefix          string          `json:"prefix,omitempty"`
+	Quantity        decimal.Decimal `json:"-"`
+	BrokerID        string          `json:"brokerId,omitempty"`
+	Price           string          `json:"price,omitempty"`
+	AccountID       string          `json:"account,omitempty"`
+	BrokerIDUpdate  string          `json:"brokerIdUpdate,omitempty"`
+	UpdatedTime     string          `json:"updatedTime,omitempty"`
+	Status          string          `json:"status,omitempty"`
+	Message         string          `json:"message,omitempty"`
+	Username        string          `json:"username,omitempty"`
+	Raw             domain.RawPayload `json:"-"`
 }
 
 // ──────────────────────────────── Wrapper types ────────────────────────────────

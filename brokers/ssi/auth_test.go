@@ -328,7 +328,7 @@ func TestSSIServiceTokensConcurrentRefreshAndRESTRealtimeReads(t *testing.T) {
 		defer workers.Done()
 		<-start
 		for range iterations {
-			tradingSubscription, err := broker.Trading().Realtime().SubscribeOrders(context.Background(), trading.SubscribeOrdersRequest{})
+			tradingSubscription, err := broker.Native().Trading().Realtime().SubscribeOrders(context.Background(), trading.SubscribeOrdersRequest{})
 			if err != nil {
 				errs <- err
 				return

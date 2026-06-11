@@ -27,8 +27,8 @@ func main() {
 
 	for {
 		select {
-		// case event := <-subscription.Events():
-		// 	fmt.Printf("%+v\n", event)
+		case event := <-subscription.Events():
+			fmt.Printf("%+v\n", event)
 		case err := <-subscription.Errors():
 			fmt.Printf("stream error: %v\n", err)
 		case <-ctx.Done():

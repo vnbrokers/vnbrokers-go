@@ -18,7 +18,7 @@ func main() {
 	broker := vnbrokers.NewSSI(ssi.Config{
 		TradingToken: mustEnv("SSI_FCTRADING_TOKEN"),
 	})
-	subscription, err := broker.Trading().Realtime().SubscribeOrders(
+	subscription, err := broker.Native().Trading().Realtime().SubscribeOrders(
 		ctx,
 		trading.SubscribeOrdersRequest{},
 	)

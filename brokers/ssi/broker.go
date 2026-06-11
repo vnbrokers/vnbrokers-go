@@ -18,7 +18,6 @@ type Broker struct {
 	dataAccessToken    string
 	tradingAccessToken string
 	auth               *AuthService
-	trading            *TradingService
 	native             nativeapi.Service
 }
 
@@ -58,13 +57,6 @@ func NewBroker(config Config) *Broker {
 		tradingAccessToken: config.TradingToken,
 	}
 	b.auth = &AuthService{broker: b}
-	b.trading = &TradingService{
-		accounts:  &TradingAccountsService{broker: b},
-		orders:    &TradingOrdersService{broker: b},
-		positions: &TradingPositionsService{broker: b},
-		realtime:  &TradingRealtimeService{broker: b},
-	}
-	realtimeMarketData := &MarketDataRealtimeService{broker: b}
 	b.native = nativeapi.NewService(
 		nativemarketdata.NewService(nativemarketdata.Dependencies{
 			BaseURL:   b.config.DataBaseURL,
@@ -75,7 +67,16 @@ func NewBroker(config Config) *Broker {
 			Send: func(ctx context.Context, operation string, request transport.HTTPRequest) (transport.HTTPResponse, error) {
 				return b.send(ctx, operation, false, false, request)
 			},
-		}, realtimeMarketData),
+		}, nativemarketdata.NewRealtimeService(nativemarketdata.RealtimeDependencies{
+			DataToken:           b.dataToken,
+			MarketDataStreamURL: b.config.MarketDataStreamURL,
+			RequireCapability: func(capability core.Capability) error {
+				return b.RequireCapability(capability)
+			},
+			NewSignalRClient: func(baseURL string, hubs []string) nativemarketdata.SignalRClient {
+				return b.config.SignalRFactory(baseURL, hubs)
+			},
+		})),
 		nativetrading.NewService(nativetrading.Dependencies{
 			BaseURL:      b.config.BaseURL,
 			TradingToken: b.tradingToken,
@@ -85,7 +86,16 @@ func NewBroker(config Config) *Broker {
 			Send: func(ctx context.Context, operation string, request transport.HTTPRequest) (transport.HTTPResponse, error) {
 				return b.send(ctx, operation, true, true, request)
 			},
-		}, nil),
+		}, nativetrading.NewRealtimeService(nativetrading.RealtimeDependencies{
+			TradingToken:      b.tradingToken,
+			TradingStreamURL:  b.config.TradingStreamURL,
+			RequireCapability: func(capability core.Capability) error {
+				return b.RequireCapability(capability)
+			},
+			NewSignalRClient: func(baseURL string, hubs []string) nativetrading.SignalRClient {
+				return b.config.SignalRFactory(baseURL, hubs)
+			},
+		})),
 	)
 	return b
 }
@@ -94,33 +104,6 @@ func (b *Broker) Auth() *AuthService {
 	return b.auth
 }
 
-func (b *Broker) Trading() *TradingService {
-	return b.trading
-}
-
 func (b *Broker) Native() nativeapi.Service {
 	return b.native
-}
-
-type TradingService struct {
-	accounts  *TradingAccountsService
-	orders    *TradingOrdersService
-	positions *TradingPositionsService
-	realtime  *TradingRealtimeService
-}
-
-func (s *TradingService) Accounts() *TradingAccountsService {
-	return s.accounts
-}
-
-func (s *TradingService) Orders() *TradingOrdersService {
-	return s.orders
-}
-
-func (s *TradingService) Positions() *TradingPositionsService {
-	return s.positions
-}
-
-func (s *TradingService) Realtime() *TradingRealtimeService {
-	return s.realtime
 }

@@ -28,6 +28,9 @@ func (s *realtimeService) SubscribeForeign(ctx context.Context, r dto.SubscribeS
 func (s *realtimeService) SubscribeMarketIndexes(ctx context.Context, r dto.SubscribeMarketIndexRequest) (realtime.Subscription[dto.MarketIndexEvent], error) {
 	return subscribe[dto.MarketIndexEvent](ctx, s, CapabilityRealtimeMarketIndexes, "market_index", "", "", r.IndexName, nil)
 }
+func (s *realtimeService) SubscribeEstimatedMarketIndexes(ctx context.Context, r dto.SubscribeMarketIndexRequest) (realtime.Subscription[dto.EstimatedMarketIndexEvent], error) {
+	return subscribe[dto.EstimatedMarketIndexEvent](ctx, s, CapabilityRealtimeEstimatedMarketIndexes, "estimated_market_index", "", "", r.IndexName, nil)
+}
 func (s *realtimeService) SubscribeOHLC(ctx context.Context, r dto.SubscribeOHLCRequest) (realtime.Subscription[dto.OHLCEvent], error) {
 	return subscribe[dto.OHLCEvent](ctx, s, CapabilityRealtimeOHLC, "ohlc", "", r.Resolution, "", r.Symbols)
 }
@@ -68,11 +71,11 @@ func buildChannel(kind, boardID, resolution, indexName, encoding string) string 
 			return ""
 		}
 		return fmt.Sprintf("%s.%s.%s", kind, resolution, encoding)
-	case "market_index":
+	case "market_index", "estimated_market_index":
 		if indexName == "" {
 			return ""
 		}
-		return fmt.Sprintf("market_index.%s.%s", indexName, encoding)
+		return fmt.Sprintf("%s.%s.%s", kind, indexName, encoding)
 	default:
 		return ""
 	}
@@ -90,13 +93,16 @@ func buildSubscribeMessage(channel string, symbols []string) map[string]any {
 }
 func messageData(message map[string]any) map[string]any {
 	if data, ok := message["data"].(map[string]any); ok {
-		return data
+		message = data
+	}
+	if marketIndex, ok := message["marketIndex"].(map[string]any); ok {
+		return marketIndex
 	}
 	return message
 }
 func isPayload(message map[string]any) bool {
 	data := messageData(message)
-	return data["T"] != nil || data["symbol"] != nil
+	return data["T"] != nil || data["symbol"] != nil || data["indexName"] != nil
 }
 func decodeEvent[T any](message map[string]any) (T, error) {
 	var out T

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
@@ -12,11 +13,15 @@ import (
 
 func main() {
 	broker := vnbrokers.NewDNSE(dnse.Config{
-		APIKey:         os.Getenv("DNSE_API_KEY"),
-		APISecret:      os.Getenv("DNSE_API_SECRET"),
-		StreamEncoding: "msgpack",
+		APIKey:             os.Getenv("DNSE_API_KEY"),
+		APISecret:          os.Getenv("DNSE_API_SECRET"),
+		StreamEncoding:     "json",
+		StreamPongInterval: -time.Nanosecond,
 	})
-	sub, err := broker.Native().MarketData().Realtime().SubscribeTrades(context.Background(), nativedto.SubscribeSymbolsRequest{Symbols: []string{"*"}, BoardID: "G1"})
+	sub, err := broker.Native().MarketData().Realtime().SubscribeEstimatedMarketIndexes(
+		context.Background(),
+		nativedto.SubscribeMarketIndexRequest{IndexName: "VN30"},
+	)
 	if err != nil {
 		panic(err)
 	}

@@ -61,17 +61,10 @@ func buildBrokerOrdersSubscribeMessage(marketType, investorID, encoding string) 
 }
 func messageData(message map[string]any) map[string]any {
 	if data, ok := message["data"].(map[string]any); ok {
-		return data
+		message = data
 	}
-	if message["T"] == "eo" {
-		if order, ok := message["order"].(map[string]any); ok {
-			return order
-		}
-	}
-	if message["T"] == "ep" {
-		if position, ok := message["position"].(map[string]any); ok {
-			return position
-		}
+	if _, ok := wrapperPayloadField(message["T"]); ok {
+		return message
 	}
 	if order, ok := message["order"].(map[string]any); ok {
 		return order
@@ -82,16 +75,22 @@ func messageData(message map[string]any) map[string]any {
 	return message
 }
 func isPayload(message map[string]any) bool {
-	if message["T"] == "eo" {
-		_, ok := message["order"].(map[string]any)
-		return ok
-	}
-	if message["T"] == "ep" {
-		_, ok := message["position"].(map[string]any)
-		return ok
-	}
 	data := messageData(message)
+	if field, wrapped := wrapperPayloadField(data["T"]); wrapped {
+		_, ok := data[field].(map[string]any)
+		return ok
+	}
 	return data["accountNo"] != nil && (data["id"] != nil || data["orderId"] != nil || data["symbol"] != nil)
+}
+func wrapperPayloadField(eventType any) (string, bool) {
+	switch eventType {
+	case "do", "eo":
+		return "order", true
+	case "dp", "ep":
+		return "position", true
+	default:
+		return "", false
+	}
 }
 func decodeEvent[T any](message map[string]any) (T, error) {
 	var out T

@@ -33,6 +33,7 @@ const (
 	CapabilitySetPositionPnLConfigs  core.Capability = "native.trading.set_position_pnl_configs"
 	CapabilityReplaceOrder           core.Capability = "native.trading.replace_order"
 	CapabilityRealtimeOrders         core.Capability = "native.trading.realtime.orders"
+	CapabilityRealtimeBrokerOrders   core.Capability = "native.trading.realtime.broker_orders"
 	CapabilityRealtimePositions      core.Capability = "native.trading.realtime.positions"
 )
 
@@ -59,6 +60,7 @@ type Service interface {
 
 type RealtimeService interface {
 	SubscribeOrders(context.Context, dto.SubscribeTradingRequest) (realtime.Subscription[dto.OrderEvent], error)
+	SubscribeBrokerOrders(context.Context, dto.SubscribeBrokerOrdersRequest) (realtime.Subscription[dto.BrokerOrderEvent], error)
 	SubscribePositions(context.Context, dto.SubscribeTradingRequest) (realtime.Subscription[dto.PositionEvent], error)
 }
 

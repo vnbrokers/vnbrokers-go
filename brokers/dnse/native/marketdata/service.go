@@ -15,25 +15,26 @@ import (
 )
 
 const (
-	CapabilityTradeHistory                core.Capability = "native.marketdata.trade_history"
-	CapabilityInstrumentDetails           core.Capability = "native.marketdata.instrument_details"
-	CapabilityInstruments                 core.Capability = "native.marketdata.instruments"
-	CapabilityLatestQuotes                core.Capability = "native.marketdata.latest_quotes"
-	CapabilityLatestTrades                core.Capability = "native.marketdata.latest_trades"
-	CapabilityOHLC                        core.Capability = "native.marketdata.ohlc"
-	CapabilityClosePrice                  core.Capability = "native.marketdata.close_price"
-	CapabilityQuoteHistory                core.Capability = "native.marketdata.quote_history"
-	CapabilitySecurityDefinition          core.Capability = "native.marketdata.security_definition"
-	CapabilityWorkingDates                core.Capability = "native.marketdata.working_dates"
-	CapabilityRealtimeExpectedPrices      core.Capability = "native.marketdata.realtime.expected_prices"
-	CapabilityRealtimeForeign             core.Capability = "native.marketdata.realtime.foreign"
-	CapabilityRealtimeMarketIndexes       core.Capability = "native.marketdata.realtime.market_indexes"
-	CapabilityRealtimeOHLC                core.Capability = "native.marketdata.realtime.ohlc"
-	CapabilityRealtimeClosedOHLC          core.Capability = "native.marketdata.realtime.closed_ohlc"
-	CapabilityRealtimeQuotes              core.Capability = "native.marketdata.realtime.quotes"
-	CapabilityRealtimeSecurityDefinitions core.Capability = "native.marketdata.realtime.security_definitions"
-	CapabilityRealtimeTrades              core.Capability = "native.marketdata.realtime.trades"
-	CapabilityRealtimeTradeExtras         core.Capability = "native.marketdata.realtime.trade_extras"
+	CapabilityTradeHistory                   core.Capability = "native.marketdata.trade_history"
+	CapabilityInstrumentDetails              core.Capability = "native.marketdata.instrument_details"
+	CapabilityInstruments                    core.Capability = "native.marketdata.instruments"
+	CapabilityLatestQuotes                   core.Capability = "native.marketdata.latest_quotes"
+	CapabilityLatestTrades                   core.Capability = "native.marketdata.latest_trades"
+	CapabilityOHLC                           core.Capability = "native.marketdata.ohlc"
+	CapabilityClosePrice                     core.Capability = "native.marketdata.close_price"
+	CapabilityQuoteHistory                   core.Capability = "native.marketdata.quote_history"
+	CapabilitySecurityDefinition             core.Capability = "native.marketdata.security_definition"
+	CapabilityWorkingDates                   core.Capability = "native.marketdata.working_dates"
+	CapabilityRealtimeExpectedPrices         core.Capability = "native.marketdata.realtime.expected_prices"
+	CapabilityRealtimeForeign                core.Capability = "native.marketdata.realtime.foreign"
+	CapabilityRealtimeMarketIndexes          core.Capability = "native.marketdata.realtime.market_indexes"
+	CapabilityRealtimeEstimatedMarketIndexes core.Capability = "native.marketdata.realtime.estimated_market_indexes"
+	CapabilityRealtimeOHLC                   core.Capability = "native.marketdata.realtime.ohlc"
+	CapabilityRealtimeClosedOHLC             core.Capability = "native.marketdata.realtime.closed_ohlc"
+	CapabilityRealtimeQuotes                 core.Capability = "native.marketdata.realtime.quotes"
+	CapabilityRealtimeSecurityDefinitions    core.Capability = "native.marketdata.realtime.security_definitions"
+	CapabilityRealtimeTrades                 core.Capability = "native.marketdata.realtime.trades"
+	CapabilityRealtimeTradeExtras            core.Capability = "native.marketdata.realtime.trade_extras"
 )
 
 type Service interface {
@@ -54,6 +55,7 @@ type RealtimeService interface {
 	SubscribeExpectedPrices(context.Context, dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.ExpectedPriceEvent], error)
 	SubscribeForeign(context.Context, dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.ForeignEvent], error)
 	SubscribeMarketIndexes(context.Context, dto.SubscribeMarketIndexRequest) (realtime.Subscription[dto.MarketIndexEvent], error)
+	SubscribeEstimatedMarketIndexes(context.Context, dto.SubscribeMarketIndexRequest) (realtime.Subscription[dto.EstimatedMarketIndexEvent], error)
 	SubscribeOHLC(context.Context, dto.SubscribeOHLCRequest) (realtime.Subscription[dto.OHLCEvent], error)
 	SubscribeClosedOHLC(context.Context, dto.SubscribeOHLCRequest) (realtime.Subscription[dto.OHLCEvent], error)
 	SubscribeQuotes(context.Context, dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.QuoteEvent], error)

@@ -1,6 +1,10 @@
 package dto
 
 import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -153,6 +157,7 @@ type GetOrdersHistoryResponse = OrdersHistoryResponse
 
 type Order struct {
 	ID               int64             `json:"id,omitempty"`
+	InvestorID       string            `json:"investorId,omitempty"`
 	Side             string            `json:"side,omitempty"`
 	AccountNo        string            `json:"accountNo,omitempty"`
 	Symbol           string            `json:"symbol,omitempty"`
@@ -179,6 +184,37 @@ type Order struct {
 	Reports          []ExecutionReport `json:"reports,omitempty"`
 	CreatedDate      string            `json:"createdDate,omitempty"`
 	ModifiedDate     string            `json:"modifiedDate,omitempty"`
+}
+
+func (o *Order) UnmarshalJSON(data []byte) error {
+	type orderAlias Order
+	var wire struct {
+		orderAlias
+		ID json.RawMessage `json:"id"`
+	}
+	if err := json.Unmarshal(data, &wire); err != nil {
+		return err
+	}
+	*o = Order(wire.orderAlias)
+	if len(wire.ID) == 0 || string(wire.ID) == "null" {
+		return nil
+	}
+	if err := json.Unmarshal(wire.ID, &o.ID); err == nil {
+		return nil
+	}
+	var id string
+	if err := json.Unmarshal(wire.ID, &id); err != nil {
+		return fmt.Errorf("decode order id: %w", err)
+	}
+	if id == "" {
+		return nil
+	}
+	parsed, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return fmt.Errorf("decode order id %q: %w", id, err)
+	}
+	o.ID = parsed
+	return nil
 }
 
 type OrderResponse = Order

@@ -23,6 +23,7 @@ var Capabilities = []core.Capability{
 	nativemarketdata.CapabilityRealtimeExpectedPrices,
 	nativemarketdata.CapabilityRealtimeForeign,
 	nativemarketdata.CapabilityRealtimeMarketIndexes,
+	nativemarketdata.CapabilityRealtimeEstimatedMarketIndexes,
 	nativemarketdata.CapabilityRealtimeOHLC,
 	nativemarketdata.CapabilityRealtimeClosedOHLC,
 	nativemarketdata.CapabilityRealtimeQuotes,
@@ -47,6 +48,7 @@ var Capabilities = []core.Capability{
 	nativetrading.CapabilitySetPositionPnLConfigs,
 	nativetrading.CapabilityReplaceOrder,
 	nativetrading.CapabilityRealtimeOrders,
+	nativetrading.CapabilityRealtimeBrokerOrders,
 	nativetrading.CapabilityRealtimePositions,
 	nativebrokerage.CapabilityCareByAccounts,
 }

@@ -57,7 +57,7 @@ type RealtimeService interface {
 	SubscribeMarketIndexes(context.Context, dto.SubscribeMarketIndexRequest) (realtime.Subscription[dto.MarketIndexEvent], error)
 	SubscribeEstimatedMarketIndexes(context.Context, dto.SubscribeMarketIndexRequest) (realtime.Subscription[dto.EstimatedMarketIndexEvent], error)
 	SubscribeOHLC(context.Context, dto.SubscribeOHLCRequest) (realtime.Subscription[dto.OHLCEvent], error)
-	SubscribeClosedOHLC(context.Context, dto.SubscribeOHLCRequest) (realtime.Subscription[dto.OHLCEvent], error)
+	SubscribeClosedOHLC(context.Context, dto.SubscribeOHLCRequest) (realtime.Subscription[dto.OHLCClosedEvent], error)
 	SubscribeQuotes(context.Context, dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.QuoteEvent], error)
 	SubscribeSecurityDefinitions(context.Context, dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.SecurityDefinitionEvent], error)
 	SubscribeTrades(context.Context, dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.TradeEvent], error)

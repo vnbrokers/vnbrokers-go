@@ -34,8 +34,8 @@ func (s *realtimeService) SubscribeEstimatedMarketIndexes(ctx context.Context, r
 func (s *realtimeService) SubscribeOHLC(ctx context.Context, r dto.SubscribeOHLCRequest) (realtime.Subscription[dto.OHLCEvent], error) {
 	return subscribe[dto.OHLCEvent](ctx, s, CapabilityRealtimeOHLC, "ohlc", "", r.Resolution, "", r.Symbols)
 }
-func (s *realtimeService) SubscribeClosedOHLC(ctx context.Context, r dto.SubscribeOHLCRequest) (realtime.Subscription[dto.OHLCEvent], error) {
-	return subscribe[dto.OHLCEvent](ctx, s, CapabilityRealtimeClosedOHLC, "ohlc_closed", "", r.Resolution, "", r.Symbols)
+func (s *realtimeService) SubscribeClosedOHLC(ctx context.Context, r dto.SubscribeOHLCRequest) (realtime.Subscription[dto.OHLCClosedEvent], error) {
+	return subscribe[dto.OHLCClosedEvent](ctx, s, CapabilityRealtimeClosedOHLC, "ohlc_closed", "", r.Resolution, "", r.Symbols)
 }
 func (s *realtimeService) SubscribeQuotes(ctx context.Context, r dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.QuoteEvent], error) {
 	return subscribe[dto.QuoteEvent](ctx, s, CapabilityRealtimeQuotes, "top_price", r.BoardID, "", "", r.Symbols)
@@ -94,9 +94,6 @@ func buildSubscribeMessage(channel string, symbols []string) map[string]any {
 func messageData(message map[string]any) map[string]any {
 	if data, ok := message["data"].(map[string]any); ok {
 		message = data
-	}
-	if marketIndex, ok := message["marketIndex"].(map[string]any); ok {
-		return marketIndex
 	}
 	return message
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/vnbrokers/vnbrokers-go/core"
 )
 
-func TestEstimatedMarketIndexUpdateUnwrapsMarketIndex(t *testing.T) {
+func TestEstimatedMarketIndexUpdatePreservesWrapper(t *testing.T) {
 	var message map[string]any
 	if err := json.Unmarshal([]byte(`{
 		"T":"emi",
@@ -38,7 +38,10 @@ func TestEstimatedMarketIndexUpdateUnwrapsMarketIndex(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if event.IndexName != "VN30" || event.ValueIndexes == nil || event.ValueIndexes.String() != "1966.35" {
+	if event.T != "emi" || event.Action != "estimated_market_index_update" || event.Timestamp != 1781234394402 {
+		t.Fatalf("event = %+v", event)
+	}
+	if event.MarketIndex.IndexName != "VN30" || event.MarketIndex.ValueIndexes == nil || event.MarketIndex.ValueIndexes.String() != "1966.35" {
 		t.Fatalf("event = %+v", event)
 	}
 }

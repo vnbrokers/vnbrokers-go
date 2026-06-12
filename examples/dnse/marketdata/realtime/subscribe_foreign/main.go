@@ -16,7 +16,7 @@ func main() {
 		APISecret:      os.Getenv("DNSE_API_SECRET"),
 		StreamEncoding: "msgpack",
 	})
-	sub, err := broker.Native().MarketData().Realtime().SubscribeQuotes(context.Background(), nativedto.SubscribeSymbolsRequest{Symbols: []string{"ACB"}, BoardID: "G1"})
+	sub, err := broker.Native().MarketData().Realtime().SubscribeForeign(context.Background(), nativedto.SubscribeSymbolsRequest{Symbols: []string{"ACB"}, BoardID: "G1"})
 	if err != nil {
 		panic(err)
 	}

@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/shopspring/decimal"
-	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/examples/entrade/internal/exampleutil"
 )
 
@@ -14,9 +14,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	payload, err := exampleutil.Broker().Trading().Orders().Place(
+	response, err := exampleutil.Broker().Native().Trading().PlaceDerivativeOrder(
 		context.Background(),
-		entrade.PlaceDerivativeOrderRequest{
+		nativedto.PlaceDerivativeOrderRequest{
 			BankMarginPortfolioID: 34,
 			InvestorID:            investorID,
 			Symbol:                "VN30F2512",
@@ -29,5 +29,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	exampleutil.PrintRaw(payload)
+	exampleutil.Print(response)
 }

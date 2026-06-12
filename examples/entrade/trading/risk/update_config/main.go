@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/shopspring/decimal"
-	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/examples/entrade/internal/exampleutil"
 )
 
@@ -18,10 +18,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	payload, err := exampleutil.Broker().Trading().Risk().UpdateConfig(
+	response, err := exampleutil.Broker().Native().Trading().UpdateRiskConfig(
 		context.Background(),
-		exampleutil.MustEnv("ENTRADE_INVESTOR_ACCOUNT_ID"),
-		entrade.RiskConfigRequest{
+		nativedto.UpdateRiskConfigRequest{
+			PathInvestorAccountID:     exampleutil.MustEnv("ENTRADE_INVESTOR_ACCOUNT_ID"),
 			CutLossRate:               decimal.RequireFromString("0.24"),
 			InvestorAccountID:         investorAccountID,
 			TrailingEnabled:           false,
@@ -33,5 +33,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	exampleutil.PrintRaw(payload)
+	exampleutil.Print(response)
 }

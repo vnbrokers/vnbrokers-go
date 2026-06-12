@@ -1,13 +1,20 @@
 package entrade
 
-import "github.com/vnbrokers/vnbrokers-go/core"
+import (
+	"context"
+
+	nativeapi "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native"
+	nativemarketdata "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/marketdata"
+	nativetrading "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/trading"
+	"github.com/vnbrokers/vnbrokers-go/core"
+	"github.com/vnbrokers/vnbrokers-go/transport"
+)
 
 type Broker struct {
 	core.BaseBroker
-	config     Config
-	auth       *AuthService
-	trading    *TradingService
-	marketData *MarketDataService
+	config Config
+	auth   *AuthService
+	native nativeapi.Service
 }
 
 func NewBroker(config Config) *Broker {
@@ -20,15 +27,24 @@ func NewBroker(config Config) *Broker {
 		config: config,
 	}
 	b.auth = &AuthService{broker: b}
-	b.trading = &TradingService{
-		accounts: &TradingAccountsService{broker: b},
-		orders:   &TradingOrdersService{broker: b},
-		deals:    &TradingDealsService{broker: b},
-		risk:     &TradingRiskService{broker: b},
+	dependencies := func() (nativetrading.Dependencies, nativemarketdata.Dependencies) {
+		headers := func(body bool) map[string]string { return b.headers(true, body) }
+		send := func(ctx context.Context, operation string, request transport.HTTPRequest) (transport.HTTPResponse, error) {
+			return b.send(ctx, operation, false, request)
+		}
+		return nativetrading.Dependencies{
+				BaseURL: b.config.BaseURL, Headers: headers,
+				RequireCapability: b.RequireCapability, Send: send,
+			}, nativemarketdata.Dependencies{
+				BaseURL: b.config.BaseURL, Headers: headers,
+				RequireCapability: b.RequireCapability, Send: send,
+			}
 	}
-	b.marketData = &MarketDataService{
-		derivatives: &MarketDataDerivativesService{broker: b},
-	}
+	tradingDependencies, marketDataDependencies := dependencies()
+	b.native = nativeapi.NewService(
+		nativetrading.NewService(tradingDependencies),
+		nativemarketdata.NewService(marketDataDependencies),
+	)
 	return b
 }
 
@@ -36,10 +52,6 @@ func (b *Broker) Auth() *AuthService {
 	return b.auth
 }
 
-func (b *Broker) Trading() *TradingService {
-	return b.trading
-}
-
-func (b *Broker) MarketData() *MarketDataService {
-	return b.marketData
+func (b *Broker) Native() nativeapi.Service {
+	return b.native
 }

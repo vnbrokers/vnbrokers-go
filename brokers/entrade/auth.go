@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
-	"github.com/vnbrokers/vnbrokers-go/domain"
 	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
@@ -16,28 +16,25 @@ type AuthService struct {
 	broker *Broker
 }
 
-func (s *AuthService) Login(ctx context.Context, username string, password string) (LoginResponse, error) {
+func (s *AuthService) Login(ctx context.Context, request dto.LoginRequest) (*dto.LoginResponse, error) {
 	if err := s.broker.RequireCapability(core.CapabilityTradingAuthTradingToken); err != nil {
-		return LoginResponse{}, err
+		return nil, err
 	}
 	response, err := s.broker.send(ctx, "auth.login", false, transport.HTTPRequest{
 		Method:  "POST",
 		URL:     s.broker.authURL("/v2/auth"),
 		Headers: s.broker.headers(false, true),
-		JSON: LoginRequest{
-			Username: username,
-			Password: password,
-		},
+		JSON:    request,
 	})
 	if err != nil {
-		return LoginResponse{}, err
+		return nil, err
 	}
-	var loginResponse LoginResponse
+	var loginResponse dto.LoginResponse
 	if err := decode(response, &loginResponse); err != nil {
-		return LoginResponse{}, sdkerrors.Decode("entrade", "auth.login", "decode login response", response.Body, err)
+		return nil, sdkerrors.Decode("entrade", "auth.login", "decode login response", response.Body, err)
 	}
 	s.broker.config.Token = loginResponse.Token
-	return loginResponse, nil
+	return &loginResponse, nil
 }
 
 func (b *Broker) send(
@@ -63,25 +60,6 @@ func (b *Broker) send(
 		return transport.HTTPResponse{}, sdkerrors.BrokerRejected("entrade", operation, code, message, response.Body)
 	}
 	return response, nil
-}
-
-func (b *Broker) sendRaw(
-	ctx context.Context,
-	operation string,
-	method string,
-	path string,
-	body any,
-) (domain.RawPayload, error) {
-	response, err := b.send(ctx, operation, true, transport.HTTPRequest{
-		Method:  method,
-		URL:     b.url(path),
-		Headers: b.headers(true, body != nil),
-		JSON:    body,
-	})
-	if err != nil {
-		return domain.RawPayload{}, err
-	}
-	return rawPayload(response.Body, response.Raw), nil
 }
 
 func (b *Broker) url(path string) string {

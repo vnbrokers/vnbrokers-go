@@ -3,13 +3,17 @@ package main
 import (
 	"context"
 
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/examples/entrade/internal/exampleutil"
 )
 
 func main() {
-	symbols, err := exampleutil.Broker().MarketData().Derivatives().List(context.Background())
+	response, err := exampleutil.Broker().Native().MarketData().GetDerivatives(
+		context.Background(),
+		nativedto.GetDerivativesRequest{},
+	)
 	if err != nil {
 		panic(err)
 	}
-	exampleutil.Print(symbols)
+	exampleutil.Print(response)
 }

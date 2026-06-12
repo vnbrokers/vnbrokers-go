@@ -7,7 +7,6 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
-	"github.com/vnbrokers/vnbrokers-go/domain"
 )
 
 func Broker() *entrade.Broker {
@@ -22,10 +21,6 @@ func MustEnv(key string) string {
 		panic(key + " is required")
 	}
 	return value
-}
-
-func PrintRaw(payload domain.RawPayload) {
-	Print(payload.Data)
 }
 
 func Print(value any) {

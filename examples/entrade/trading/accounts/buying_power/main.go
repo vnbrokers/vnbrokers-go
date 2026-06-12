@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/shopspring/decimal"
-	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/examples/entrade/internal/exampleutil"
 )
 
 func main() {
-	payload, err := exampleutil.Broker().Trading().Accounts().BuyingPower(
+	response, err := exampleutil.Broker().Native().Trading().GetPPSE(
 		context.Background(),
-		entrade.BuyingPowerRequest{
+		nativedto.GetPPSERequest{
 			InvestorID:            exampleutil.MustEnv("ENTRADE_INVESTOR_ID"),
 			BankMarginPortfolioID: "34",
 			Symbol:                "VN30F2512",
@@ -22,5 +22,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	exampleutil.PrintRaw(payload)
+	exampleutil.Print(response)
 }

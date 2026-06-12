@@ -49,8 +49,64 @@ func TestOrderUpdateAcceptsEmptyOrderID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if event.ID != 0 || event.Symbol != "AAA" || event.OrderStatus != "Canceled" {
+	if event.T != "eo" || event.Action != "order_update" || event.Event != "canceled" || event.Sequence != 4 || event.Timestamp != 1781234866949 {
 		t.Fatalf("event = %+v", event)
+	}
+	if event.Order.ID != 0 || event.Order.Symbol != "AAA" || event.Order.OrderStatus != "Canceled" {
+		t.Fatalf("event = %+v", event)
+	}
+}
+
+func TestPositionUpdatePreservesWrapper(t *testing.T) {
+	var message map[string]any
+	if err := json.Unmarshal([]byte(`{
+		"T":"dp",
+		"action":"position_update",
+		"event":"pendingcancel",
+		"position":{"id":177796763592657,"accountNo":"0001179019","symbol":"41I1G5000","status":"OPEN"},
+		"sequence":1,
+		"timestamp":1776054245274
+	}`), &message); err != nil {
+		t.Fatal(err)
+	}
+	if !isPayload(message) {
+		t.Fatal("position update was ignored")
+	}
+	event, err := decodeEvent[dto.PositionEvent](messageData(message))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if event.T != "dp" || event.Action != "position_update" || event.Position.ID != 177796763592657 {
+		t.Fatalf("event = %+v", event)
+	}
+}
+
+func TestTradingWrapperDiscriminatorAliases(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		field string
+	}{
+		{name: "do order", input: `{"T":"do","order":{"id":596}}`, field: "order"},
+		{name: "eo order", input: `{"T":"eo","order":{"id":596}}`, field: "order"},
+		{name: "dp position", input: `{"T":"dp","position":{"id":177796763592657}}`, field: "position"},
+		{name: "ep position", input: `{"T":"ep","position":{"id":177796763592657}}`, field: "position"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var message map[string]any
+			if err := json.Unmarshal([]byte(tt.input), &message); err != nil {
+				t.Fatal(err)
+			}
+			if !isPayload(message) {
+				t.Fatal("wrapper was ignored")
+			}
+			data := messageData(message)
+			if data["T"] != message["T"] || data[tt.field] == nil {
+				t.Fatalf("data = %+v", data)
+			}
+		})
 	}
 }
 

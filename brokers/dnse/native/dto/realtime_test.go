@@ -376,38 +376,157 @@ func TestEstimatedMarketIndexEventDecodesCurrentWireFields(t *testing.T) {
 	}
 }
 
-func TestBrokerOrderEventDecodesWireFieldNames(t *testing.T) {
+func TestBrokerOrderEventDecodesCurrentWireFields(t *testing.T) {
 	var event BrokerOrderEvent
 	if err := json.Unmarshal([]byte(`{
-		"id":596,
-		"side":"NS",
-		"accountNo":"0001179019",
-		"symbol":"41I1G5000",
-		"orderType":"LO",
-		"price":1920.0,
-		"quantity":5,
-		"fillQuantity":2,
-		"canceledQuantity":0,
-		"leaveQuantity":3,
-		"orderStatus":"PartiallyFilled",
-		"loanPackageId":2278,
-		"marketType":"DERIVATIVE",
-		"transDate":"2026-04-06T00:00:00Z",
-		"createdDate":"2026-04-13T04:24:05.274Z",
-		"modifiedDate":"2026-04-13T04:28:27.749Z"
+		"T":"do",
+		"action":"order_update",
+		"event":"pendingcancel",
+		"order":{
+			"id":596,
+			"side":"NS",
+			"accountNo":"0001179019",
+			"symbol":"41I1G5000",
+			"orderType":"LO",
+			"price":1920.0,
+			"quantity":5,
+			"fillQuantity":2,
+			"canceledQuantity":0,
+			"leaveQuantity":3,
+			"orderStatus":"PartiallyFilled",
+			"loanPackageId":2278,
+			"marketType":"DERIVATIVE",
+			"transDate":"2026-04-06T00:00:00Z",
+			"createdDate":"2026-04-13T04:24:05.274Z",
+			"modifiedDate":"2026-04-13T04:28:27.749Z"
+		},
+		"sequence":1,
+		"timestamp":1776054245274
 	}`), &event); err != nil {
 		t.Fatal(err)
 	}
-	if event.ID != 596 || event.AccountNo != "0001179019" || event.Symbol != "41I1G5000" {
+	if event.T != "do" || event.Action != "order_update" || event.Event != "pendingcancel" || event.Sequence != 1 || event.Timestamp != 1776054245274 {
 		t.Fatalf("event = %+v", event)
 	}
-	if event.Price == nil || event.Price.String() != "1920" {
-		t.Fatalf("price = %v", event.Price)
+	order := event.Order
+	if order.ID != 596 || order.AccountNo != "0001179019" || order.Symbol != "41I1G5000" {
+		t.Fatalf("order = %+v", order)
 	}
-	if event.Quantity == nil || event.Quantity.String() != "5" || event.FillQuantity == nil || event.FillQuantity.String() != "2" {
-		t.Fatalf("quantities = %v/%v", event.Quantity, event.FillQuantity)
+	if order.Price == nil || order.Price.String() != "1920" {
+		t.Fatalf("price = %v", order.Price)
 	}
-	if event.MarketType != "DERIVATIVE" || event.OrderStatus != "PartiallyFilled" || event.LoanPackageID != 2278 {
+	if order.Quantity == nil || order.Quantity.String() != "5" || order.FillQuantity == nil || order.FillQuantity.String() != "2" {
+		t.Fatalf("quantities = %v/%v", order.Quantity, order.FillQuantity)
+	}
+	if order.MarketType != "DERIVATIVE" || order.OrderStatus != "PartiallyFilled" || order.LoanPackageID != 2278 {
+		t.Fatalf("order = %+v", order)
+	}
+}
+
+func TestOrderEventDecodesCurrentWireFields(t *testing.T) {
+	var event OrderEvent
+	if err := json.Unmarshal([]byte(`{
+		"T":"eo",
+		"action":"order_update",
+		"event":"pendingcancel",
+		"order":{
+			"id":596,
+			"side":"NS",
+			"accountNo":"0001179019",
+			"symbol":"41I1G5000",
+			"orderType":"LO",
+			"price":1920.0,
+			"quantity":5,
+			"fillQuantity":2,
+			"canceledQuantity":0,
+			"leaveQuantity":3,
+			"orderStatus":"PartiallyFilled",
+			"loanPackageId":2278,
+			"marketType":"DERIVATIVE",
+			"transDate":"2026-04-06T00:00:00Z",
+			"createdDate":"2026-04-13T04:24:05.274Z",
+			"modifiedDate":"2026-04-13T04:28:27.749Z"
+		},
+		"sequence":1,
+		"timestamp":1776054245274
+	}`), &event); err != nil {
+		t.Fatal(err)
+	}
+
+	if event.T != "eo" || event.Action != "order_update" || event.Event != "pendingcancel" || event.Sequence != 1 || event.Timestamp != 1776054245274 {
 		t.Fatalf("event = %+v", event)
+	}
+	order := event.Order
+	if order.ID != 596 || order.Side != "NS" || order.AccountNo != "0001179019" || order.Symbol != "41I1G5000" {
+		t.Fatalf("order = %+v", order)
+	}
+	assertDecimalString(t, "price", order.Price, "1920")
+	assertDecimalString(t, "quantity", order.Quantity, "5")
+	assertDecimalString(t, "fill quantity", order.FillQuantity, "2")
+	assertDecimalString(t, "canceled quantity", order.CanceledQuantity, "0")
+	assertDecimalString(t, "leave quantity", order.LeaveQuantity, "3")
+	if order.OrderType != "LO" || order.OrderStatus != "PartiallyFilled" || order.LoanPackageID != 2278 || order.MarketType != "DERIVATIVE" {
+		t.Fatalf("order = %+v", order)
+	}
+	if order.TransDate != "2026-04-06T00:00:00Z" || order.CreatedDate != "2026-04-13T04:24:05.274Z" || order.ModifiedDate != "2026-04-13T04:28:27.749Z" {
+		t.Fatalf("order dates = %+v", order)
+	}
+}
+
+func TestPositionEventDecodesCurrentWireFields(t *testing.T) {
+	var event PositionEvent
+	if err := json.Unmarshal([]byte(`{
+		"T":"dp",
+		"action":"position_update",
+		"event":"pendingcancel",
+		"position":{
+			"id":177796763592657,
+			"accountNo":"0001179019",
+			"symbol":"41I1G5000",
+			"status":"OPEN",
+			"loanPackageId":2278,
+			"side":"NB",
+			"accumulateQuantity":247,
+			"tradeQuantity":null,
+			"closedQuantity":236,
+			"costPrice":2057.72425,
+			"marketPrice":2070.0,
+			"breakEvenPrice":2058.21911,
+			"openQuantity":11,
+			"overNightQuantity":0,
+			"averageClosePrice":2094.28941,
+			"marketType":"DERIVATIVE",
+			"createdDate":"2026-05-05T09:17:50.457893Z",
+			"modifiedDate":"2026-05-07T04:19:20.901188117Z"
+		},
+		"sequence":1,
+		"timestamp":1776054245274
+	}`), &event); err != nil {
+		t.Fatal(err)
+	}
+
+	if event.T != "dp" || event.Action != "position_update" || event.Event != "pendingcancel" || event.Sequence != 1 || event.Timestamp != 1776054245274 {
+		t.Fatalf("event = %+v", event)
+	}
+	position := event.Position
+	if position.ID != 177796763592657 || position.AccountNo != "0001179019" || position.Symbol != "41I1G5000" || position.Status != "OPEN" {
+		t.Fatalf("position = %+v", position)
+	}
+	if position.LoanPackageID != 2278 || position.Side != "NB" || position.MarketType != "DERIVATIVE" {
+		t.Fatalf("position = %+v", position)
+	}
+	assertDecimalString(t, "accumulate quantity", position.AccumulateQuantity, "247")
+	if position.TradeQuantity != nil {
+		t.Fatalf("trade quantity = %v", position.TradeQuantity)
+	}
+	assertDecimalString(t, "closed quantity", position.ClosedQuantity, "236")
+	assertDecimalString(t, "cost price", position.CostPrice, "2057.72425")
+	assertDecimalString(t, "market price", position.MarketPrice, "2070")
+	assertDecimalString(t, "break even price", position.BreakEvenPrice, "2058.21911")
+	assertDecimalString(t, "open quantity", position.OpenQuantity, "11")
+	assertDecimalString(t, "overnight quantity", position.OverNightQuantity, "0")
+	assertDecimalString(t, "average close price", position.AverageClosePrice, "2094.28941")
+	if position.CreatedDate != "2026-05-05T09:17:50.457893Z" || position.ModifiedDate != "2026-05-07T04:19:20.901188117Z" {
+		t.Fatalf("position dates = %+v", position)
 	}
 }

@@ -99,7 +99,17 @@ func messageData(message map[string]any) map[string]any {
 }
 func isPayload(message map[string]any) bool {
 	data := messageData(message)
+	if field, wrapped := wrapperPayloadField(data["T"]); wrapped {
+		_, ok := data[field].(map[string]any)
+		return ok
+	}
 	return data["T"] != nil || data["symbol"] != nil || data["indexName"] != nil
+}
+func wrapperPayloadField(eventType any) (string, bool) {
+	if eventType == "emi" {
+		return "marketIndex", true
+	}
+	return "", false
 }
 func decodeEvent[T any](message map[string]any) (T, error) {
 	var out T

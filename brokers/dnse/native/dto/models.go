@@ -186,6 +186,19 @@ type Order struct {
 	ModifiedDate     string            `json:"modifiedDate,omitempty"`
 }
 
+type WrapperEvent struct {
+	T         string `json:"T,omitempty"`
+	Action    string `json:"action,omitempty"`
+	Event     string `json:"event,omitempty"`
+	Sequence  int64  `json:"sequence,omitempty"`
+	Timestamp int64  `json:"timestamp,omitempty"`
+}
+
+type WrapperOrderEvent struct {
+	WrapperEvent
+	Order Order `json:"order,omitempty"`
+}
+
 func (o *Order) UnmarshalJSON(data []byte) error {
 	type orderAlias Order
 	var wire struct {
@@ -246,24 +259,29 @@ type GetPositionByIdResponse = PositionByIDResponse
 
 type Position struct {
 	ID                 int64            `json:"id,omitempty"`
-	Symbol             string           `json:"symbol,omitempty"`
-	MarketType         string           `json:"marketType,omitempty"`
 	AccountNo          string           `json:"accountNo,omitempty"`
+	Symbol             string           `json:"symbol,omitempty"`
 	Status             string           `json:"status,omitempty"`
 	LoanPackageID      int64            `json:"loanPackageId,omitempty"`
 	Side               string           `json:"side,omitempty"`
 	AccumulateQuantity *decimal.Decimal `json:"accumulateQuantity,omitempty"`
 	TradeQuantity      *decimal.Decimal `json:"tradeQuantity,omitempty"`
 	ClosedQuantity     *decimal.Decimal `json:"closedQuantity,omitempty"`
-	OpenQuantity       *decimal.Decimal `json:"openQuantity,omitempty"`
-	OverNightQuantity  *decimal.Decimal `json:"overNightQuantity,omitempty"`
 	CostPrice          *decimal.Decimal `json:"costPrice,omitempty"`
-	AverageCostPrice   *decimal.Decimal `json:"averageCostPrice,omitempty"`
-	AverageClosePrice  *decimal.Decimal `json:"averageClosePrice,omitempty"`
 	MarketPrice        *decimal.Decimal `json:"marketPrice,omitempty"`
 	BreakEvenPrice     *decimal.Decimal `json:"breakEvenPrice,omitempty"`
+	OpenQuantity       *decimal.Decimal `json:"openQuantity,omitempty"`
+	OverNightQuantity  *decimal.Decimal `json:"overNightQuantity,omitempty"`
+	AverageClosePrice  *decimal.Decimal `json:"averageClosePrice,omitempty"`
+	MarketType         string           `json:"marketType,omitempty"`
 	CreatedDate        string           `json:"createdDate,omitempty"`
 	ModifiedDate       string           `json:"modifiedDate,omitempty"`
+	AverageCostPrice   *decimal.Decimal `json:"averageCostPrice,omitempty"`
+}
+
+type WrapperPositionEvent struct {
+	WrapperEvent
+	Position Position `json:"position,omitempty"`
 }
 
 type LoanPackagesResponse struct {

@@ -6,7 +6,7 @@ import (
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
 	nativemarketdata "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/marketdata"
 	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
-	"github.com/vnbrokers/vnbrokers-go/core"
+	nativetrading "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/trading"
 )
 
 func TestNewBrokerBuildsDNSEBroker(t *testing.T) {
@@ -30,7 +30,7 @@ func TestNewBrokerBuildsEntradeBroker(t *testing.T) {
 	if broker.Name() != "entrade" {
 		t.Fatalf("broker name = %q", broker.Name())
 	}
-	if !broker.Supports(core.CapabilityTradingOrdersPlace) {
+	if !broker.Supports(nativetrading.CapabilityPlaceDerivativeOrder) {
 		t.Fatalf("expected entrade place order capability")
 	}
 }

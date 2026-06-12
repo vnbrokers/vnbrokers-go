@@ -2,15 +2,34 @@ package entrade
 
 import (
 	"context"
+	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/shopspring/decimal"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/dto"
+	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
 type fakeHTTPTransport struct {
 	requests  []transport.HTTPRequest
 	responses []transport.HTTPResponse
+}
+
+func TestHTTPErrorMapsBrokerRejectedCodeMessageAndPayload(t *testing.T) {
+	body := map[string]any{"code": "ORDER_REJECTED", "message": "invalid order"}
+	httpTransport := &fakeHTTPTransport{responses: []transport.HTTPResponse{{StatusCode: 400, Body: body}}}
+	broker := NewBroker(Config{BaseURL: "https://entrade.example/api", Token: "jwt-token", HTTPTransport: httpTransport})
+
+	_, err := broker.Native().Trading().GetDerivativeOrder(context.Background(), nativedto.GetDerivativeOrderRequest{OrderID: "1110910"})
+	var brokerErr *sdkerrors.BrokerError
+	if !errors.As(err, &brokerErr) {
+		t.Fatalf("error type=%T error=%v", err, err)
+	}
+	if brokerErr.Category != sdkerrors.CategoryBrokerRejected || brokerErr.Code != "ORDER_REJECTED" || brokerErr.Message != "invalid order" || !reflect.DeepEqual(brokerErr.Raw, body) {
+		t.Fatalf("broker error=%#v", brokerErr)
+	}
 }
 
 func (f *fakeHTTPTransport) Send(_ context.Context, request transport.HTTPRequest) (transport.HTTPResponse, error) {
@@ -35,7 +54,10 @@ func TestLoginUsesAuthBaseURLAndStoresBearerToken(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	response, err := broker.Auth().Login(context.Background(), "alice", "secret")
+	response, err := broker.Auth().Login(context.Background(), nativedto.LoginRequest{
+		Username: "alice",
+		Password: "secret",
+	})
 	if err != nil {
 		t.Fatalf("login: %v", err)
 	}
@@ -52,7 +74,7 @@ func TestLoginUsesAuthBaseURLAndStoresBearerToken(t *testing.T) {
 	if request.URL != "https://entrade.example/auth-api/v2/auth" {
 		t.Fatalf("url = %s", request.URL)
 	}
-	body, ok := request.JSON.(LoginRequest)
+	body, ok := request.JSON.(nativedto.LoginRequest)
 	if !ok {
 		t.Fatalf("json body type = %T", request.JSON)
 	}
@@ -76,10 +98,10 @@ func TestAccountRequestsUseBearerTokenAndEntradePaths(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	_, _ = broker.Trading().Accounts().Master(context.Background(), "1000000036")
-	_, _ = broker.Trading().Accounts().Balance(context.Background(), "1000000036")
-	_, _ = broker.Trading().Accounts().LoanPackages(context.Background(), "1000000036")
-	_, _ = broker.Trading().Accounts().BuyingPower(context.Background(), BuyingPowerRequest{
+	_, _ = broker.Native().Trading().GetInvestorAccount(context.Background(), nativedto.GetInvestorAccountRequest{InvestorID: "1000000036"})
+	_, _ = broker.Native().Trading().GetAccountBalance(context.Background(), nativedto.GetAccountBalanceRequest{InvestorID: "1000000036"})
+	_, _ = broker.Native().Trading().GetDerivativeMarginPortfolios(context.Background(), nativedto.GetDerivativeMarginPortfoliosRequest{InvestorID: "1000000036"})
+	_, _ = broker.Native().Trading().GetPPSE(context.Background(), nativedto.GetPPSERequest{
 		InvestorID:            "1000000036",
 		BankMarginPortfolioID: "34",
 		Symbol:                "VN30F2512",
@@ -119,7 +141,7 @@ func TestOrderRequestsUseDerivativeEndpoints(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	_, _ = broker.Trading().Orders().Place(context.Background(), PlaceDerivativeOrderRequest{
+	_, _ = broker.Native().Trading().PlaceDerivativeOrder(context.Background(), nativedto.PlaceDerivativeOrderRequest{
 		BankMarginPortfolioID: 34,
 		InvestorID:            1000000036,
 		Symbol:                "VN30F2512",
@@ -128,26 +150,26 @@ func TestOrderRequestsUseDerivativeEndpoints(t *testing.T) {
 		Side:                  "NB",
 		Quantity:              1,
 	})
-	_, _ = broker.Trading().Orders().List(context.Background(), ListOrdersRequest{
+	_, _ = broker.Native().Trading().GetDerivativeOrders(context.Background(), nativedto.GetDerivativeOrdersRequest{
 		InvestorAccountID: "1000000036",
 		Start:             0,
 		End:               20,
 	})
-	_, _ = broker.Trading().Orders().Get(context.Background(), "1110910")
-	_, _ = broker.Trading().Orders().Cancel(context.Background(), "1110910")
+	_, _ = broker.Native().Trading().GetDerivativeOrder(context.Background(), nativedto.GetDerivativeOrderRequest{OrderID: "1110910"})
+	_, _ = broker.Native().Trading().CancelDerivativeOrder(context.Background(), nativedto.CancelDerivativeOrderRequest{OrderID: "1110910"})
 
 	if got := httpTransport.requests[0].URL; got != "https://entrade.example/api/derivative/orders" {
 		t.Fatalf("place url = %s", got)
 	}
-	body, ok := httpTransport.requests[0].JSON.(map[string]any)
+	body, ok := httpTransport.requests[0].JSON.(nativedto.PlaceDerivativeOrderRequest)
 	if !ok {
 		t.Fatalf("place body type = %T", httpTransport.requests[0].JSON)
 	}
-	if body["symbol"] != "VN30F2512" || body["quantity"] != 1 {
+	if body.Symbol != "VN30F2512" || body.Quantity != 1 {
 		t.Fatalf("place body = %#v", body)
 	}
-	if body["price"] != 1920.9 {
-		t.Fatalf("place price = %#v", body["price"])
+	if !body.Price.Equal(decimal.RequireFromString("1920.9")) {
+		t.Fatalf("place price = %#v", body.Price)
 	}
 	if got := httpTransport.requests[1].URL; got != "https://entrade.example/api/derivative/orders?_end=20&_start=0&investorAccountId=1000000036" {
 		t.Fatalf("list url = %s", got)
@@ -175,14 +197,15 @@ func TestDealsAndRiskLiveUnderTrading(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	_, _ = broker.Trading().Deals().List(context.Background(), ListDealsRequest{
+	_, _ = broker.Native().Trading().GetDerivativeDeals(context.Background(), nativedto.GetDerivativeDealsRequest{
 		InvestorAccountID: "1000000036",
 		Start:             0,
 		End:               20,
 	})
-	_, _ = broker.Trading().Deals().Close(context.Background(), "1000546", "LO")
-	_, _ = broker.Trading().Risk().Config(context.Background(), "1000000036")
-	_, _ = broker.Trading().Risk().UpdateConfig(context.Background(), "1000000036", RiskConfigRequest{
+	_, _ = broker.Native().Trading().CloseDerivativeDeal(context.Background(), nativedto.CloseDerivativeDealRequest{DealID: "1000546", OrderType: "LO"})
+	_, _ = broker.Native().Trading().GetRiskConfig(context.Background(), nativedto.GetRiskConfigRequest{InvestorAccountID: "1000000036"})
+	_, _ = broker.Native().Trading().UpdateRiskConfig(context.Background(), nativedto.UpdateRiskConfigRequest{
+		PathInvestorAccountID:     "1000000036",
 		CutLossRate:               decimal.RequireFromString("0.24"),
 		InvestorAccountID:         1000000036,
 		TrailingEnabled:           false,
@@ -208,12 +231,12 @@ func TestDealsAndRiskLiveUnderTrading(t *testing.T) {
 	if got := httpTransport.requests[3].Method; got != "PATCH" {
 		t.Fatalf("risk update method = %s", got)
 	}
-	body, ok := httpTransport.requests[3].JSON.(map[string]any)
+	body, ok := httpTransport.requests[3].JSON.(nativedto.UpdateRiskConfigRequest)
 	if !ok {
 		t.Fatalf("risk body type = %T", httpTransport.requests[3].JSON)
 	}
-	if body["cutLossRate"] != 0.24 {
-		t.Fatalf("cutLossRate = %#v", body["cutLossRate"])
+	if !body.CutLossRate.Equal(decimal.RequireFromString("0.24")) {
+		t.Fatalf("cutLossRate = %#v", body.CutLossRate)
 	}
 }
 
@@ -237,14 +260,14 @@ func TestDerivativesListMapsSymbols(t *testing.T) {
 		HTTPTransport: httpTransport,
 	})
 
-	symbols, err := broker.MarketData().Derivatives().List(context.Background())
+	response, err := broker.Native().MarketData().GetDerivatives(context.Background(), nativedto.GetDerivativesRequest{})
 	if err != nil {
 		t.Fatalf("list derivatives: %v", err)
 	}
 	if got := httpTransport.requests[0].URL; got != "https://entrade.example/api/derivatives" {
 		t.Fatalf("url = %s", got)
 	}
-	if symbols[0].Symbol != "VN30F2512" || symbols[0].DisplayName != "VN30F1M" {
-		t.Fatalf("symbol = %#v", symbols[0])
+	if response.Data[0].Symbol != "VN30F2512" || response.Data[0].Type != "VN30F1M" {
+		t.Fatalf("derivative = %#v", response.Data[0])
 	}
 }

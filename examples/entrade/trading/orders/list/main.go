@@ -3,14 +3,14 @@ package main
 import (
 	"context"
 
-	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/examples/entrade/internal/exampleutil"
 )
 
 func main() {
-	payload, err := exampleutil.Broker().Trading().Orders().List(
+	response, err := exampleutil.Broker().Native().Trading().GetDerivativeOrders(
 		context.Background(),
-		entrade.ListOrdersRequest{
+		nativedto.GetDerivativeOrdersRequest{
 			InvestorAccountID: exampleutil.MustEnv("ENTRADE_INVESTOR_ACCOUNT_ID"),
 			Start:             0,
 			End:               20,
@@ -19,5 +19,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	exampleutil.PrintRaw(payload)
+	exampleutil.Print(response)
 }

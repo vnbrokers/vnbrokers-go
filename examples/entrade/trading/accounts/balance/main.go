@@ -3,16 +3,17 @@ package main
 import (
 	"context"
 
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/examples/entrade/internal/exampleutil"
 )
 
 func main() {
-	payload, err := exampleutil.Broker().Trading().Accounts().Balance(
+	response, err := exampleutil.Broker().Native().Trading().GetAccountBalance(
 		context.Background(),
-		exampleutil.MustEnv("ENTRADE_INVESTOR_ID"),
+		nativedto.GetAccountBalanceRequest{InvestorID: exampleutil.MustEnv("ENTRADE_INVESTOR_ID")},
 	)
 	if err != nil {
 		panic(err)
 	}
-	exampleutil.PrintRaw(payload)
+	exampleutil.Print(response)
 }

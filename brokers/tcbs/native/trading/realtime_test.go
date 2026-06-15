@@ -117,6 +117,38 @@ func TestTradingRealtimeDerivativeOrdersProtocol(t *testing.T) {
 	}
 }
 
+func TestTradingRealtimeSubscribesWhenPingTimeoutPrecedesAuthentication(t *testing.T) {
+	socket := newFakeSocket(
+		`pingTimeout|7`,
+		`authenticate|{"success":true,"error":null}`,
+		`session|ODA0`,
+		`ping|`,
+	)
+	service := trading.NewRealtimeService(trading.RealtimeDependencies{
+		BaseURL: "https://api.example", AccessToken: func() string { return "jwt" }, PingInterval: time.Hour,
+		RequireCapability: func(core.Capability) error { return nil },
+		WebSocketFactory: func(context.Context, string, map[string]string) (transport.WebSocketTransport, error) {
+			return socket, nil
+		},
+	})
+
+	subscription, err := service.SubscribeStockOrders(context.Background(), dto.SubscribeStockOrdersRequest{})
+	if err != nil {
+		t.Fatalf("subscribe: %v", err)
+	}
+	defer subscription.Close()
+
+	if got := receiveString(t, socket.sent); got != "authenticate|eyJqd3QiOiJqd3QifQ==" {
+		t.Fatalf("auth frame = %q", got)
+	}
+	if got := receiveString(t, socket.sent); got != "subscribe|eyJ0b3BpYyI6IlNUT0NLX09SREVSIn0=" {
+		t.Fatalf("subscribe frame = %q", got)
+	}
+	if got := receiveString(t, socket.sent); got != "ping|1" {
+		t.Fatalf("ping response = %q", got)
+	}
+}
+
 func receiveString(t *testing.T, values <-chan string) string {
 	t.Helper()
 	select {

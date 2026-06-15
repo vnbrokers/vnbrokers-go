@@ -117,8 +117,8 @@ func subscribeProto[T any](ctx context.Context, dependencies RealtimeDependencie
 
 func runProtoSubscription[T any](ctx context.Context, cancel context.CancelFunc, pingInterval time.Duration, capability core.Capability, topic string, socket transport.WebSocketTransport, send func(string) error, decode func([]byte) (T, error), subscription *realtime.QueueSubscription[T]) {
 	defer subscription.Close()
-	authenticated := false
 	subscribed := false
+	pingStarted := false
 	for {
 		payload, err := socket.Receive(ctx)
 		if err != nil {
@@ -135,15 +135,17 @@ func runProtoSubscription[T any](ctx context.Context, cancel context.CancelFunc,
 				subscription.PublishError(sdkerrors.Auth("tcbs", string(capability), "TCBS websocket authentication failed"))
 				return
 			}
-			authenticated = true
-		case "pingTimeout":
-			if authenticated && !subscribed {
+			if !subscribed {
 				if err := send(protoSubscribeMessage(topic)); err != nil {
 					subscription.PublishError(err)
 					return
 				}
 				subscribed = true
 				subscription.PublishStatus(realtime.StatusSubscribed)
+			}
+		case "pingTimeout":
+			if !pingStarted {
+				pingStarted = true
 				startPingLoop(ctx, cancel, pingInterval, "ping|1", send, subscription)
 			}
 		case "ping":

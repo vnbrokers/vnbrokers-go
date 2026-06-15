@@ -3,32 +3,32 @@ package dto
 type SubscribeStockOrdersRequest struct{}
 
 type StockOrderEvent struct {
-	Object      string `json:"object"`
-	AccountNo   string `json:"accountNo"`
-	OrderID     string `json:"orderId"`
-	ExecType    string `json:"execType"`
-	OrderQtty   string `json:"orderQtty"`
-	Symbol      string `json:"symbol"`
-	PriceType   string `json:"priceType"`
-	TxTime      string `json:"txTime"`
-	TxDate      string `json:"txDate"`
-	ExpDate     string `json:"expDate"`
-	TimeType    string `json:"timeType"`
-	OrStatus    string `json:"orStatus"`
-	LimitPrice  string `json:"limitPrice"`
-	RemainQtty  string `json:"remainQtty"`
-	Via         string `json:"via"`
-	QuotePrice  string `json:"quotePrice"`
-	TradePlace  string `json:"tradePlace"`
-	MatchType   string `json:"matchType"`
-	IsDisposal  string `json:"isDisposal"`
-	IsCancel    string `json:"isCancel"`
-	IsAmend     string `json:"isAmend"`
-	UserName    string `json:"userName"`
-	ORSOrderID  string `json:"orsOrderId"`
-	SecType     string `json:"secType"`
-	IsFOOrder   string `json:"isFOOrder"`
-	ODTimestamp string `json:"odTimeStamp"`
+	Object      string  `json:"object"`
+	AccountNo   string  `json:"accountNo"`
+	OrderID     string  `json:"orderId"`
+	ExecType    string  `json:"execType"`
+	OrderQtty   float64 `json:"orderQtty"`
+	Symbol      string  `json:"symbol"`
+	PriceType   string  `json:"priceType"`
+	TxTime      string  `json:"txTime"`
+	TxDate      string  `json:"txDate"`
+	ExpDate     string  `json:"expDate"`
+	TimeType    string  `json:"timeType"`
+	OrStatus    string  `json:"orStatus"`
+	LimitPrice  float64 `json:"limitPrice"`
+	RemainQtty  float64 `json:"remainQtty"`
+	Via         string  `json:"via"`
+	QuotePrice  float64 `json:"quotePrice"`
+	TradePlace  string  `json:"tradePlace"`
+	MatchType   string  `json:"matchType"`
+	IsDisposal  string  `json:"isDisposal"`
+	IsCancel    string  `json:"isCancel"`
+	IsAmend     string  `json:"isAmend"`
+	UserName    string  `json:"userName"`
+	ORSOrderID  string  `json:"orsOrderId"`
+	SecType     string  `json:"secType"`
+	IsFOOrder   string  `json:"isFOOrder"`
+	ODTimestamp string  `json:"odTimeStamp"`
 }
 
 type SubscribeDerivativeOrdersRequest struct{}

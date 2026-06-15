@@ -208,7 +208,7 @@ type StockHoldingInfo struct {
 	SecuredQuantity  float64 `json:"securedQuantity"`
 	SellExec         float64 `json:"sellExec"`
 	SellRemain       float64 `json:"sellRemain"`
-	Settlement       float64 `json:"settlement"`
+	Settlement       string  `json:"settlement"`
 	StockDividend    float64 `json:"stockDividend"`
 	Symbol           string  `json:"symbol"`
 	T0               float64 `json:"t0"`

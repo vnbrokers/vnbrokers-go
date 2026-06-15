@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
 	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
 	"github.com/vnbrokers/vnbrokers-go/transport"
@@ -15,28 +16,25 @@ type AuthService struct {
 	broker *Broker
 }
 
-func (s *AuthService) GetToken(ctx context.Context, apiKey, otp string) (TokenResponse, error) {
+func (s *AuthService) GetToken(ctx context.Context, request dto.GetTokenRequest) (*dto.GetTokenResponse, error) {
 	if err := s.broker.RequireCapability(core.CapabilityTradingAuthTradingToken); err != nil {
-		return TokenResponse{}, err
+		return nil, err
 	}
 	response, err := s.broker.send(ctx, "auth.get_token", false, transport.HTTPRequest{
 		Method:  "POST",
 		URL:     s.broker.url("/gaia/v1/oauth2/openapi/token"),
 		Headers: s.broker.headers(false, true),
-		JSON: TokenRequest{
-			APIKey: apiKey,
-			OTP:    otp,
-		},
+		JSON:    request,
 	})
 	if err != nil {
-		return TokenResponse{}, err
+		return nil, err
 	}
-	var tokenResponse TokenResponse
+	var tokenResponse dto.GetTokenResponse
 	if err := decode(response, &tokenResponse); err != nil {
-		return TokenResponse{}, sdkerrors.Decode("tcbs", "auth.get_token", "decode token response", response.Body, err)
+		return nil, sdkerrors.Decode("tcbs", "auth.get_token", "decode token response", response.Body, err)
 	}
 	s.broker.accessToken = tokenResponse.Token
-	return tokenResponse, nil
+	return &tokenResponse, nil
 }
 
 func (b *Broker) send(
@@ -54,12 +52,20 @@ func (b *Broker) send(
 	}
 	if response.StatusCode >= 400 {
 		body := expectObject(response.Body)
+		raw := response.Body
+		if len(response.Raw) > 0 {
+			var decoded map[string]any
+			if json.Unmarshal(response.Raw, &decoded) == nil {
+				body = decoded
+			}
+			raw = response.Raw
+		}
 		code := stringify(body["code"])
 		message := stringify(body["message"])
 		if message == "" {
 			message = fmt.Sprintf("TCBS request failed with status %d", response.StatusCode)
 		}
-		return transport.HTTPResponse{}, sdkerrors.BrokerRejected("tcbs", operation, code, message, response.Body)
+		return transport.HTTPResponse{}, sdkerrors.BrokerRejected("tcbs", operation, code, message, raw)
 	}
 	return response, nil
 }

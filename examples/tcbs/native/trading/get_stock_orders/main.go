@@ -13,7 +13,6 @@ import (
 
 func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: mustEnv("TCBS_ACCESS_TOKEN")})
-	fmt.Println(mustEnv("TCBS_ACCESS_TOKEN"))
 	request := nativedto.GetStockOrdersRequest{AccountNo: mustEnv("TCBS_ACCOUNT_NO")}
 	response, err := broker.Native().Trading().GetStockOrders(context.Background(), request)
 	if err != nil {

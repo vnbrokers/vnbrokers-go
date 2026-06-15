@@ -10,6 +10,7 @@ import (
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs"
+	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/dto"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 	otp := mustEnv("TCBS_OTP")
 
 	broker := vnbrokers.NewTCBS(tcbs.Config{})
-	response, err := broker.Auth().GetToken(context.Background(), apiKey, otp)
+	response, err := broker.Auth().GetToken(context.Background(), nativedto.GetTokenRequest{APIKey: apiKey, OTP: otp})
 	if err != nil {
 		panic(err)
 	}

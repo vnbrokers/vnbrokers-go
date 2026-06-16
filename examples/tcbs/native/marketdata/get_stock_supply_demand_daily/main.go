@@ -13,7 +13,7 @@ import (
 func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
 	request := nativedto.GetStockSupplyDemandDailyRequest{
-		Ticker: env.String("TCBS_TICKER", "TCBS"),
+		Ticker: env.String("TCBS_TICKER", "TCX"),
 		Type:   env.String("TCBS_TYPE", "stock"),
 	}
 	response, err := broker.Native().MarketData().GetStockSupplyDemandDaily(context.Background(), request)

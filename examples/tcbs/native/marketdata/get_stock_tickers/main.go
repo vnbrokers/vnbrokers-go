@@ -14,7 +14,7 @@ func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
 	request := nativedto.GetStockTickersRequest{
 		Tickers: env.String("TCBS_TICKERS", "TCBS"),
-		Index:   env.Float("TCBS_INDEX", 0),
+		Index:   env.Float("TCBS_INDEX", 1),
 	}
 	response, err := broker.Native().MarketData().GetStockTickers(context.Background(), request)
 	if err != nil {

@@ -158,7 +158,7 @@ func (s *realtimeService) SubscribeDerivativeTickerMatches(ctx context.Context, 
 
 func (s *realtimeService) SubscribeDerivativeIndexes(ctx context.Context, request dto.SubscribeDerivativeIndexesRequest) (realtime.Subscription[dto.DerivativeIndexEvent], error) {
 	values := strings.Join(request.Indexes, ",")
-	return subscribeMarket(ctx, s.dependencies, CapabilityRealtimeDerivativeIndexes, "/ws/thesis/v1/stream/derivative", "d|s|si|rt|"+values, "", "s|8", "d|p|||", func(payload []byte) (dto.DerivativeIndexEvent, error) {
+	return subscribeMarket(ctx, s.dependencies, CapabilityRealtimeDerivativeIndexes, "/ws/thesis/v1/stream/derivative", "d|s|si|rt|"+values, "", "s|8", func(payload []byte) (dto.DerivativeIndexEvent, error) {
 		var event dto.DerivativeIndexEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
@@ -167,15 +167,15 @@ func (s *realtimeService) SubscribeDerivativeIndexes(ctx context.Context, reques
 
 func subscribeOuranos[T any](ctx context.Context, dependencies RealtimeDependencies, capability core.Capability, code string, tickers []string, decode func([]byte) (T, error)) (realtime.Subscription[T], error) {
 	values := strings.Join(tickers, ",")
-	return subscribeMarket(ctx, dependencies, capability, "/ws/ouranos/v1/stream", "d|st|"+code+"|"+values, "d|ut|"+code+"|"+values, code, "d|po", decode)
+	return subscribeMarket(ctx, dependencies, capability, "/ws/ouranos/v1/stream", "d|st|"+code+"|"+values, "d|ut|"+code+"|"+values, code, decode)
 }
 
 func subscribeDerivative[T any](ctx context.Context, dependencies RealtimeDependencies, capability core.Capability, code string, symbols []string, decode func([]byte) (T, error)) (realtime.Subscription[T], error) {
 	prefix := map[string]string{"bi": "s|1", "op": "s|2", "fe": "s|3", "bp": "s|4", "mp": "s|5", "tm": "s|6"}[code]
-	return subscribeMarket(ctx, dependencies, capability, "/ws/thesis/v1/stream/derivative", "d|s|tk|"+code+"|"+strings.Join(symbols, ","), "", prefix, "d|p|||", decode)
+	return subscribeMarket(ctx, dependencies, capability, "/ws/thesis/v1/stream/derivative", "d|s|tk|"+code+"|"+strings.Join(symbols, ","), "", prefix, decode)
 }
 
-func subscribeMarket[T any](ctx context.Context, dependencies RealtimeDependencies, capability core.Capability, path, subscribeFrame, unsubscribeFrame, eventKind, pingFrame string, decode func([]byte) (T, error)) (realtime.Subscription[T], error) {
+func subscribeMarket[T any](ctx context.Context, dependencies RealtimeDependencies, capability core.Capability, path, subscribeFrame, unsubscribeFrame, eventKind string, decode func([]byte) (T, error)) (realtime.Subscription[T], error) {
 	if err := dependencies.RequireCapability(capability); err != nil {
 		return nil, err
 	}
@@ -204,14 +204,27 @@ func subscribeMarket[T any](ctx context.Context, dependencies RealtimeDependenci
 		_ = subscription.Close()
 		return nil, err
 	}
-	go runMarketSubscription(childCtx, cancel, dependencies.PingInterval, capability, subscribeFrame, eventKind, pingFrame, socket, send, decode, subscription)
+	go runMarketSubscription(childCtx, cancel, dependencies.PingInterval, capability, subscribeFrame, eventKind, socket, send, decode, subscription)
 	return subscription, nil
 }
 
-func runMarketSubscription[T any](ctx context.Context, cancel context.CancelFunc, pingInterval time.Duration, capability core.Capability, subscribeFrame, eventKind, pingFrame string, socket transport.WebSocketTransport, send func(string) error, decode func([]byte) (T, error), subscription *realtime.QueueSubscription[T]) {
+func runMarketSubscription[T any](ctx context.Context, cancel context.CancelFunc, pingInterval time.Duration, capability core.Capability, subscribeFrame, eventKind string, socket transport.WebSocketTransport, send func(string) error, decode func([]byte) (T, error), subscription *realtime.QueueSubscription[T]) {
 	defer subscription.Close()
 	authenticated := false
 	subscribed := false
+	pingStarted := false
+	subscribe := func() bool {
+		if !authenticated || subscribed {
+			return true
+		}
+		if err := send(subscribeFrame); err != nil {
+			subscription.PublishError(err)
+			return false
+		}
+		subscribed = true
+		subscription.PublishStatus(realtime.StatusSubscribed)
+		return true
+	}
 	for {
 		payload, err := socket.Receive(ctx)
 		if err != nil {
@@ -223,20 +236,29 @@ func runMarketSubscription[T any](ctx context.Context, cancel context.CancelFunc
 		frame := parseMarketFrame(payload)
 		switch frame.kind {
 		case "d|0":
+
 			if !marketAuthSucceeded(frame.payload) {
 				subscription.PublishError(sdkerrors.Auth("tcbs", string(capability), "TCBS websocket authentication failed"))
 				return
 			}
 			authenticated = true
+			if !subscribe() {
+				return
+			}
 		case "d|33":
-			if authenticated && !subscribed {
-				if err := send(subscribeFrame); err != nil {
-					subscription.PublishError(err)
-					return
-				}
-				subscribed = true
-				subscription.PublishStatus(realtime.StatusSubscribed)
-				startMarketPingLoop(ctx, cancel, pingInterval, pingFrame, send, subscription)
+			if !pingStarted {
+				pingStarted = true
+				startMarketPingLoop(ctx, cancel, pingInterval, send, subscription)
+			}
+		case "d|34":
+			if err := send("d|p|||"); err != nil {
+				subscription.PublishError(err)
+				return
+			}
+		case "d|pi": // /ws/ouranos/v1/stream
+			if err := send("d|po"); err != nil {
+				subscription.PublishError(err)
+				return
 			}
 		default:
 			if frame.kind != eventKind {
@@ -294,7 +316,7 @@ func marketWebSocketURL(baseURL, path string) string {
 	return strings.Replace(endpoint, "http://", "ws://", 1)
 }
 
-func startMarketPingLoop[T any](ctx context.Context, cancel context.CancelFunc, interval time.Duration, message string, send func(string) error, subscription *realtime.QueueSubscription[T]) {
+func startMarketPingLoop[T any](ctx context.Context, cancel context.CancelFunc, interval time.Duration, send func(string) error, subscription *realtime.QueueSubscription[T]) {
 	if interval <= 0 {
 		return
 	}
@@ -306,7 +328,7 @@ func startMarketPingLoop[T any](ctx context.Context, cancel context.CancelFunc, 
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				if err := send(message); err != nil {
+				if err := send("d|p|||"); err != nil {
 					if ctx.Err() == nil {
 						subscription.PublishError(err)
 						cancel()

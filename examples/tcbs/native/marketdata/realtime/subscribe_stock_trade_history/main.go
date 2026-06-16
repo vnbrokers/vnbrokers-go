@@ -20,7 +20,7 @@ func main() {
 	defer cancel()
 
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
-	request := nativedto.SubscribeStockTradeHistoryRequest{Tickers: env.List("TCBS_TICKERS", "TCBS")}
+	request := nativedto.SubscribeStockTradeHistoryRequest{Tickers: env.List("TCBS_TICKERS", "VIX")}
 	subscription, err := broker.Native().MarketData().Realtime().SubscribeStockTradeHistory(ctx, request)
 	if err != nil {
 		panic(err)

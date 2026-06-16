@@ -99,6 +99,10 @@ func TestTradingHTTPContracts(t *testing.T) {
 			_, err := s.GetCashStatements(ctx, dto.GetCashStatementsRequest{AccountNo: "0001", FromDate: "2025-01-01", ToDate: "2025-01-15", PageSize: "25", PageIndex: "1", TransactionCode: "1153"})
 			return err
 		}},
+		{"cash statements without transaction code", "GET", "/erebos/v2/digital/trans-hist-cashStatements?accountNo=0001&fromDate=2025-01-01&pageIndex=1&pageSize=25&toDate=2025-01-15", false, func(ctx context.Context, s trading.Service) error {
+			_, err := s.GetCashStatements(ctx, dto.GetCashStatementsRequest{AccountNo: "0001", FromDate: "2025-01-01", ToDate: "2025-01-15", PageSize: "25", PageIndex: "1"})
+			return err
+		}},
 		{"margin information", "GET", "/erebos/v2/digital/margin-info?acctno=0001&custodycd=105C&fromdate=2025-01-01&page=1&size=25&toDate=2025-01-15", false, func(ctx context.Context, s trading.Service) error {
 			_, err := s.GetMarginInformation(ctx, dto.GetMarginInformationRequest{AccountNo: "0001", FromDate: "2025-01-01", ToDate: "2025-01-15", Page: "1", Size: "25", CustodyCode: "105C"})
 			return err

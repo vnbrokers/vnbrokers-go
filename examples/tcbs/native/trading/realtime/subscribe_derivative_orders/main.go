@@ -5,21 +5,21 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs"
 	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/dto"
+	"github.com/vnbrokers/vnbrokers-go/internal/env"
 )
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
-	ctx, cancel := context.WithTimeout(ctx, envDuration("TCBS_STREAM_DURATION", time.Minute))
+	ctx, cancel := context.WithTimeout(ctx, env.Duration("TCBS_STREAM_DURATION", time.Minute))
 	defer cancel()
 
-	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: mustEnv("TCBS_ACCESS_TOKEN")})
+	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
 	request := nativedto.SubscribeDerivativeOrdersRequest{}
 	subscription, err := broker.Native().Trading().Realtime().SubscribeDerivativeOrders(ctx, request)
 	if err != nil {
@@ -48,36 +48,4 @@ func main() {
 			return
 		}
 	}
-}
-
-func mustEnv(key string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		panic(key + " is required")
-	}
-	return value
-}
-
-func envList(key, fallback string) []string {
-	value := os.Getenv(key)
-	if value == "" {
-		value = fallback
-	}
-	items := strings.Split(value, ",")
-	for index := range items {
-		items[index] = strings.TrimSpace(items[index])
-	}
-	return items
-}
-
-func envDuration(key string, fallback time.Duration) time.Duration {
-	value := os.Getenv(key)
-	if value == "" {
-		return fallback
-	}
-	duration, err := time.ParseDuration(value)
-	if err != nil {
-		panic(err)
-	}
-	return duration
 }

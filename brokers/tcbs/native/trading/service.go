@@ -136,3 +136,9 @@ func do[T any](s *service, ctx context.Context, capability core.Capability, meth
 func escaped(value string) string { return url.PathEscape(value) }
 
 func set(query url.Values, key, value string) { query.Set(key, value) }
+
+func setOptional(query url.Values, key, value string) {
+	if value != "" {
+		set(query, key, value)
+	}
+}

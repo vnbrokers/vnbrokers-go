@@ -13,6 +13,100 @@ import (
 	"unicode"
 )
 
+func TestExamplesUseSharedEnvHelpers(t *testing.T) {
+	root := repositoryRoot(t)
+	disallowed := map[string]struct{}{
+		"mustEnv":      {},
+		"envDefault":   {},
+		"mustIntEnv":   {},
+		"mustFloatEnv": {},
+		"envFloat":     {},
+		"envDuration":  {},
+		"envList":      {},
+	}
+
+	err := filepath.WalkDir(filepath.Join(root, "examples", "tcbs"), func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || filepath.Ext(path) != ".go" {
+			return nil
+		}
+		parsed, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
+		if err != nil {
+			return err
+		}
+		ast.Inspect(parsed, func(node ast.Node) bool {
+			switch node := node.(type) {
+			case *ast.FuncDecl:
+				if _, ok := disallowed[node.Name.Name]; ok {
+					t.Errorf("%s defines %s; use internal/env instead", path, node.Name.Name)
+				}
+			case *ast.CallExpr:
+				if ident, ok := node.Fun.(*ast.Ident); ok {
+					if _, disallowed := disallowed[ident.Name]; disallowed {
+						t.Errorf("%s calls %s; use internal/env instead", path, ident.Name)
+					}
+				}
+			}
+			return true
+		})
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRequestLiteralsWithMultipleFieldsAreMultiline(t *testing.T) {
+	root := repositoryRoot(t)
+	fileSet := token.NewFileSet()
+	err := filepath.WalkDir(filepath.Join(root, "examples", "tcbs"), func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || filepath.Ext(path) != ".go" {
+			return nil
+		}
+		parsed, err := parser.ParseFile(fileSet, path, nil, 0)
+		if err != nil {
+			return err
+		}
+		ast.Inspect(parsed, func(node ast.Node) bool {
+			assign, ok := node.(*ast.AssignStmt)
+			if !ok || len(assign.Lhs) != 1 || len(assign.Rhs) != 1 {
+				return true
+			}
+			name, ok := assign.Lhs[0].(*ast.Ident)
+			if !ok || name.Name != "request" {
+				return true
+			}
+			ast.Inspect(assign.Rhs[0], func(node ast.Node) bool {
+				literal, ok := node.(*ast.CompositeLit)
+				if !ok || len(literal.Elts) < 2 {
+					return true
+				}
+				literalLine := fileSet.Position(literal.Lbrace).Line
+				previousLine := literalLine
+				for _, element := range literal.Elts {
+					elementLine := fileSet.Position(element.Pos()).Line
+					if elementLine <= previousLine {
+						t.Errorf("%s request literal fields should be one per line", path)
+						return false
+					}
+					previousLine = elementLine
+				}
+				return true
+			})
+			return true
+		})
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestNativeExampleCoverage(t *testing.T) {
 	root := repositoryRoot(t)
 	examples := map[string]string{

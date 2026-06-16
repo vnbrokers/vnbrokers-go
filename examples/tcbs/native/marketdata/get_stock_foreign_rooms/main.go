@@ -12,7 +12,7 @@ import (
 
 func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
-	request := nativedto.GetStockForeignRoomsRequest{Index: env.Float("TCBS_INDEX", 0)}
+	request := nativedto.GetStockForeignRoomsRequest{Index: env.Float("TCBS_INDEX", 1)}
 	response, err := broker.Native().MarketData().GetStockForeignRooms(context.Background(), request)
 	if err != nil {
 		panic(err)

@@ -48,12 +48,12 @@ func (s *service) GetCashInvestments(ctx context.Context, request dto.GetCashInv
 
 func (s *service) GetCashStatements(ctx context.Context, request dto.GetCashStatementsRequest) (*dto.GetCashStatementsResponse, error) {
 	query := url.Values{}
-	set(query, "accountNo", request.AccountNo)
+	set(query, "acctno", request.AccountNo)
 	set(query, "fromDate", request.FromDate)
 	set(query, "toDate", request.ToDate)
 	set(query, "pageSize", request.PageSize)
 	set(query, "pageIndex", request.PageIndex)
-	set(query, "transactionCode", request.TransactionCode)
+	setOptional(query, "transactionCode", request.TransactionCode)
 	return do[dto.GetCashStatementsResponse](s, ctx, CapabilityGetCashStatements, "GET", "/erebos/v2/digital/trans-hist-cashStatements", query, nil)
 }
 

@@ -2,6 +2,7 @@ package trading
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"strconv"
 
@@ -13,6 +14,7 @@ func (s *service) GetDerivativeCash(ctx context.Context, request dto.GetDerivati
 	set(query, "accountId", request.AccountID)
 	set(query, "subAccountId", request.SubAccountID)
 	set(query, "getType", request.GetType)
+	fmt.Printf("query: %s\n", query.Encode())
 	return do[dto.GetDerivativeCashResponse](s, ctx, CapabilityGetDerivativeCash, "GET", "/khronos/v1/account/status", query, nil)
 }
 

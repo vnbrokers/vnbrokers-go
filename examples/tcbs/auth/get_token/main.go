@@ -5,17 +5,18 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"os"
+
 	"strings"
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs"
 	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/dto"
+	"github.com/vnbrokers/vnbrokers-go/internal/env"
 )
 
 func main() {
-	apiKey := mustEnv("TCBS_API_KEY")
-	otp := mustEnv("TCBS_OTP")
+	apiKey := env.RequiredString("TCBS_API_KEY")
+	otp := env.RequiredString("TCBS_OTP")
 
 	broker := vnbrokers.NewTCBS(tcbs.Config{})
 	response, err := broker.Auth().GetToken(context.Background(), nativedto.GetTokenRequest{APIKey: apiKey, OTP: otp})
@@ -25,14 +26,6 @@ func main() {
 	fmt.Println("token:", response.Token)
 	printJWTPart("header", response.Token, 0)
 	printJWTPart("payload", response.Token, 1)
-}
-
-func mustEnv(key string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		panic(key + " is required")
-	}
-	return value
 }
 
 func printJWTPart(label string, token string, index int) {

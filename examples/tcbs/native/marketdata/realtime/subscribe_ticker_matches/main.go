@@ -20,8 +20,8 @@ func main() {
 	defer cancel()
 
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
-	request := nativedto.SubscribeDerivativeTickerMatchesRequest{Symbols: env.List("TCBS_SYMBOLS", "VN30F1M")}
-	subscription, err := broker.Native().MarketData().Realtime().SubscribeDerivativeTickerMatches(ctx, request)
+	request := nativedto.SubscribeTickerMatchesRequest{Symbols: env.List("TCBS_SYMBOLS", "TCX,ACB,41I1G6000")}
+	subscription, err := broker.Native().MarketData().Realtime().SubscribeTickerMatches(ctx, request)
 	if err != nil {
 		panic(err)
 	}

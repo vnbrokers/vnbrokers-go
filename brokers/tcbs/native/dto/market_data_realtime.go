@@ -1,5 +1,9 @@
 package dto
 
+import (
+	"github.com/shopspring/decimal"
+)
+
 type SubscribeStockPricesRequest struct{}
 
 type SubscribeStockTradeHistoryRequest struct{ Tickers []string }
@@ -46,17 +50,17 @@ type SubscribeDerivativeMatchedPricesRequest struct{ Symbols []string }
 type SubscribeDerivativeTickerMatchesRequest struct{ Symbols []string }
 type SubscribeDerivativeIndexesRequest struct{ Indexes []string }
 
-type DerivativeBidPriceEvent struct {
-	Symbol     string `json:"symbol"`
-	BidPrice01 string `json:"bidPrice01"`
-	BidPrice02 string `json:"bidPrice02"`
-	BidPrice03 string `json:"bidPrice03"`
-	BidQtty01  string `json:"bidQtty01"`
-	BidQtty02  string `json:"bidQtty02"`
-	BidQtty03  string `json:"bidQtty03"`
+type BidPriceEvent struct {
+	Symbol     string          `json:"symbol"`
+	BidPrice01 decimal.Decimal `json:"bidPrice01"`
+	BidPrice02 decimal.Decimal `json:"bidPrice02"`
+	BidPrice03 decimal.Decimal `json:"bidPrice03"`
+	BidQtty01  decimal.Decimal `json:"bidQtty01"`
+	BidQtty02  decimal.Decimal `json:"bidQtty02"`
+	BidQtty03  decimal.Decimal `json:"bidQtty03"`
 }
 
-type DerivativeOfferPriceEvent struct {
+type OfferPriceEvent struct {
 	Symbol       string `json:"symbol"`
 	OfferPrice01 string `json:"offerPrice01"`
 	OfferPrice02 string `json:"offerPrice02"`

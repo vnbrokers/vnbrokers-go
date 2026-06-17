@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -31,16 +32,19 @@ const (
 
 type RealtimeService interface {
 	SubscribeStockPrices(context.Context, dto.SubscribeStockPricesRequest) (realtime.Subscription[dto.RawMessage], error)
-	SubscribeStockTradeHistory(context.Context, dto.SubscribeStockTradeHistoryRequest) (realtime.Subscription[dto.StockTradeHistoryEvent], error)
-	SubscribeStockSupplyDemandOneMinute(context.Context, dto.SubscribeStockSupplyDemandOneMinuteRequest) (realtime.Subscription[dto.StockSupplyDemandEvent], error)
-	SubscribeStockSupplyDemandFifteenMinutes(context.Context, dto.SubscribeStockSupplyDemandFifteenMinutesRequest) (realtime.Subscription[dto.StockSupplyDemandEvent], error)
-	SubscribeDerivativeBidPrices(context.Context, dto.SubscribeDerivativeBidPricesRequest) (realtime.Subscription[dto.DerivativeBidPriceEvent], error)
-	SubscribeDerivativeOfferPrices(context.Context, dto.SubscribeDerivativeOfferPricesRequest) (realtime.Subscription[dto.DerivativeOfferPriceEvent], error)
+
+	SubscribeDerivativeBidPrices(context.Context, dto.SubscribeDerivativeBidPricesRequest) (realtime.Subscription[dto.BidPriceEvent], error)
+	SubscribeDerivativeOfferPrices(context.Context, dto.SubscribeDerivativeOfferPricesRequest) (realtime.Subscription[dto.OfferPriceEvent], error)
 	SubscribeDerivativeForeignTrading(context.Context, dto.SubscribeDerivativeForeignTradingRequest) (realtime.Subscription[dto.DerivativeForeignTradingEvent], error)
 	SubscribeDerivativeBasePrices(context.Context, dto.SubscribeDerivativeBasePricesRequest) (realtime.Subscription[dto.DerivativeBasePriceEvent], error)
 	SubscribeDerivativeMatchedPrices(context.Context, dto.SubscribeDerivativeMatchedPricesRequest) (realtime.Subscription[dto.DerivativeMatchedPriceEvent], error)
 	SubscribeDerivativeTickerMatches(context.Context, dto.SubscribeDerivativeTickerMatchesRequest) (realtime.Subscription[dto.DerivativeTickerMatchEvent], error)
 	SubscribeDerivativeIndexes(context.Context, dto.SubscribeDerivativeIndexesRequest) (realtime.Subscription[dto.DerivativeIndexEvent], error)
+
+	// 5.7.9 /ws/ouranos/v1/stream
+	SubscribeStockTradeHistory(context.Context, dto.SubscribeStockTradeHistoryRequest) (realtime.Subscription[dto.StockTradeHistoryEvent], error)
+	SubscribeStockSupplyDemandOneMinute(context.Context, dto.SubscribeStockSupplyDemandOneMinuteRequest) (realtime.Subscription[dto.StockSupplyDemandEvent], error)
+	SubscribeStockSupplyDemandFifteenMinutes(context.Context, dto.SubscribeStockSupplyDemandFifteenMinutesRequest) (realtime.Subscription[dto.StockSupplyDemandEvent], error)
 }
 
 type RealtimeDependencies struct {
@@ -108,17 +112,17 @@ func (s *realtimeService) SubscribeStockSupplyDemandFifteenMinutes(ctx context.C
 	return subscribeOuranos(ctx, s.dependencies, CapabilityRealtimeStockSupplyDemandFifteenMinutes, "C002S900", request.Tickers, decodeStockSupplyDemand)
 }
 
-func (s *realtimeService) SubscribeDerivativeBidPrices(ctx context.Context, request dto.SubscribeDerivativeBidPricesRequest) (realtime.Subscription[dto.DerivativeBidPriceEvent], error) {
-	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeDerivativeBidPrices, "bi", request.Symbols, func(payload []byte) (dto.DerivativeBidPriceEvent, error) {
-		var event dto.DerivativeBidPriceEvent
+func (s *realtimeService) SubscribeDerivativeBidPrices(ctx context.Context, request dto.SubscribeDerivativeBidPricesRequest) (realtime.Subscription[dto.BidPriceEvent], error) {
+	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeDerivativeBidPrices, "bi", request.Symbols, func(payload []byte) (dto.BidPriceEvent, error) {
+		var event dto.BidPriceEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
 	})
 }
 
-func (s *realtimeService) SubscribeDerivativeOfferPrices(ctx context.Context, request dto.SubscribeDerivativeOfferPricesRequest) (realtime.Subscription[dto.DerivativeOfferPriceEvent], error) {
-	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeDerivativeOfferPrices, "op", request.Symbols, func(payload []byte) (dto.DerivativeOfferPriceEvent, error) {
-		var event dto.DerivativeOfferPriceEvent
+func (s *realtimeService) SubscribeDerivativeOfferPrices(ctx context.Context, request dto.SubscribeDerivativeOfferPricesRequest) (realtime.Subscription[dto.OfferPriceEvent], error) {
+	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeDerivativeOfferPrices, "op", request.Symbols, func(payload []byte) (dto.OfferPriceEvent, error) {
+		var event dto.OfferPriceEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
 	})
@@ -171,7 +175,7 @@ func subscribeOuranos[T any](ctx context.Context, dependencies RealtimeDependenc
 }
 
 func subscribeDerivative[T any](ctx context.Context, dependencies RealtimeDependencies, capability core.Capability, code string, symbols []string, decode func([]byte) (T, error)) (realtime.Subscription[T], error) {
-	prefix := map[string]string{"bi": "s|1", "op": "s|2", "fe": "s|3", "bp": "s|4", "mp": "s|5", "tm": "s|6"}[code]
+	prefix := map[string]string{"bi": "s|23", "op": "s|24", "fe": "s|3", "bp": "s|4", "mp": "s|5", "tm": "s|21"}[code]
 	return subscribeMarket(ctx, dependencies, capability, "/ws/thesis/v1/stream/derivative", "d|s|tk|"+code+"|"+strings.Join(symbols, ","), "", prefix, decode)
 }
 
@@ -187,6 +191,7 @@ func subscribeMarket[T any](ctx context.Context, dependencies RealtimeDependenci
 	}
 	var sendMu sync.Mutex
 	send := func(message string) error {
+		fmt.Printf(">>> %s\n", message)
 		sendMu.Lock()
 		defer sendMu.Unlock()
 		return socket.Send(childCtx, transport.WebSocketMessage(message))

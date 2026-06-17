@@ -16,13 +16,12 @@ import (
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
-	ctx, cancel := context.WithTimeout(ctx, env.Duration("TCBS_STREAM_DURATION", time.Minute))
+	ctx, cancel := context.WithTimeout(ctx, env.Duration("TCBS_STREAM_DURATION", time.Hour))
 	defer cancel()
 
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
-	// `1` VN-INDEX, `2` VN30-INDEX, `3` HNX, `4` HNX30-INDEX, `5` UPCOM,
-	request := nativedto.SubscribeMarketIndexesRequest{Indexes: env.List("TCBS_INDEXES", "1,2,3,4,5")}
-	subscription, err := broker.Native().MarketData().Realtime().SubscribeMarketIndexes(ctx, request)
+	request := nativedto.SubscribeRawRequest{Tickers: env.List("TCBS_SYMBOLS", "1,2,3,4,5,7,8,9")}
+	subscription, err := broker.Native().MarketData().Realtime().SubscribeRawEvent(ctx, request)
 	if err != nil {
 		panic(err)
 	}

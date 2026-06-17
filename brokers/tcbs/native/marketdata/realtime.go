@@ -21,13 +21,13 @@ const (
 	CapabilityRealtimeStockTradeHistory               core.Capability = "native.marketdata.realtime.stock_trade_history"
 	CapabilityRealtimeStockSupplyDemandOneMinute      core.Capability = "native.marketdata.realtime.stock_supply_demand_one_minute"
 	CapabilityRealtimeStockSupplyDemandFifteenMinutes core.Capability = "native.marketdata.realtime.stock_supply_demand_fifteen_minutes"
-	CapabilityRealtimeDerivativeBidPrices             core.Capability = "native.marketdata.realtime.derivative_bid_prices"
-	CapabilityRealtimeDerivativeOfferPrices           core.Capability = "native.marketdata.realtime.derivative_offer_prices"
-	CapabilityRealtimeDerivativeForeignTrading        core.Capability = "native.marketdata.realtime.derivative_foreign_trading"
-	CapabilityRealtimeDerivativeBasePrices            core.Capability = "native.marketdata.realtime.derivative_base_prices"
-	CapabilityRealtimeDerivativeMatchedPrices         core.Capability = "native.marketdata.realtime.derivative_matched_prices"
-	CapabilityRealtimeDerivativeTickerMatches         core.Capability = "native.marketdata.realtime.derivative_ticker_matches"
-	CapabilityRealtimeDerivativeIndexes               core.Capability = "native.marketdata.realtime.derivative_indexes"
+	CapabilityRealtimeBidPrices                       core.Capability = "native.marketdata.realtime.bid_prices"
+	CapabilityRealtimeOfferPrices                     core.Capability = "native.marketdata.realtime.offer_prices"
+	CapabilityRealtimeForeignTrading                  core.Capability = "native.marketdata.realtime.foreign_trading"
+	CapabilityRealtimeBasePrices                      core.Capability = "native.marketdata.realtime.base_prices"
+	CapabilityRealtimeMatchedPrices                   core.Capability = "native.marketdata.realtime.matched_prices"
+	CapabilityRealtimeTickerMatches                   core.Capability = "native.marketdata.realtime.ticker_matches"
+	CapabilityRealtimeIndexes                         core.Capability = "native.marketdata.realtime.indexes"
 )
 
 type RealtimeService interface {
@@ -36,14 +36,14 @@ type RealtimeService interface {
 	SubscribeStockPrices(context.Context, dto.SubscribeStockPricesRequest) (realtime.Subscription[dto.RawMessage], error)
 
 	// /ws/thesis/v1/stream/normal+derivative
-	SubscribeDerivativeBidPrices(context.Context, dto.SubscribeDerivativeBidPricesRequest) (realtime.Subscription[dto.BidPriceEvent], error)
-	SubscribeDerivativeOfferPrices(context.Context, dto.SubscribeDerivativeOfferPricesRequest) (realtime.Subscription[dto.OfferPriceEvent], error)
+	SubscribeBidPrices(context.Context, dto.SubscribeBidPricesRequest) (realtime.Subscription[dto.BidPriceEvent], error)
+	SubscribeOfferPrices(context.Context, dto.SubscribeOfferPricesRequest) (realtime.Subscription[dto.OfferPriceEvent], error)
 	SubscribeMarketIndexes(context.Context, dto.SubscribeMarketIndexesRequest) (realtime.Subscription[dto.MarketIndexEvent], error)
 	//
-	SubscribeDerivativeForeignTrading(context.Context, dto.SubscribeDerivativeForeignTradingRequest) (realtime.Subscription[dto.DerivativeForeignTradingEvent], error)
-	SubscribeDerivativeBasePrices(context.Context, dto.SubscribeDerivativeBasePricesRequest) (realtime.Subscription[dto.DerivativeBasePriceEvent], error)
-	SubscribeDerivativeMatchedPrices(context.Context, dto.SubscribeDerivativeMatchedPricesRequest) (realtime.Subscription[dto.DerivativeMatchedPriceEvent], error)
-	SubscribeDerivativeTickerMatches(context.Context, dto.SubscribeDerivativeTickerMatchesRequest) (realtime.Subscription[dto.DerivativeTickerMatchEvent], error)
+	SubscribeForeignTrading(context.Context, dto.SubscribeForeignTradingRequest) (realtime.Subscription[dto.ForeignTradingEvent], error)
+	SubscribeBasePrices(context.Context, dto.SubscribeBasePricesRequest) (realtime.Subscription[dto.BasePriceEvent], error)
+	SubscribeMatchedPrices(context.Context, dto.SubscribeMatchedPricesRequest) (realtime.Subscription[dto.MatchedPriceEvent], error)
+	SubscribeTickerMatches(context.Context, dto.SubscribeTickerMatchesRequest) (realtime.Subscription[dto.TickerMatchEvent], error)
 
 	// 5.7.9 /ws/ouranos/v1/stream
 	SubscribeStockTradeHistory(context.Context, dto.SubscribeStockTradeHistoryRequest) (realtime.Subscription[dto.StockTradeHistoryEvent], error)
@@ -72,7 +72,7 @@ func NewRealtimeService(dependencies RealtimeDependencies) RealtimeService {
 }
 
 func (s *realtimeService) SubscribeRawEvent(ctx context.Context, request dto.SubscribeRawRequest) (realtime.Subscription[dto.RawEvent], error) {
-	return subscribeRaw(ctx, s.dependencies, CapabilityRealtimeDerivativeForeignTrading, "bp+bi+tm+mp+op+fe", request.Tickers, func(payload []byte) (dto.RawEvent, error) {
+	return subscribeRaw(ctx, s.dependencies, CapabilityRealtimeForeignTrading, "bp+bi+tm+mp+op+fe", request.Tickers, func(payload []byte) (dto.RawEvent, error) {
 		var event dto.RawEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
@@ -124,49 +124,49 @@ func (s *realtimeService) SubscribeStockSupplyDemandFifteenMinutes(ctx context.C
 	return subscribeOuranos(ctx, s.dependencies, CapabilityRealtimeStockSupplyDemandFifteenMinutes, "C002S900", request.Tickers, decodeStockSupplyDemand)
 }
 
-func (s *realtimeService) SubscribeDerivativeBidPrices(ctx context.Context, request dto.SubscribeDerivativeBidPricesRequest) (realtime.Subscription[dto.BidPriceEvent], error) {
-	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeDerivativeBidPrices, "bi", request.Symbols, func(payload []byte) (dto.BidPriceEvent, error) {
+func (s *realtimeService) SubscribeBidPrices(ctx context.Context, request dto.SubscribeBidPricesRequest) (realtime.Subscription[dto.BidPriceEvent], error) {
+	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeBidPrices, "bi", request.Symbols, func(payload []byte) (dto.BidPriceEvent, error) {
 		var event dto.BidPriceEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
 	})
 }
 
-func (s *realtimeService) SubscribeDerivativeOfferPrices(ctx context.Context, request dto.SubscribeDerivativeOfferPricesRequest) (realtime.Subscription[dto.OfferPriceEvent], error) {
-	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeDerivativeOfferPrices, "op", request.Symbols, func(payload []byte) (dto.OfferPriceEvent, error) {
+func (s *realtimeService) SubscribeOfferPrices(ctx context.Context, request dto.SubscribeOfferPricesRequest) (realtime.Subscription[dto.OfferPriceEvent], error) {
+	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeOfferPrices, "op", request.Symbols, func(payload []byte) (dto.OfferPriceEvent, error) {
 		var event dto.OfferPriceEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
 	})
 }
 
-func (s *realtimeService) SubscribeDerivativeForeignTrading(ctx context.Context, request dto.SubscribeDerivativeForeignTradingRequest) (realtime.Subscription[dto.DerivativeForeignTradingEvent], error) {
-	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeDerivativeForeignTrading, "fe", request.Symbols, func(payload []byte) (dto.DerivativeForeignTradingEvent, error) {
-		var event dto.DerivativeForeignTradingEvent
+func (s *realtimeService) SubscribeForeignTrading(ctx context.Context, request dto.SubscribeForeignTradingRequest) (realtime.Subscription[dto.ForeignTradingEvent], error) {
+	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeForeignTrading, "fe", request.Symbols, func(payload []byte) (dto.ForeignTradingEvent, error) {
+		var event dto.ForeignTradingEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
 	})
 }
 
-func (s *realtimeService) SubscribeDerivativeBasePrices(ctx context.Context, request dto.SubscribeDerivativeBasePricesRequest) (realtime.Subscription[dto.DerivativeBasePriceEvent], error) {
-	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeDerivativeBasePrices, "bp", request.Symbols, func(payload []byte) (dto.DerivativeBasePriceEvent, error) {
-		var event dto.DerivativeBasePriceEvent
+func (s *realtimeService) SubscribeBasePrices(ctx context.Context, request dto.SubscribeBasePricesRequest) (realtime.Subscription[dto.BasePriceEvent], error) {
+	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeBasePrices, "bp", request.Symbols, func(payload []byte) (dto.BasePriceEvent, error) {
+		var event dto.BasePriceEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
 	})
 }
 
-func (s *realtimeService) SubscribeDerivativeMatchedPrices(ctx context.Context, request dto.SubscribeDerivativeMatchedPricesRequest) (realtime.Subscription[dto.DerivativeMatchedPriceEvent], error) {
-	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeDerivativeMatchedPrices, "mp", request.Symbols, func(payload []byte) (dto.DerivativeMatchedPriceEvent, error) {
-		var event dto.DerivativeMatchedPriceEvent
+func (s *realtimeService) SubscribeMatchedPrices(ctx context.Context, request dto.SubscribeMatchedPricesRequest) (realtime.Subscription[dto.MatchedPriceEvent], error) {
+	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeMatchedPrices, "mp", request.Symbols, func(payload []byte) (dto.MatchedPriceEvent, error) {
+		var event dto.MatchedPriceEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
 	})
 }
 
-func (s *realtimeService) SubscribeDerivativeTickerMatches(ctx context.Context, request dto.SubscribeDerivativeTickerMatchesRequest) (realtime.Subscription[dto.DerivativeTickerMatchEvent], error) {
-	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeDerivativeTickerMatches, "tm", request.Symbols, func(payload []byte) (dto.DerivativeTickerMatchEvent, error) {
-		var event dto.DerivativeTickerMatchEvent
+func (s *realtimeService) SubscribeTickerMatches(ctx context.Context, request dto.SubscribeTickerMatchesRequest) (realtime.Subscription[dto.TickerMatchEvent], error) {
+	return subscribeDerivative(ctx, s.dependencies, CapabilityRealtimeTickerMatches, "tm", request.Symbols, func(payload []byte) (dto.TickerMatchEvent, error) {
+		var event dto.TickerMatchEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
 	})
@@ -174,7 +174,7 @@ func (s *realtimeService) SubscribeDerivativeTickerMatches(ctx context.Context, 
 
 func (s *realtimeService) SubscribeMarketIndexes(ctx context.Context, request dto.SubscribeMarketIndexesRequest) (realtime.Subscription[dto.MarketIndexEvent], error) {
 	values := strings.Join(request.Indexes, ",")
-	return subscribeMarket(ctx, s.dependencies, CapabilityRealtimeDerivativeIndexes, "/ws/thesis/v1/stream/derivative", "d|s|si|rt|"+values, "", "s|8", func(payload []byte) (dto.MarketIndexEvent, error) {
+	return subscribeMarket(ctx, s.dependencies, CapabilityRealtimeIndexes, "/ws/thesis/v1/stream/derivative", "d|s|si|rt|"+values, "", "s|8", func(payload []byte) (dto.MarketIndexEvent, error) {
 		var event dto.MarketIndexEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err

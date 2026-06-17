@@ -55,13 +55,13 @@ const (
 	CapabilityNativeMarketDataRealtimeStockTradeHistory          = nativemarketdata.CapabilityRealtimeStockTradeHistory
 	CapabilityNativeMarketDataRealtimeStockSupplyDemandOneMinute = nativemarketdata.CapabilityRealtimeStockSupplyDemandOneMinute
 	CapabilityNativeMarketDataRealtimeStockSupplyDemand15Minutes = nativemarketdata.CapabilityRealtimeStockSupplyDemandFifteenMinutes
-	CapabilityNativeMarketDataRealtimeDerivativeBidPrices        = nativemarketdata.CapabilityRealtimeDerivativeBidPrices
-	CapabilityNativeMarketDataRealtimeDerivativeOfferPrices      = nativemarketdata.CapabilityRealtimeDerivativeOfferPrices
-	CapabilityNativeMarketDataRealtimeDerivativeForeignTrading   = nativemarketdata.CapabilityRealtimeDerivativeForeignTrading
-	CapabilityNativeMarketDataRealtimeDerivativeBasePrices       = nativemarketdata.CapabilityRealtimeDerivativeBasePrices
-	CapabilityNativeMarketDataRealtimeDerivativeMatchedPrices    = nativemarketdata.CapabilityRealtimeDerivativeMatchedPrices
-	CapabilityNativeMarketDataRealtimeDerivativeTickerMatches    = nativemarketdata.CapabilityRealtimeDerivativeTickerMatches
-	CapabilityNativeMarketDataRealtimeDerivativeIndexes          = nativemarketdata.CapabilityRealtimeDerivativeIndexes
+	CapabilityNativeMarketDataRealtimeBidPrices                  = nativemarketdata.CapabilityRealtimeBidPrices
+	CapabilityNativeMarketDataRealtimeOfferPrices                = nativemarketdata.CapabilityRealtimeOfferPrices
+	CapabilityNativeMarketDataRealtimeForeignTrading             = nativemarketdata.CapabilityRealtimeForeignTrading
+	CapabilityNativeMarketDataRealtimeBasePrices                 = nativemarketdata.CapabilityRealtimeBasePrices
+	CapabilityNativeMarketDataRealtimeMatchedPrices              = nativemarketdata.CapabilityRealtimeMatchedPrices
+	CapabilityNativeMarketDataRealtimeTickerMatches              = nativemarketdata.CapabilityRealtimeTickerMatches
+	CapabilityNativeMarketDataRealtimeIndexes                    = nativemarketdata.CapabilityRealtimeIndexes
 )
 
 var Capabilities = []core.Capability{
@@ -114,11 +114,11 @@ var Capabilities = []core.Capability{
 	CapabilityNativeMarketDataRealtimeStockTradeHistory,
 	CapabilityNativeMarketDataRealtimeStockSupplyDemandOneMinute,
 	CapabilityNativeMarketDataRealtimeStockSupplyDemand15Minutes,
-	CapabilityNativeMarketDataRealtimeDerivativeBidPrices,
-	CapabilityNativeMarketDataRealtimeDerivativeOfferPrices,
-	CapabilityNativeMarketDataRealtimeDerivativeForeignTrading,
-	CapabilityNativeMarketDataRealtimeDerivativeBasePrices,
-	CapabilityNativeMarketDataRealtimeDerivativeMatchedPrices,
-	CapabilityNativeMarketDataRealtimeDerivativeTickerMatches,
-	CapabilityNativeMarketDataRealtimeDerivativeIndexes,
+	CapabilityNativeMarketDataRealtimeBidPrices,
+	CapabilityNativeMarketDataRealtimeOfferPrices,
+	CapabilityNativeMarketDataRealtimeForeignTrading,
+	CapabilityNativeMarketDataRealtimeBasePrices,
+	CapabilityNativeMarketDataRealtimeMatchedPrices,
+	CapabilityNativeMarketDataRealtimeTickerMatches,
+	CapabilityNativeMarketDataRealtimeIndexes,
 }

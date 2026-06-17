@@ -99,7 +99,7 @@ func TestMarketDataRealtimeDerivativeBasePriceProtocol(t *testing.T) {
 		},
 	})
 
-	subscription, err := service.SubscribeDerivativeBasePrices(context.Background(), dto.SubscribeDerivativeBasePricesRequest{Symbols: []string{"VN30F1M"}})
+	subscription, err := service.SubscribeBasePrices(context.Background(), dto.SubscribeBasePricesRequest{Symbols: []string{"VN30F1M"}})
 	if err != nil {
 		t.Fatalf("subscribe: %v", err)
 	}
@@ -132,7 +132,7 @@ func TestMarketDataRealtimeRespondsToServerPingAndSubscribesWhenTimeoutConfigPre
 		},
 	})
 
-	subscription, err := service.SubscribeDerivativeBasePrices(context.Background(), dto.SubscribeDerivativeBasePricesRequest{Symbols: []string{"VN30F1M"}})
+	subscription, err := service.SubscribeBasePrices(context.Background(), dto.SubscribeBasePricesRequest{Symbols: []string{"VN30F1M"}})
 	if err != nil {
 		t.Fatalf("subscribe: %v", err)
 	}
@@ -167,7 +167,7 @@ func TestMarketDataRealtimeRespondsToEachServerPing(t *testing.T) {
 		},
 	})
 
-	subscription, err := service.SubscribeDerivativeBasePrices(context.Background(), dto.SubscribeDerivativeBasePricesRequest{Symbols: []string{"VN30F1M"}})
+	subscription, err := service.SubscribeBasePrices(context.Background(), dto.SubscribeBasePricesRequest{Symbols: []string{"VN30F1M"}})
 	if err != nil {
 		t.Fatalf("subscribe: %v", err)
 	}
@@ -203,7 +203,7 @@ func TestMarketDataRealtimeStartsPingLoopFromTimeoutConfig(t *testing.T) {
 		},
 	})
 
-	subscription, err := service.SubscribeDerivativeBasePrices(context.Background(), dto.SubscribeDerivativeBasePricesRequest{Symbols: []string{"VN30F1M"}})
+	subscription, err := service.SubscribeBasePrices(context.Background(), dto.SubscribeBasePricesRequest{Symbols: []string{"VN30F1M"}})
 	if err != nil {
 		t.Fatalf("subscribe: %v", err)
 	}

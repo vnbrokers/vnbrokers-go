@@ -31,15 +31,19 @@ const (
 )
 
 type RealtimeService interface {
+	SubscribeRawEvent(ctx context.Context, request dto.SubscribeRawRequest) (realtime.Subscription[dto.RawEvent], error)
+
 	SubscribeStockPrices(context.Context, dto.SubscribeStockPricesRequest) (realtime.Subscription[dto.RawMessage], error)
 
+	// /ws/thesis/v1/stream/normal+derivative
 	SubscribeDerivativeBidPrices(context.Context, dto.SubscribeDerivativeBidPricesRequest) (realtime.Subscription[dto.BidPriceEvent], error)
 	SubscribeDerivativeOfferPrices(context.Context, dto.SubscribeDerivativeOfferPricesRequest) (realtime.Subscription[dto.OfferPriceEvent], error)
+	SubscribeMarketIndexes(context.Context, dto.SubscribeMarketIndexesRequest) (realtime.Subscription[dto.MarketIndexEvent], error)
+	//
 	SubscribeDerivativeForeignTrading(context.Context, dto.SubscribeDerivativeForeignTradingRequest) (realtime.Subscription[dto.DerivativeForeignTradingEvent], error)
 	SubscribeDerivativeBasePrices(context.Context, dto.SubscribeDerivativeBasePricesRequest) (realtime.Subscription[dto.DerivativeBasePriceEvent], error)
 	SubscribeDerivativeMatchedPrices(context.Context, dto.SubscribeDerivativeMatchedPricesRequest) (realtime.Subscription[dto.DerivativeMatchedPriceEvent], error)
 	SubscribeDerivativeTickerMatches(context.Context, dto.SubscribeDerivativeTickerMatchesRequest) (realtime.Subscription[dto.DerivativeTickerMatchEvent], error)
-	SubscribeDerivativeIndexes(context.Context, dto.SubscribeDerivativeIndexesRequest) (realtime.Subscription[dto.DerivativeIndexEvent], error)
 
 	// 5.7.9 /ws/ouranos/v1/stream
 	SubscribeStockTradeHistory(context.Context, dto.SubscribeStockTradeHistoryRequest) (realtime.Subscription[dto.StockTradeHistoryEvent], error)
@@ -65,6 +69,14 @@ func NewRealtimeService(dependencies RealtimeDependencies) RealtimeService {
 		dependencies.PingInterval = 2 * time.Second
 	}
 	return &realtimeService{dependencies: dependencies}
+}
+
+func (s *realtimeService) SubscribeRawEvent(ctx context.Context, request dto.SubscribeRawRequest) (realtime.Subscription[dto.RawEvent], error) {
+	return subscribeRaw(ctx, s.dependencies, CapabilityRealtimeDerivativeForeignTrading, "bp+bi+tm+mp+op+fe", request.Tickers, func(payload []byte) (dto.RawEvent, error) {
+		var event dto.RawEvent
+		err := json.Unmarshal(payload, &event)
+		return event, err
+	})
 }
 
 func (s *realtimeService) SubscribeStockPrices(ctx context.Context, _ dto.SubscribeStockPricesRequest) (realtime.Subscription[dto.RawMessage], error) {
@@ -160,10 +172,10 @@ func (s *realtimeService) SubscribeDerivativeTickerMatches(ctx context.Context, 
 	})
 }
 
-func (s *realtimeService) SubscribeDerivativeIndexes(ctx context.Context, request dto.SubscribeDerivativeIndexesRequest) (realtime.Subscription[dto.DerivativeIndexEvent], error) {
+func (s *realtimeService) SubscribeMarketIndexes(ctx context.Context, request dto.SubscribeMarketIndexesRequest) (realtime.Subscription[dto.MarketIndexEvent], error) {
 	values := strings.Join(request.Indexes, ",")
-	return subscribeMarket(ctx, s.dependencies, CapabilityRealtimeDerivativeIndexes, "/ws/thesis/v1/stream/derivative", "d|s|si|rt|"+values, "", "s|8", func(payload []byte) (dto.DerivativeIndexEvent, error) {
-		var event dto.DerivativeIndexEvent
+	return subscribeMarket(ctx, s.dependencies, CapabilityRealtimeDerivativeIndexes, "/ws/thesis/v1/stream/derivative", "d|s|si|rt|"+values, "", "s|8", func(payload []byte) (dto.MarketIndexEvent, error) {
+		var event dto.MarketIndexEvent
 		err := json.Unmarshal(payload, &event)
 		return event, err
 	})
@@ -177,6 +189,11 @@ func subscribeOuranos[T any](ctx context.Context, dependencies RealtimeDependenc
 func subscribeDerivative[T any](ctx context.Context, dependencies RealtimeDependencies, capability core.Capability, code string, symbols []string, decode func([]byte) (T, error)) (realtime.Subscription[T], error) {
 	prefix := map[string]string{"bi": "s|23", "op": "s|24", "fe": "s|3", "bp": "s|4", "mp": "s|5", "tm": "s|21"}[code]
 	return subscribeMarket(ctx, dependencies, capability, "/ws/thesis/v1/stream/derivative", "d|s|tk|"+code+"|"+strings.Join(symbols, ","), "", prefix, decode)
+}
+
+func subscribeRaw[T any](ctx context.Context, dependencies RealtimeDependencies, capability core.Capability, code string, symbols []string, decode func([]byte) (T, error)) (realtime.Subscription[T], error) {
+	prefix := map[string]string{"bi": "s|23", "op": "s|24", "fe": "s|3", "bp": "s|4", "mp": "s|5", "tm": "s|21"}[code]
+	return subscribeMarket(ctx, dependencies, capability, "/ws/thesis/v1/stream/derivative", "d|s|ro|"+code+"|"+strings.Join(symbols, ","), "", prefix, decode)
 }
 
 func subscribeMarket[T any](ctx context.Context, dependencies RealtimeDependencies, capability core.Capability, path, subscribeFrame, unsubscribeFrame, eventKind string, decode func([]byte) (T, error)) (realtime.Subscription[T], error) {
@@ -267,6 +284,45 @@ func runMarketSubscription[T any](ctx context.Context, cancel context.CancelFunc
 			}
 		default:
 			if frame.kind != eventKind {
+				switch frame.kind {
+				case "s|1", // bi - Bid info
+					"s|2",  // op - Offer info
+					"s|3",  // fe - Foreign
+					"s|4",  // bp - Base price
+					"s|5",  // mp - Matched price
+					"s|6",  // tm - Ticker match
+					"s|8",  // rt - Stock index
+					"s|16", // pta - PT Advertisement
+					"s|17", // ptm - PT Match
+					"s|18", // tm - CW Ticker Match
+					"s|21", // tm - Derivative ticker match
+					"s|23", // bi - Derivative bid info
+					"s|24", // op - Derivative offer info
+					"s|25", // fe - Derivative foreign
+					"s|27", // mp - Derivative matched price
+					"s|28", // bi - CW bid info
+					"s|29", // op - CW offer info
+					"s|30", // fe - CW foreign
+					"s|32": // mp - CW matched price
+					// Known event kind, do not print.
+				default:
+					err := fmt.Errorf("unexpected event kind: %s", frame.kind)
+
+					subscription.PublishError(
+						sdkerrors.Decode(
+							"tcbs",
+							string(capability),
+							"unexpected TCBS websocket event kind",
+							payload,
+							err,
+						),
+					)
+
+					fmt.Printf(">>> ignoring event kind=%s payload=%s\n", frame.kind, payload)
+				}
+				fmt.Printf(">>> ignoring event kind=%s payload=%s decodeErr=%v\n", frame.kind, frame.payload, err)
+				//type RawEvent = json.RawMessage
+
 				continue
 			}
 			event, err := decode(frame.payload)

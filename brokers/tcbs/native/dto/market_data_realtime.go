@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"encoding/json"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -31,6 +33,11 @@ type StockTradeHistoryEvent struct {
 	PreviousChange      float64 `json:"prevChange"`
 }
 
+type RawEvent = json.RawMessage
+type SubscribeRawRequest struct {
+	Tickers []string `json:"tickers"`
+}
+
 type StockSupplyDemandEvent struct {
 	Symbol                         string  `json:"symbol"`
 	TimeSeconds                    string  `json:"timeSec"`
@@ -48,7 +55,7 @@ type SubscribeDerivativeForeignTradingRequest struct{ Symbols []string }
 type SubscribeDerivativeBasePricesRequest struct{ Symbols []string }
 type SubscribeDerivativeMatchedPricesRequest struct{ Symbols []string }
 type SubscribeDerivativeTickerMatchesRequest struct{ Symbols []string }
-type SubscribeDerivativeIndexesRequest struct{ Indexes []string }
+type SubscribeMarketIndexesRequest struct{ Indexes []string }
 
 type BidPriceEvent struct {
 	Symbol     string          `json:"symbol"`
@@ -102,9 +109,17 @@ type DerivativeTickerMatchEvent struct {
 	TotalValue    string  `json:"totalValue"`
 }
 
-type DerivativeIndexEvent struct {
-	IndexNumber   string  `json:"indexNumber"`
-	IndexValue    float64 `json:"indexValue"`
-	Change        float64 `json:"change"`
-	ChangePercent float64 `json:"changePercent"`
+type MarketIndexEvent struct {
+	IndexNumber   int             `json:"indexNumber"`
+	Index         decimal.Decimal `json:"index"`
+	Change        decimal.Decimal `json:"change"`
+	ChangePercent decimal.Decimal `json:"changePercent"`
+	Volume        decimal.Decimal `json:"volume"`
+	Value         decimal.Decimal `json:"value"`
+	Increase      int             `json:"increase"`
+	Decrease      int             `json:"decrease"`
+	NotChange     int             `json:"notChange"`
+	Session       string          `json:"session"`
+	CeilIncrease  int             `json:"ceilIncrease"`
+	FloorDecrease int             `json:"floorDecrease"`
 }

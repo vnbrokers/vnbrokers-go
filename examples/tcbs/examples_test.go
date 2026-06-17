@@ -167,7 +167,7 @@ func TestNativeExampleCoverage(t *testing.T) {
 		"SubscribeDerivativeBasePrices":            "native/marketdata/realtime/subscribe_derivative_base_prices",
 		"SubscribeDerivativeMatchedPrices":         "native/marketdata/realtime/subscribe_derivative_matched_prices",
 		"SubscribeDerivativeTickerMatches":         "native/marketdata/realtime/subscribe_derivative_ticker_matches",
-		"SubscribeDerivativeIndexes":               "native/marketdata/realtime/subscribe_derivative_indexes",
+		"SubscribeMarketIndexes":                   "native/marketdata/realtime/subscribe_market_indexes",
 	}
 
 	wantMethods := publicOperations(t, root)

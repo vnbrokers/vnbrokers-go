@@ -14,7 +14,7 @@ func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
 	request := nativedto.GetStockPurchasingPowerBySymbolRequest{
 		AccountNo: env.RequiredString("TCBS_ACCOUNT_NO"),
-		Symbol:    env.RequiredString("TCBS_SYMBOL"),
+		Symbol:    env.String("TCBS_SYMBOL", "TCX"),
 	}
 	response, err := broker.Native().Trading().GetStockPurchasingPowerBySymbol(context.Background(), request)
 	if err != nil {

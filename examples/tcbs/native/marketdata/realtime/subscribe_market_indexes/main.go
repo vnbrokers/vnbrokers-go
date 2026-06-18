@@ -21,7 +21,7 @@ func main() {
 
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
 	// `1` VN-INDEX, `2` VN30-INDEX, `3` HNX, `4` HNX30-INDEX, `5` UPCOM,
-	request := nativedto.SubscribeMarketIndexesRequest{Indexes: env.List("TCBS_INDEXES", "1,2,3,4,5")}
+	request := nativedto.SubscribeMarketIndexesRequest{Indexes: env.List("TCBS_INDEXES", "1,2,3,4,5,6,7,8,9")}
 	subscription, err := broker.Native().MarketData().Realtime().SubscribeMarketIndexes(ctx, request)
 	if err != nil {
 		panic(err)

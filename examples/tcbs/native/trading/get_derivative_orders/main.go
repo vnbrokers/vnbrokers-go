@@ -15,11 +15,11 @@ func main() {
 	request := nativedto.GetDerivativeOrdersRequest{
 		PageNo:    env.Float("TCBS_PAGE_NO", 1),
 		PageSize:  env.Float("TCBS_PAGE_SIZE", 20),
-		AccountID: env.RequiredString("TCBS_ACCOUNT_ID"),
-		Symbol:    env.String("TCBS_SYMBOL", ""),
+		AccountID: env.RequiredString("TCBS_CUSTODY_CODE"),
+		Symbol:    env.String("TCBS_SYMBOL", "41I1G6000"),
 		RefID:     env.String("TCBS_REF_ID", ""),
 		OrderType: env.String("TCBS_ORDER_TYPE", ""),
-		Status:    env.String("TCBS_STATUS", ""),
+		Status:    env.String("TCBS_STATUS", "0"),
 	}
 	response, err := broker.Native().Trading().GetDerivativeOrders(context.Background(), request)
 	if err != nil {

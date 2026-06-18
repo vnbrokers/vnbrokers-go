@@ -119,6 +119,6 @@ type StockMatchingDetail struct {
 	QuoteQtty  decimal.Decimal `json:"quoteQtty"`
 	Side       string          `json:"side"`
 	Symbol     string          `json:"symbol"`
-	TimeExec   decimal.Decimal `json:"timeExec"`
-	TradeID    string          `json:"tradeId"`
+	TimeExec   string          `json:"timeExec"`
+	TradeID    decimal.Decimal `json:"tradeId"`
 }

@@ -12,7 +12,7 @@ import (
 
 func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
-	request := nativedto.GetMarginQuotaRequest{CustodyID: env.RequiredString("TCBS_CUSTODY_ID")}
+	request := nativedto.GetMarginQuotaRequest{CustodyID: env.RequiredString("TCBS_CUSTODY_CODE")}
 	response, err := broker.Native().Trading().GetMarginQuota(context.Background(), request)
 	if err != nil {
 		panic(err)

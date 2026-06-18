@@ -53,7 +53,7 @@ func (c *HTTPClient) Send(ctx context.Context, request HTTPRequest) (HTTPRespons
 	for key, value := range request.Headers {
 		httpRequest.Header.Set(key, value)
 	}
-	if request.JSON != nil && httpRequest.Header.Get("Content-Type") == "" {
+	if httpRequest.Header.Get("Content-Type") == "" {
 		httpRequest.Header.Set("Content-Type", "application/json")
 	}
 	httpResponse, err := c.Client.Do(httpRequest)

@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/shopspring/decimal"
+
 type GetDerivativeTickersRequest struct{}
 type GetDerivativeTickersResponse struct {
 	Data []DerivativeTicker `json:"data"`
@@ -34,11 +36,11 @@ type GetStockTradeHistoryRequest struct {
 	HeadIndex float64
 }
 type GetStockTradeHistoryResponse struct {
-	Page          float64                  `json:"page"`
-	Size          float64                  `json:"size"`
-	HeadIndex     float64                  `json:"headIndex"`
-	NumberOfItems float64                  `json:"numberOfItems"`
-	Total         float64                  `json:"total"`
+	Page          decimal.Decimal          `json:"page"`
+	Size          decimal.Decimal          `json:"size"`
+	HeadIndex     decimal.Decimal          `json:"headIndex"`
+	NumberOfItems decimal.Decimal          `json:"numberOfItems"`
+	Total         decimal.Decimal          `json:"total"`
 	Ticker        string                   `json:"ticker"`
 	Date          string                   `json:"d"`
 	Data          []StockTradeHistoryEntry `json:"data"`

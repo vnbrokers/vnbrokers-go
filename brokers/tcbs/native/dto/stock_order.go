@@ -2,6 +2,8 @@
 
 package dto
 
+import "github.com/shopspring/decimal"
+
 type PlaceStockOrderBody struct {
 	ExecType  string `json:"execType"`
 	Price     int64  `json:"price"`
@@ -34,9 +36,9 @@ type CancelStockOrderBody struct {
 type CancelStockOrderResponse struct {
 	Data       []CancelStockOrderResult `json:"data"`
 	Object     string                   `json:"object"`
-	PageIndex  int64                    `json:"pageIndex"`
-	PageSize   int64                    `json:"pageSize"`
-	TotalCount int64                    `json:"totalCount"`
+	PageIndex  decimal.Decimal          `json:"pageIndex"`
+	PageSize   decimal.Decimal          `json:"pageSize"`
+	TotalCount decimal.Decimal          `json:"totalCount"`
 }
 
 type CancelStockOrderDetail struct {
@@ -56,67 +58,67 @@ type StockOrderID struct {
 }
 
 type StockOrderPage struct {
-	Data       []StockOrder `json:"data"`
-	Object     string       `json:"object"`
-	PageIndex  int64        `json:"pageIndex"`
-	PageSize   int64        `json:"pageSize"`
-	TotalCount int64        `json:"totalCount"`
+	Data       []StockOrder    `json:"data"`
+	Object     string          `json:"object"`
+	PageIndex  decimal.Decimal `json:"pageIndex"`
+	PageSize   decimal.Decimal `json:"pageSize"`
+	TotalCount decimal.Decimal `json:"totalCount"`
 }
 
 type StockOrder struct {
-	AccountNo    string  `json:"accountNo"`
-	BRatio       float64 `json:"bRatio"`
-	CancelQtty   float64 `json:"cancelQtty"`
-	CodeID       string  `json:"codeID"`
-	ExecQtty     float64 `json:"execQtty"`
-	ExecType     string  `json:"execType"`
-	ExpDate      string  `json:"expDate"`
-	FeeAcr       float64 `json:"feeAcr"`
-	IsAmend      string  `json:"isAmend"`
-	IsCancel     string  `json:"isCancel"`
-	IsDisposal   string  `json:"isDisposal"`
-	IsFOOrder    string  `json:"isFOOrder"`
-	LimitPrice   float64 `json:"limitPrice"`
-	MatchAmount  float64 `json:"matchAmount"`
-	MatchPrice   float64 `json:"matchPrice"`
-	MatchType    string  `json:"matchType"`
-	MMType       string  `json:"mmType"`
-	Object       string  `json:"object"`
-	OdTimeStamp  string  `json:"odTimeStamp"`
-	OrStatus     string  `json:"orStatus"`
-	OrderID      string  `json:"orderID"`
-	OrderQtty    float64 `json:"orderQtty"`
-	OrsOrderID   string  `json:"orsOrderID"`
-	PriceType    string  `json:"priceType"`
-	QuotePrice   float64 `json:"quotePrice"`
-	RemainQtty   float64 `json:"remainQtty"`
-	SecType      string  `json:"sectype"`
-	Symbol       string  `json:"symbol"`
-	TaxSellAmout float64 `json:"taxSellAmout"`
-	TimeType     string  `json:"timeType"`
-	TradePlace   string  `json:"tradePlace"`
-	TxDate       string  `json:"txdate"`
-	TxTime       string  `json:"txtime"`
-	UserName     string  `json:"userName"`
-	Via          string  `json:"via"`
+	AccountNo    string          `json:"accountNo"`
+	BRatio       decimal.Decimal `json:"bRatio"`
+	CancelQtty   decimal.Decimal `json:"cancelQtty"`
+	CodeID       string          `json:"codeID"`
+	ExecQtty     decimal.Decimal `json:"execQtty"`
+	ExecType     string          `json:"execType"`
+	ExpDate      string          `json:"expDate"`
+	FeeAcr       decimal.Decimal `json:"feeAcr"`
+	IsAmend      string          `json:"isAmend"`
+	IsCancel     string          `json:"isCancel"`
+	IsDisposal   string          `json:"isDisposal"`
+	IsFOOrder    string          `json:"isFOOrder"`
+	LimitPrice   decimal.Decimal `json:"limitPrice"`
+	MatchAmount  decimal.Decimal `json:"matchAmount"`
+	MatchPrice   decimal.Decimal `json:"matchPrice"`
+	MatchType    string          `json:"matchType"`
+	MMType       string          `json:"mmType"`
+	Object       string          `json:"object"`
+	OdTimeStamp  string          `json:"odTimeStamp"`
+	OrStatus     string          `json:"orStatus"`
+	OrderID      string          `json:"orderID"`
+	OrderQtty    decimal.Decimal `json:"orderQtty"`
+	OrsOrderID   string          `json:"orsOrderID"`
+	PriceType    string          `json:"priceType"`
+	QuotePrice   decimal.Decimal `json:"quotePrice"`
+	RemainQtty   decimal.Decimal `json:"remainQtty"`
+	SecType      string          `json:"sectype"`
+	Symbol       string          `json:"symbol"`
+	TaxSellAmout decimal.Decimal `json:"taxSellAmout"`
+	TimeType     string          `json:"timeType"`
+	TradePlace   string          `json:"tradePlace"`
+	TxDate       string          `json:"txdate"`
+	TxTime       string          `json:"txtime"`
+	UserName     string          `json:"userName"`
+	Via          string          `json:"via"`
 }
 
 type StockMatchingDetails struct {
 	Data       []StockMatchingDetail `json:"data"`
 	Object     string                `json:"object"`
-	PageIndex  int64                 `json:"pageIndex"`
-	PageSize   int64                 `json:"pageSize"`
-	TotalCount int64                 `json:"totalCount"`
+	PageIndex  decimal.Decimal       `json:"pageIndex"`
+	PageSize   decimal.Decimal       `json:"pageSize"`
+	TotalCount decimal.Decimal       `json:"totalCount"`
 }
 
 type StockMatchingDetail struct {
-	OrderID    string  `json:"orderId"`
-	Price      float64 `json:"price"`
-	Qtty       float64 `json:"qtty"`
-	QuotePrice float64 `json:"quotePrice"`
-	QuoteQtty  float64 `json:"quoteQtty"`
-	Side       string  `json:"side"`
-	Symbol     string  `json:"symbol"`
-	TimeExec   float64 `json:"timeExec"`
-	TradeID    string  `json:"tradeId"`
+	OrderID    string          `json:"orderId"`
+	Price      decimal.Decimal `json:"price"`
+	Qtty       decimal.Decimal `json:"qtty"`
+	QuotePrice decimal.Decimal `json:"quotePrice"`
+	QuoteQtty  decimal.Decimal `json:"quoteQtty"`
+	Side       string          `json:"side"`
+	Symbol     string          `json:"symbol"`
+	TimeExec   decimal.Decimal `json:"timeExec"`
+	TradeID    string          `json:"tradeId"`
 }

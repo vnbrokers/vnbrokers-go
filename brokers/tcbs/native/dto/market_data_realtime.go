@@ -37,14 +37,14 @@ type SubscribeRawRequest struct {
 }
 
 type StockSupplyDemandEvent struct {
-	Symbol                         string  `json:"symbol"`
-	TimeSeconds                    string  `json:"timeSec"`
-	TotalBuyUpVolume               float64 `json:"totalBUVol"`
-	TotalBuyUpVolumeAccumulated    float64 `json:"totalBUVolAcc"`
-	TotalSellDownVolume            float64 `json:"totalSDVol"`
-	TotalSellDownVolumeAccumulated float64 `json:"totalSDVolAcc"`
-	BuySellAccumulatedRatio        float64 `json:"bsAccRatio"`
-	UnitTimeFrame                  string  `json:"unitTimeFrame"`
+	Symbol                         string          `json:"symbol"`
+	TimeSeconds                    string          `json:"timeSec"`
+	TotalBuyUpVolume               decimal.Decimal `json:"totalBUVol"`
+	TotalBuyUpVolumeAccumulated    decimal.Decimal `json:"totalBUVolAcc"`
+	TotalSellDownVolume            decimal.Decimal `json:"totalSDVol"`
+	TotalSellDownVolumeAccumulated decimal.Decimal `json:"totalSDVolAcc"`
+	BuySellAccumulatedRatio        decimal.Decimal `json:"bsAccRatio"`
+	UnitTimeFrame                  string          `json:"unitTimeFrame"`
 }
 
 type SubscribeBidPricesRequest struct{ Symbols []string }
@@ -119,7 +119,7 @@ type TickerMatchEvent struct {
 
 // rt: INDEX (s|8) # (d|s|si|rt|1,2)
 type MarketIndexEvent struct {
-	IndexNumber   int             `json:"indexNumber"`
+	IndexNumber   decimal.Decimal `json:"indexNumber"`
 	Index         decimal.Decimal `json:"index"`
 	Change        decimal.Decimal `json:"change"`
 	ChangePercent decimal.Decimal `json:"changePercent"`
@@ -140,8 +140,8 @@ type PutThroughAdvertisementEvent struct {
 	Price   decimal.Decimal `json:"price"`
 	Volume  decimal.Decimal `json:"vol"`
 	Time    string          `json:"time"`
-	Status  int             `json:"status"`
-	Color   int             `json:"color"`
+	Status  decimal.Decimal `json:"status"`
+	Color   decimal.Decimal `json:"color"`
 	OrderID string          `json:"orderId"`
 	Side    string          `json:"side"`
 }
@@ -153,6 +153,6 @@ type PutThroughMatchedEvent struct {
 	Volume           decimal.Decimal `json:"vol"`
 	Value            decimal.Decimal `json:"val"`
 	Time             string          `json:"time"`
-	Color            int             `json:"color"`
+	Color            decimal.Decimal `json:"color"`
 	AccumulatedValue decimal.Decimal `json:"accumulatedValue"`
 }

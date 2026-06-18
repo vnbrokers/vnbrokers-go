@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/trading"
 	"github.com/vnbrokers/vnbrokers-go/core"
@@ -112,7 +113,7 @@ func TestTradingRealtimeDerivativeOrdersProtocol(t *testing.T) {
 		t.Fatalf("subscribe frame = %q", got)
 	}
 	event := receiveEvent(t, subscription.Events())
-	if event.OrderNo != "41" || event.Volume != 1 {
+	if event.OrderNo != "41" || !event.Volume.Equal(decimal.NewFromInt(1)) {
 		t.Fatalf("event = %#v", event)
 	}
 }

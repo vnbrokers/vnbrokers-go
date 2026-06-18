@@ -2,35 +2,37 @@
 
 package dto
 
+import "github.com/shopspring/decimal"
+
 type MarginQuota struct {
-	AccountNo     string  `json:"accountNo"`
-	AccountStatus string  `json:"accountStatus"`
-	AccountType   string  `json:"accountType"`
-	Aftype        string  `json:"aftype"`
-	BankAccount   string  `json:"bankAccount"`
-	BankName      string  `json:"bankName"`
-	CustodyID     string  `json:"custodyID"`
-	IsIA          string  `json:"isIA"`
-	MarginLimit   float64 `json:"marginLimit"`
-	VSDStatus     string  `json:"vsdStatus"`
+	AccountNo     string          `json:"accountNo"`
+	AccountStatus string          `json:"accountStatus"`
+	AccountType   string          `json:"accountType"`
+	Aftype        string          `json:"aftype"`
+	BankAccount   string          `json:"bankAccount"`
+	BankName      string          `json:"bankName"`
+	CustodyID     string          `json:"custodyID"`
+	IsIA          string          `json:"isIA"`
+	MarginLimit   decimal.Decimal `json:"marginLimit"`
+	VSDStatus     string          `json:"vsdStatus"`
 }
 
 type MarginAccountInformation struct {
 	AccountNo       string                             `json:"accountNo"`
-	AccruedInterest float64                            `json:"accruedInterest"`
-	DueAmount       float64                            `json:"dueAmount"`
-	Outstanding     float64                            `json:"outstanding"`
-	OverdueAmount   float64                            `json:"overdueAmount"`
+	AccruedInterest decimal.Decimal                    `json:"accruedInterest"`
+	DueAmount       decimal.Decimal                    `json:"dueAmount"`
+	Outstanding     decimal.Decimal                    `json:"outstanding"`
+	OverdueAmount   decimal.Decimal                    `json:"overdueAmount"`
 	RiskPolicy      MarginAccountInformationRiskPolicy `json:"riskPolicy"`
 	RiskStatus      MarginAccountInformationRiskStatus `json:"riskStatus"`
-	RTT             float64                            `json:"rtt"`
-	TotalFeeDebt    float64                            `json:"totalFeeDebt"`
+	RTT             decimal.Decimal                    `json:"rtt"`
+	TotalFeeDebt    decimal.Decimal                    `json:"totalFeeDebt"`
 }
 
 type MarginAccountInformationRiskPolicy struct {
-	InitialMargin     float64 `json:"initialMargin"`
-	LiquidationMargin float64 `json:"liquidationMargin"`
-	MaintenanceMargin float64 `json:"maintenanceMargin"`
+	InitialMargin     decimal.Decimal `json:"initialMargin"`
+	LiquidationMargin decimal.Decimal `json:"liquidationMargin"`
+	MaintenanceMargin decimal.Decimal `json:"maintenanceMargin"`
 }
 
 type MarginAccountInformationRiskStatus struct {
@@ -46,19 +48,19 @@ type SupplementaryLoanPackages struct {
 type MarginSurePackage struct {
 	Code            string               `json:"code"`
 	Default         bool                 `json:"default"`
-	ID              float64              `json:"id"`
+	ID              decimal.Decimal      `json:"id"`
 	Name            string               `json:"name"`
 	Proposals       []MarginSureProposal `json:"proposals"`
 	Status          string               `json:"status"`
-	SubscriptionFee float64              `json:"subscriptionFee"`
+	SubscriptionFee decimal.Decimal      `json:"subscriptionFee"`
 }
 
 type MarginSureProposal struct {
-	ID                       float64 `json:"id"`
-	InterestAdjustmentValue  float64 `json:"interestAdjustmentValue"`
-	InterestPercentThreshold float64 `json:"interestPercentThreshold"`
-	MarginInsuranceID        float64 `json:"marginInsuranceId"`
-	ThresholdType            string  `json:"thresholdType"`
+	ID                       decimal.Decimal `json:"id"`
+	InterestAdjustmentValue  decimal.Decimal `json:"interestAdjustmentValue"`
+	InterestPercentThreshold decimal.Decimal `json:"interestPercentThreshold"`
+	MarginInsuranceID        decimal.Decimal `json:"marginInsuranceId"`
+	ThresholdType            string          `json:"thresholdType"`
 }
 
 type TPlusPackages struct {
@@ -67,22 +69,22 @@ type TPlusPackages struct {
 
 type TPlusPackage struct {
 	CreatedAt                                 string             `json:"createdAt"`
-	DebtCollectionFee                         float64            `json:"debtCollectionFee"`
+	DebtCollectionFee                         decimal.Decimal    `json:"debtCollectionFee"`
 	Description                               string             `json:"description"`
 	Discountable                              bool               `json:"discountable"`
-	ExtensionFee                              float64            `json:"extensionFee"`
-	ExtensionInterest                         float64            `json:"extensionInterest"`
-	ExtensionInterestBeforeInterestSettlement float64            `json:"extensionInterestBeforeInterestSettlement"`
-	FirstRate                                 float64            `json:"firstRate"`
-	ID                                        float64            `json:"id"`
-	InterestCalculationBasis                  float64            `json:"interestCalculationBasis"`
-	IwealthPartnerInterest                    float64            `json:"iwealthPartnerInterest"`
+	ExtensionFee                              decimal.Decimal    `json:"extensionFee"`
+	ExtensionInterest                         decimal.Decimal    `json:"extensionInterest"`
+	ExtensionInterestBeforeInterestSettlement decimal.Decimal    `json:"extensionInterestBeforeInterestSettlement"`
+	FirstRate                                 decimal.Decimal    `json:"firstRate"`
+	ID                                        decimal.Decimal    `json:"id"`
+	InterestCalculationBasis                  decimal.Decimal    `json:"interestCalculationBasis"`
+	IwealthPartnerInterest                    decimal.Decimal    `json:"iwealthPartnerInterest"`
 	MinRateConstraint                         bool               `json:"minRateConstraint"`
 	Name                                      string             `json:"name"`
-	OverdueFee                                float64            `json:"overdueFee"`
-	OverdueInterest                           float64            `json:"overdueInterest"`
+	OverdueFee                                decimal.Decimal    `json:"overdueFee"`
+	OverdueInterest                           decimal.Decimal    `json:"overdueInterest"`
 	Status                                    string             `json:"status"`
-	UndueFee                                  float64            `json:"undueFee"`
+	UndueFee                                  decimal.Decimal    `json:"undueFee"`
 	UndueInterestType                         string             `json:"undueInterestType"`
 	UndueLadderValue                          []InterestRateTier `json:"undueLadderValue"`
 	UpdatedAt                                 string             `json:"updatedAt"`
@@ -90,100 +92,100 @@ type TPlusPackage struct {
 }
 
 type InterestRateTier struct {
-	DueDate   float64 `json:"dueDate"`
-	ID        float64 `json:"id"`
-	Rate      float64 `json:"rate"`
-	StartDate float64 `json:"startDate"`
+	DueDate   decimal.Decimal `json:"dueDate"`
+	ID        decimal.Decimal `json:"id"`
+	Rate      decimal.Decimal `json:"rate"`
+	StartDate decimal.Decimal `json:"startDate"`
 }
 
 type Loans struct {
-	Content []Loan  `json:"content"`
-	Size    float64 `json:"size"`
+	Content []Loan          `json:"content"`
+	Size    decimal.Decimal `json:"size"`
 }
 
 type Loan struct {
-	AccountNo          string        `json:"accountNo"`
-	Addons             []LoanAddon   `json:"addons"`
-	DueDate            string        `json:"dueDate"`
-	Fee                float64       `json:"fee"`
-	ID                 float64       `json:"id"`
-	Insurance          LoanInsurance `json:"insurance"`
-	Interest           float64       `json:"interest"`
-	IsRenewable        bool          `json:"isRenewable"`
-	LoanDays           float64       `json:"loanDays"`
-	MaxRenewTime       float64       `json:"maxRenewTime"`
-	MrxLoanID          float64       `json:"mrxLoanId"`
-	OpeningDate        string        `json:"openingDate"`
-	PricingPolicyType  string        `json:"pricingPolicyType"`
-	Principal          float64       `json:"principal"`
-	Rate               float64       `json:"rate"`
-	ReasonList         []string      `json:"reasonList"`
-	RemainingPrincipal float64       `json:"remainingPrincipal"`
-	RenewTime          float64       `json:"renewTime"`
-	Status             string        `json:"status"`
-	Symbol             string        `json:"symbol"`
-	UndueLoanFee       float64       `json:"undueLoanFee"`
+	AccountNo          string          `json:"accountNo"`
+	Addons             []LoanAddon     `json:"addons"`
+	DueDate            string          `json:"dueDate"`
+	Fee                decimal.Decimal `json:"fee"`
+	ID                 decimal.Decimal `json:"id"`
+	Insurance          LoanInsurance   `json:"insurance"`
+	Interest           decimal.Decimal `json:"interest"`
+	IsRenewable        bool            `json:"isRenewable"`
+	LoanDays           decimal.Decimal `json:"loanDays"`
+	MaxRenewTime       decimal.Decimal `json:"maxRenewTime"`
+	MrxLoanID          decimal.Decimal `json:"mrxLoanId"`
+	OpeningDate        string          `json:"openingDate"`
+	PricingPolicyType  string          `json:"pricingPolicyType"`
+	Principal          decimal.Decimal `json:"principal"`
+	Rate               decimal.Decimal `json:"rate"`
+	ReasonList         []string        `json:"reasonList"`
+	RemainingPrincipal decimal.Decimal `json:"remainingPrincipal"`
+	RenewTime          decimal.Decimal `json:"renewTime"`
+	Status             string          `json:"status"`
+	Symbol             string          `json:"symbol"`
+	UndueLoanFee       decimal.Decimal `json:"undueLoanFee"`
 }
 
 type LoanAddon struct {
-	Discounts []LoanDiscount `json:"discounts"`
-	LoanID    float64        `json:"loanId"`
-	Others    []LoanPolicy   `json:"others"`
+	Discounts []LoanDiscount  `json:"discounts"`
+	LoanID    decimal.Decimal `json:"loanId"`
+	Others    []LoanPolicy    `json:"others"`
 }
 
 type LoanDiscount struct {
-	Code                  string  `json:"code"`
-	EndDate               string  `json:"endDate"`
-	OrigDiscountLoanAmt   float64 `json:"origDiscountLoanAmt"`
-	PreferentialRate      float64 `json:"preferentialRate"`
-	RemainDiscountLoanAmt float64 `json:"remainDiscountLoanAmt"`
-	StartDate             string  `json:"startDate"`
+	Code                  string          `json:"code"`
+	EndDate               string          `json:"endDate"`
+	OrigDiscountLoanAmt   decimal.Decimal `json:"origDiscountLoanAmt"`
+	PreferentialRate      decimal.Decimal `json:"preferentialRate"`
+	RemainDiscountLoanAmt decimal.Decimal `json:"remainDiscountLoanAmt"`
+	StartDate             string          `json:"startDate"`
 }
 
 type LoanPolicy struct {
-	Code        string   `json:"code"`
-	Description string   `json:"description"`
-	Name        string   `json:"name"`
-	Rate        float64  `json:"rate"`
-	Symbols     []string `json:"symbols"`
+	Code        string          `json:"code"`
+	Description string          `json:"description"`
+	Name        string          `json:"name"`
+	Rate        decimal.Decimal `json:"rate"`
+	Symbols     []string        `json:"symbols"`
 }
 
 type LoanInsurance struct {
-	AccountNo                        string  `json:"accountNo"`
-	AdjustStrikePrice                float64 `json:"adjustStrikePrice"`
-	DecreasedInterest                float64 `json:"decreasedInterest"`
-	DecreasedPrice                   float64 `json:"decreasedPrice"`
-	EndDate                          string  `json:"endDate"`
-	IncreasePrice                    float64 `json:"increasePrice"`
-	IncreasedInterest                float64 `json:"increasedInterest"`
-	InsuranceCode                    string  `json:"insuranceCode"`
-	InsuranceFee                     float64 `json:"insuranceFee"`
-	InsuranceName                    string  `json:"insuranceName"`
-	InterestPercentageLowerThreshold float64 `json:"interestPercentageLowerThreshold"`
-	InterestPercentageUpperThreshold float64 `json:"interestPercentageUpperThreshold"`
-	InterestRateLowerAdjustmentValue float64 `json:"interestRateLowerAdjustmentValue"`
-	InterestRateUpperAdjustmentValue float64 `json:"interestRateUpperAdjustmentValue"`
-	LoanID                           float64 `json:"loanId"`
-	OriginalInterest                 float64 `json:"originalInterest"`
-	StartDate                        string  `json:"startDate"`
-	Symbol                           string  `json:"symbol"`
+	AccountNo                        string          `json:"accountNo"`
+	AdjustStrikePrice                decimal.Decimal `json:"adjustStrikePrice"`
+	DecreasedInterest                decimal.Decimal `json:"decreasedInterest"`
+	DecreasedPrice                   decimal.Decimal `json:"decreasedPrice"`
+	EndDate                          string          `json:"endDate"`
+	IncreasePrice                    decimal.Decimal `json:"increasePrice"`
+	IncreasedInterest                decimal.Decimal `json:"increasedInterest"`
+	InsuranceCode                    string          `json:"insuranceCode"`
+	InsuranceFee                     decimal.Decimal `json:"insuranceFee"`
+	InsuranceName                    string          `json:"insuranceName"`
+	InterestPercentageLowerThreshold decimal.Decimal `json:"interestPercentageLowerThreshold"`
+	InterestPercentageUpperThreshold decimal.Decimal `json:"interestPercentageUpperThreshold"`
+	InterestRateLowerAdjustmentValue decimal.Decimal `json:"interestRateLowerAdjustmentValue"`
+	InterestRateUpperAdjustmentValue decimal.Decimal `json:"interestRateUpperAdjustmentValue"`
+	LoanID                           decimal.Decimal `json:"loanId"`
+	OriginalInterest                 decimal.Decimal `json:"originalInterest"`
+	StartDate                        string          `json:"startDate"`
+	Symbol                           string          `json:"symbol"`
 }
 
 type StockPurchasingPower struct {
-	AccountNo          string  `json:"accountNo"`
-	CustodyID          string  `json:"custodyID"`
-	MarginPriceLoan    float64 `json:"marginPriceLoan"`
-	MarginRatioLoan    float64 `json:"marginRatioLoan"`
-	MaxBuyQuantity     float64 `json:"maxBuyQuantity"`
-	MinBuyQuantity     float64 `json:"minBuyQuantity"`
-	PP0                float64 `json:"pp0"`
-	PPSE               float64 `json:"ppse"`
-	PPSERef            float64 `json:"ppseref"`
-	Price              float64 `json:"price"`
-	RateBrkB           string  `json:"rateBrkB"`
-	RateBrkS           string  `json:"rateBrkS"`
-	RealMaxBuyQuantity float64 `json:"realMaxBuyQuantity"`
-	Symbol             string  `json:"symbol"`
+	AccountNo          string          `json:"accountNo"`
+	CustodyID          string          `json:"custodyID"`
+	MarginPriceLoan    decimal.Decimal `json:"marginPriceLoan"`
+	MarginRatioLoan    decimal.Decimal `json:"marginRatioLoan"`
+	MaxBuyQuantity     decimal.Decimal `json:"maxBuyQuantity"`
+	MinBuyQuantity     decimal.Decimal `json:"minBuyQuantity"`
+	PP0                decimal.Decimal `json:"pp0"`
+	PPSE               decimal.Decimal `json:"ppse"`
+	PPSERef            decimal.Decimal `json:"ppseref"`
+	Price              decimal.Decimal `json:"price"`
+	RateBrkB           string          `json:"rateBrkB"`
+	RateBrkS           string          `json:"rateBrkS"`
+	RealMaxBuyQuantity decimal.Decimal `json:"realMaxBuyQuantity"`
+	Symbol             string          `json:"symbol"`
 }
 
 type StockAssets struct {
@@ -195,70 +197,70 @@ type StockAssets struct {
 }
 
 type StockHoldingInfo struct {
-	AvailableTrading float64 `json:"availableTrading"`
-	Blocked          float64 `json:"blocked"`
-	CashDividend     float64 `json:"cashDividend"`
-	CostPrice        float64 `json:"costPrice"`
-	CurrentPrice     float64 `json:"currentPrice"`
-	ExercisedCA      float64 `json:"exercisedCA"`
-	Mortgaged        float64 `json:"mortgaged"`
-	OnHold           float64 `json:"onHold"`
-	SecType          string  `json:"secType"`
-	SecTypeName      string  `json:"secTypeName"`
-	SecuredQuantity  float64 `json:"securedQuantity"`
-	SellExec         float64 `json:"sellExec"`
-	SellRemain       float64 `json:"sellRemain"`
-	Settlement       string  `json:"settlement"`
-	StockDividend    float64 `json:"stockDividend"`
-	Symbol           string  `json:"symbol"`
-	T0               float64 `json:"t0"`
-	T1               float64 `json:"t1"`
-	T2               float64 `json:"t2"`
-	TotalQtty        float64 `json:"totalQtty"`
-	UnexercisedCA    float64 `json:"unexercisedCA"`
-	WaitForTrade     float64 `json:"waitForTrade"`
-	WaitForTransfer  float64 `json:"waitForTransfer"`
-	WaitForWithdraw  float64 `json:"waitForWithdraw"`
+	AvailableTrading decimal.Decimal `json:"availableTrading"`
+	Blocked          decimal.Decimal `json:"blocked"`
+	CashDividend     decimal.Decimal `json:"cashDividend"`
+	CostPrice        decimal.Decimal `json:"costPrice"`
+	CurrentPrice     decimal.Decimal `json:"currentPrice"`
+	ExercisedCA      decimal.Decimal `json:"exercisedCA"`
+	Mortgaged        decimal.Decimal `json:"mortgaged"`
+	OnHold           decimal.Decimal `json:"onHold"`
+	SecType          string          `json:"secType"`
+	SecTypeName      string          `json:"secTypeName"`
+	SecuredQuantity  decimal.Decimal `json:"securedQuantity"`
+	SellExec         decimal.Decimal `json:"sellExec"`
+	SellRemain       decimal.Decimal `json:"sellRemain"`
+	Settlement       string          `json:"settlement"`
+	StockDividend    decimal.Decimal `json:"stockDividend"`
+	Symbol           string          `json:"symbol"`
+	T0               decimal.Decimal `json:"t0"`
+	T1               decimal.Decimal `json:"t1"`
+	T2               decimal.Decimal `json:"t2"`
+	TotalQtty        decimal.Decimal `json:"totalQtty"`
+	UnexercisedCA    decimal.Decimal `json:"unexercisedCA"`
+	WaitForTrade     decimal.Decimal `json:"waitForTrade"`
+	WaitForTransfer  decimal.Decimal `json:"waitForTransfer"`
+	WaitForWithdraw  decimal.Decimal `json:"waitForWithdraw"`
 }
 
 type CashInvestments struct {
 	Data       []CashInvestment `json:"data"`
 	Object     string           `json:"object"`
-	PageIndex  int64            `json:"pageIndex"`
-	PageSize   int64            `json:"pageSize"`
-	TotalCount int64            `json:"totalCount"`
+	PageIndex  decimal.Decimal  `json:"pageIndex"`
+	PageSize   decimal.Decimal  `json:"pageSize"`
+	TotalCount decimal.Decimal  `json:"totalCount"`
 }
 
 type CashInvestment struct {
 	AccountNo           string                  `json:"accountNo"`
-	Adused              float64                 `json:"adused"`
-	AvalBondBlockAmount float64                 `json:"avalBondBlockAmount"`
-	AvlAdvanceAmount    float64                 `json:"avlAdvanceAmount"`
-	AvlWithdraw         float64                 `json:"avlWithdraw"`
-	BCashDividend       float64                 `json:"bCashDividend"`
-	Balance             float64                 `json:"balance"`
-	BankAvlBalance      float64                 `json:"bankAvlBalance"`
-	BankAvlBalanceBF    float64                 `json:"bankAvlBalanceBF"`
-	BankBlockAmount     float64                 `json:"bankBlockAmount"`
-	BlockAmount         float64                 `json:"blockAmount"`
-	BodBalance          float64                 `json:"bodBalance"`
-	BondBlockAmount     float64                 `json:"bondBlockAmount"`
-	BuyingAmount        float64                 `json:"buyingAmount"`
-	CashBalance         float64                 `json:"cashBalance"`
-	CashDevident        float64                 `json:"cashDevident"`
+	Adused              decimal.Decimal         `json:"adused"`
+	AvalBondBlockAmount decimal.Decimal         `json:"avalBondBlockAmount"`
+	AvlAdvanceAmount    decimal.Decimal         `json:"avlAdvanceAmount"`
+	AvlWithdraw         decimal.Decimal         `json:"avlWithdraw"`
+	BCashDividend       decimal.Decimal         `json:"bCashDividend"`
+	Balance             decimal.Decimal         `json:"balance"`
+	BankAvlBalance      decimal.Decimal         `json:"bankAvlBalance"`
+	BankAvlBalanceBF    decimal.Decimal         `json:"bankAvlBalanceBF"`
+	BankBlockAmount     decimal.Decimal         `json:"bankBlockAmount"`
+	BlockAmount         decimal.Decimal         `json:"blockAmount"`
+	BodBalance          decimal.Decimal         `json:"bodBalance"`
+	BondBlockAmount     decimal.Decimal         `json:"bondBlockAmount"`
+	BuyingAmount        decimal.Decimal         `json:"buyingAmount"`
+	CashBalance         decimal.Decimal         `json:"cashBalance"`
+	CashDevident        decimal.Decimal         `json:"cashDevident"`
 	CustodyID           string                  `json:"custodyID"`
-	DepoFee             float64                 `json:"depoFee"`
-	Dsecured            float64                 `json:"dsecured"`
+	DepoFee             decimal.Decimal         `json:"depoFee"`
+	Dsecured            decimal.Decimal         `json:"dsecured"`
 	FullName            string                  `json:"fullName"`
-	FundBlockAmount     float64                 `json:"fundBlockAmount"`
+	FundBlockAmount     decimal.Decimal         `json:"fundBlockAmount"`
 	IaInfos             []InvestmentAccountInfo `json:"iaInfos"`
-	MBlockAmount        float64                 `json:"mBlockAmount"`
-	Mrused              float64                 `json:"mrused"`
+	MBlockAmount        decimal.Decimal         `json:"mBlockAmount"`
+	Mrused              decimal.Decimal         `json:"mrused"`
 	Object              string                  `json:"object"`
-	PP0                 float64                 `json:"pp0"`
-	Pp0forBF            float64                 `json:"pp0forBF"`
-	SCashDividend       float64                 `json:"sCashDividend"`
-	SecureAmtPO         float64                 `json:"secureAmtPO"`
+	PP0                 decimal.Decimal         `json:"pp0"`
+	Pp0forBF            decimal.Decimal         `json:"pp0forBF"`
+	SCashDividend       decimal.Decimal         `json:"sCashDividend"`
+	SecureAmtPO         decimal.Decimal         `json:"secureAmtPO"`
 }
 
 type CashStatements struct {
@@ -267,24 +269,24 @@ type CashStatements struct {
 
 type CashStatementsResponse struct {
 	Data              []CashStatement `json:"data"`
-	PageIndex         int64           `json:"pageIndex"`
-	PageSize          int64           `json:"pageSize"`
-	TotalCount        int64           `json:"totalCount"`
-	TotalCreditAmount int64           `json:"totalCreditAmount"`
-	TotalDebitAmount  int64           `json:"totalDebitAmount"`
+	PageIndex         decimal.Decimal `json:"pageIndex"`
+	PageSize          decimal.Decimal `json:"pageSize"`
+	TotalCount        decimal.Decimal `json:"totalCount"`
+	TotalCreditAmount decimal.Decimal `json:"totalCreditAmount"`
+	TotalDebitAmount  decimal.Decimal `json:"totalDebitAmount"`
 }
 
 type CashStatement struct {
-	AccountNo       string  `json:"accountNo"`
-	BusinessDate    string  `json:"businessDate"`
-	CreditAmount    float64 `json:"creditAmount"`
-	CustodyID       string  `json:"custodyID"`
-	DebitAmount     float64 `json:"debitAmount"`
-	Descriptions    string  `json:"descriptions"`
-	TransactionCode string  `json:"transactionCode"`
-	TransactionName string  `json:"transactionName"`
-	TransactionNum  string  `json:"transactionNum"`
-	TransationDate  string  `json:"transationDate"`
+	AccountNo       string          `json:"accountNo"`
+	BusinessDate    string          `json:"businessDate"`
+	CreditAmount    decimal.Decimal `json:"creditAmount"`
+	CustodyID       string          `json:"custodyID"`
+	DebitAmount     decimal.Decimal `json:"debitAmount"`
+	Descriptions    string          `json:"descriptions"`
+	TransactionCode string          `json:"transactionCode"`
+	TransactionName string          `json:"transactionName"`
+	TransactionNum  string          `json:"transactionNum"`
+	TransationDate  string          `json:"transationDate"`
 }
 
 type MarginInformation struct {
@@ -293,28 +295,28 @@ type MarginInformation struct {
 
 type MarginInformationResponse struct {
 	Data      []MarginInformationEntry `json:"data"`
-	TotalPage int64                    `json:"totalPage"`
-	TotalRow  int64                    `json:"totalRow"`
+	TotalPage decimal.Decimal          `json:"totalPage"`
+	TotalRow  decimal.Decimal          `json:"totalRow"`
 }
 
 type MarginInformationEntry struct {
-	IntAmount            float64 `json:"intAmount"`
-	IntPaid              float64 `json:"intPaid"`
-	OverDueDate          string  `json:"overDueDate"`
-	PaidFee              float64 `json:"paidFee"`
-	PaidInterestFee      float64 `json:"paidInterestFee"`
-	PrinPaid             float64 `json:"prinPaid"`
-	PrintAmount          float64 `json:"printAmount"`
-	Rate2                float64 `json:"rate2"`
-	ReleaseDate          string  `json:"releaseDate"`
-	ReleasedAmount       float64 `json:"releasedAmount"`
-	ReleasedDay          float64 `json:"releasedDay"`
-	RemainingFee         float64 `json:"remainingFee"`
-	RemainingInterestFee float64 `json:"remainingInterestFee"`
+	IntAmount            decimal.Decimal `json:"intAmount"`
+	IntPaid              decimal.Decimal `json:"intPaid"`
+	OverDueDate          string          `json:"overDueDate"`
+	PaidFee              decimal.Decimal `json:"paidFee"`
+	PaidInterestFee      decimal.Decimal `json:"paidInterestFee"`
+	PrinPaid             decimal.Decimal `json:"prinPaid"`
+	PrintAmount          decimal.Decimal `json:"printAmount"`
+	Rate2                decimal.Decimal `json:"rate2"`
+	ReleaseDate          string          `json:"releaseDate"`
+	ReleasedAmount       decimal.Decimal `json:"releasedAmount"`
+	ReleasedDay          decimal.Decimal `json:"releasedDay"`
+	RemainingFee         decimal.Decimal `json:"remainingFee"`
+	RemainingInterestFee decimal.Decimal `json:"remainingInterestFee"`
 }
 
 type InvestmentAccountInfo struct {
-	Available float64 `json:"available"`
-	Hold      float64 `json:"hold"`
-	Partner   string  `json:"partner"`
+	Available decimal.Decimal `json:"available"`
+	Hold      decimal.Decimal `json:"hold"`
+	Partner   string          `json:"partner"`
 }

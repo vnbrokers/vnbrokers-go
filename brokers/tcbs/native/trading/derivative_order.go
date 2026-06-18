@@ -10,8 +10,8 @@ import (
 
 func (s *service) GetDerivativeOrders(ctx context.Context, request dto.GetDerivativeOrdersRequest) (*dto.GetDerivativeOrdersResponse, error) {
 	query := url.Values{}
-	set(query, "pageNo", strconv.FormatFloat(request.PageNo, 'f', -1, 64))
-	set(query, "pageSize", strconv.FormatFloat(request.PageSize, 'f', -1, 64))
+	set(query, "pageNo", strconv.FormatInt(request.PageNo, 10))
+	set(query, "pageSize", strconv.FormatInt(request.PageSize, 10))
 	set(query, "accountId", request.AccountID)
 	set(query, "symbol", request.Symbol)
 	setOptional(query, "refId", request.RefID)

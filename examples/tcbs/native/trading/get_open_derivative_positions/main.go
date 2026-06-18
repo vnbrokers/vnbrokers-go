@@ -13,7 +13,7 @@ import (
 func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
 	request := nativedto.GetOpenDerivativePositionsRequest{
-		AccountID:    env.RequiredString("TCBS_ACCOUNT_ID"),
+		AccountID:    env.RequiredString("TCBS_CUSTODY_CODE"),
 		SubAccountID: env.RequiredString("TCBS_SUB_ACCOUNT_ID"),
 	}
 	response, err := broker.Native().Trading().GetOpenDerivativePositions(context.Background(), request)

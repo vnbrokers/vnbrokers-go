@@ -36,9 +36,10 @@ type GetOpenDerivativePositionsRequest struct {
 }
 
 type GetOpenDerivativePositionsResponse struct {
-	Cmd  string                   `json:"cmd"`
-	RC   string                   `json:"rc"`
-	RS   string                   `json:"rs"`
-	OID  string                   `json:"oID"`
-	Data []OpenDerivativePosition `json:"data"`
+	Cmd  string                 `json:"cmd"`
+	RC   string                 `json:"rc"`
+	RS   string                 `json:"rs"`
+	OID  string                 `json:"oID"`
+	Data OpenDerivativePosition `json:"data"` // ??? TODO: Is an array or object?
+
 }

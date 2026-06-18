@@ -13,8 +13,8 @@ import (
 func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
 	request := nativedto.GetDerivativeOrdersRequest{
-		PageNo:    env.Float("TCBS_PAGE_NO", 1),
-		PageSize:  env.Float("TCBS_PAGE_SIZE", 20),
+		PageNo:    env.Int("TCBS_PAGE_NO", 1),
+		PageSize:  env.Int("TCBS_PAGE_SIZE", 20),
 		AccountID: env.RequiredString("TCBS_CUSTODY_CODE"),
 		Symbol:    env.String("TCBS_SYMBOL", "41I1G6000"),
 		RefID:     env.String("TCBS_REF_ID", ""),

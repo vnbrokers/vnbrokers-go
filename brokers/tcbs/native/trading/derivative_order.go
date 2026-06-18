@@ -14,9 +14,9 @@ func (s *service) GetDerivativeOrders(ctx context.Context, request dto.GetDeriva
 	set(query, "pageSize", strconv.FormatFloat(request.PageSize, 'f', -1, 64))
 	set(query, "accountId", request.AccountID)
 	set(query, "symbol", request.Symbol)
-	set(query, "refId", request.RefID)
-	set(query, "orderType", request.OrderType)
-	set(query, "status", request.Status)
+	setOptional(query, "refId", request.RefID)
+	setOptional(query, "orderType", request.OrderType)
+	setOptional(query, "status", request.Status)
 	return do[dto.GetDerivativeOrdersResponse](s, ctx, CapabilityGetDerivativeOrders, "GET", "/khronos/v1/order/in-day", query, nil)
 }
 

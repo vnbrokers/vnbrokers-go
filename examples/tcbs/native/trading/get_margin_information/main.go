@@ -14,9 +14,9 @@ func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
 	request := nativedto.GetMarginInformationRequest{
 		AccountNo:   env.RequiredString("TCBS_ACCOUNT_NO"),
-		FromDate:    env.RequiredString("TCBS_FROM_DATE"),
-		ToDate:      env.RequiredString("TCBS_TO_DATE"),
-		Page:        env.String("TCBS_PAGE", "0"),
+		FromDate:    env.String("TCBS_FROM_DATE", "2025-01-01"),
+		ToDate:      env.String("TCBS_TO_DATE", "2026-01-01"),
+		Page:        env.String("TCBS_PAGE", "1"),
 		Size:        env.String("TCBS_SIZE", "20"),
 		CustodyCode: env.RequiredString("TCBS_CUSTODY_CODE"),
 	}

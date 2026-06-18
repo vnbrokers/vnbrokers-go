@@ -15,9 +15,9 @@ func main() {
 	request := nativedto.GetClosedDerivativePositionsRequest{
 		AccountID:    env.RequiredString("TCBS_ACCOUNT_ID"),
 		SubAccountID: env.RequiredString("TCBS_SUB_ACCOUNT_ID"),
-		Symbol:       env.String("TCBS_SYMBOL", ""),
-		PageNo:       env.Float("TCBS_PAGE_NO", 0),
-		PageSize:     env.Float("TCBS_PAGE_SIZE", 20),
+		Symbol:       env.String("TCBS_SYMBOL", "41I1G6000"),
+		PageNo:       env.Int("TCBS_PAGE_NO", 1),
+		PageSize:     env.Int("TCBS_PAGE_SIZE", 20),
 	}
 	response, err := broker.Native().Trading().GetClosedDerivativePositions(context.Background(), request)
 	if err != nil {

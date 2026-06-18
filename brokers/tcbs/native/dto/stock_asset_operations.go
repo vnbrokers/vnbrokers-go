@@ -20,7 +20,7 @@ type GetMarginQuotaRequest struct{ CustodyID string }
 type GetMarginQuotaResponse []MarginQuota
 
 type GetMarginAccountInformationRequest struct{ AccountNo string }
-type GetMarginAccountInformationResponse []MarginAccountInformation
+type GetMarginAccountInformationResponse MarginAccountInformation
 
 type GetSupplementaryLoanPackagesRequest struct{ AccountNo string }
 type GetSupplementaryLoanPackagesResponse SupplementaryLoanPackages

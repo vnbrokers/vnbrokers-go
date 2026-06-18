@@ -33,6 +33,7 @@ type MarginAccountInformationRiskPolicy struct {
 	InitialMargin     decimal.Decimal `json:"initialMargin"`
 	LiquidationMargin decimal.Decimal `json:"liquidationMargin"`
 	MaintenanceMargin decimal.Decimal `json:"maintenanceMargin"`
+	NumDayMarginCall  decimal.Decimal `json:"numDayMarginCall"`
 }
 
 type MarginAccountInformationRiskStatus struct {
@@ -182,8 +183,8 @@ type StockPurchasingPower struct {
 	PPSE               decimal.Decimal `json:"ppse"`
 	PPSERef            decimal.Decimal `json:"ppseref"`
 	Price              decimal.Decimal `json:"price"`
-	RateBrkB           string          `json:"rateBrkB"`
-	RateBrkS           string          `json:"rateBrkS"`
+	RateBrkB           decimal.Decimal `json:"rateBrkB"`
+	RateBrkS           decimal.Decimal `json:"rateBrkS"`
 	RealMaxBuyQuantity decimal.Decimal `json:"realMaxBuyQuantity"`
 	Symbol             string          `json:"symbol"`
 }

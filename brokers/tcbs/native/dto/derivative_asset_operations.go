@@ -18,8 +18,8 @@ type GetClosedDerivativePositionsRequest struct {
 	AccountID    string
 	SubAccountID string
 	Symbol       string
-	PageNo       float64
-	PageSize     float64
+	PageNo       int64
+	PageSize     int64
 }
 
 type GetClosedDerivativePositionsResponse struct {

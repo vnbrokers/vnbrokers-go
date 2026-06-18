@@ -2,6 +2,8 @@
 
 package dto
 
+import "github.com/shopspring/decimal"
+
 type BasicInfo struct {
 	Code105C   string `json:"code105C"`
 	Depository bool   `json:"depository"`
@@ -47,16 +49,16 @@ type IdentityCard struct {
 }
 
 type BankAccount struct {
-	AccountName         string `json:"accountName"`
-	AccountNameNoAccent string `json:"accountNameNoAccent"`
-	AccountNo           string `json:"accountNo"`
-	Authorized          string `json:"authorized"`
-	BankAccountType     string `json:"bankAccountType"`
-	BankCode            string `json:"bankCode"`
-	BankName            string `json:"bankName"`
-	BankSys             string `json:"bankSys"`
-	BankType            string `json:"bankType"`
-	BranchCode          string `json:"branchCode"`
+	AccountName         string          `json:"accountName"`
+	AccountNameNoAccent string          `json:"accountNameNoAccent"`
+	AccountNo           string          `json:"accountNo"`
+	Authorized          decimal.Decimal `json:"authorized"`
+	BankAccountType     string          `json:"bankAccountType"`
+	BankCode            string          `json:"bankCode"`
+	BankName            string          `json:"bankName"`
+	BankSys             string          `json:"bankSys"`
+	BankType            string          `json:"bankType"`
+	BranchCode          string          `json:"branchCode"`
 }
 
 type BankSubAccount struct {

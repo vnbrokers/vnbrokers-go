@@ -2,10 +2,78 @@ package dto_test
 
 import (
 	"encoding/json"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/shopspring/decimal"
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/dto"
 )
+
+func TestNonRequestNumericFieldsUseDecimal(t *testing.T) {
+	files, err := filepath.Glob("*.go")
+	if err != nil {
+		t.Fatalf("glob dto files: %v", err)
+	}
+
+	for _, file := range files {
+		if strings.HasSuffix(file, "_test.go") {
+			continue
+		}
+
+		t.Run(file, func(t *testing.T) {
+			fset := token.NewFileSet()
+			parsed, err := parser.ParseFile(fset, file, nil, parser.SkipObjectResolution)
+			if err != nil {
+				t.Fatalf("parse: %v", err)
+			}
+
+			ast.Inspect(parsed, func(node ast.Node) bool {
+				typeSpec, ok := node.(*ast.TypeSpec)
+				if !ok {
+					return true
+				}
+				if strings.HasSuffix(typeSpec.Name.Name, "Request") || strings.HasSuffix(typeSpec.Name.Name, "Body") {
+					return false
+				}
+
+				structType, ok := typeSpec.Type.(*ast.StructType)
+				if !ok {
+					return false
+				}
+
+				for _, field := range structType.Fields.List {
+					typeName, ok := primitiveNumericType(field.Type)
+					if !ok {
+						continue
+					}
+					for _, name := range field.Names {
+						pos := fset.Position(field.Pos())
+						t.Errorf("%s.%s at %s uses %s, want decimal.Decimal", typeSpec.Name.Name, name.Name, pos, typeName)
+					}
+				}
+
+				return false
+			})
+		})
+	}
+}
+
+func primitiveNumericType(expr ast.Expr) (string, bool) {
+	ident, ok := expr.(*ast.Ident)
+	if !ok {
+		return "", false
+	}
+	switch ident.Name {
+	case "float64", "int", "int64":
+		return ident.Name, true
+	default:
+		return "", false
+	}
+}
 
 func TestPrimitiveOpenAPIContractsDecode(t *testing.T) {
 	tests := []struct {
@@ -33,7 +101,7 @@ func TestPrimitiveOpenAPIContractsDecode(t *testing.T) {
 				return json.Unmarshal(data, &ordersResponse)
 			},
 			check: func(t *testing.T) {
-				if ordersResponse.PageSize != 10 || ordersResponse.Data[0].OrderQtty != 100.5 {
+				if !ordersResponse.PageSize.Equal(mustDecimal("10")) || !ordersResponse.Data[0].OrderQtty.Equal(mustDecimal("100.5")) {
 					t.Fatalf("orders response = %#v", ordersResponse)
 				}
 			},
@@ -45,7 +113,7 @@ func TestPrimitiveOpenAPIContractsDecode(t *testing.T) {
 				return json.Unmarshal(data, &purchasingPowerResponse)
 			},
 			check: func(t *testing.T) {
-				if purchasingPowerResponse.Price != 120000 || purchasingPowerResponse.MaxBuyQuantity != 458600 {
+				if !purchasingPowerResponse.Price.Equal(mustDecimal("120000")) || !purchasingPowerResponse.MaxBuyQuantity.Equal(mustDecimal("458600")) {
 					t.Fatalf("purchasing response = %#v", purchasingPowerResponse)
 				}
 			},
@@ -57,7 +125,7 @@ func TestPrimitiveOpenAPIContractsDecode(t *testing.T) {
 				return json.Unmarshal(data, &derivativeCashResponse)
 			},
 			check: func(t *testing.T) {
-				if derivativeCashResponse.Data.Cash != 600089123 || derivativeCashResponse.Data.VM != -4200000 {
+				if !derivativeCashResponse.Data.Cash.Equal(mustDecimal("600089123")) || !derivativeCashResponse.Data.VM.Equal(mustDecimal("-4200000")) {
 					t.Fatalf("derivative cash response = %#v", derivativeCashResponse)
 				}
 			},
@@ -69,7 +137,7 @@ func TestPrimitiveOpenAPIContractsDecode(t *testing.T) {
 				return json.Unmarshal(data, &stockTickersResponse)
 			},
 			check: func(t *testing.T) {
-				if stockTickersResponse.Data[0].Symbol != "FPT" || stockTickersResponse.Data[0].TotalVol != 833900 {
+				if stockTickersResponse.Data[0].Symbol != "FPT" || !stockTickersResponse.Data[0].TotalVol.Equal(mustDecimal("833900")) {
 					t.Fatalf("stock tickers response = %#v", stockTickersResponse)
 				}
 			},
@@ -93,3 +161,11 @@ var (
 	derivativeCashResponse  dto.GetDerivativeCashResponse
 	stockTickersResponse    dto.GetStockTickersResponse
 )
+
+func mustDecimal(value string) decimal.Decimal {
+	parsed, err := decimal.NewFromString(value)
+	if err != nil {
+		panic(err)
+	}
+	return parsed
+}

@@ -1,8 +1,8 @@
 package dto
 
 type GetDerivativeOrdersRequest struct {
-	PageNo    float64
-	PageSize  float64
+	PageNo    int64
+	PageSize  int64
 	AccountID string
 	Symbol    string
 	RefID     string

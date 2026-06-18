@@ -13,13 +13,13 @@ import (
 func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
 	request := nativedto.GetDerivativeConditionalOrdersRequest{
-		PageNo:       env.String("TCBS_PAGE_NO", "0"),
+		PageNo:       env.String("TCBS_PAGE_NO", "1"),
 		PageSize:     env.String("TCBS_PAGE_SIZE", "20"),
-		AccountID:    env.RequiredString("TCBS_ACCOUNT_ID"),
+		AccountID:    env.RequiredString("TCBS_CUSTODY_CODE"),
 		SubAccountID: env.RequiredString("TCBS_SUB_ACCOUNT_ID"),
-		OrderStatus:  env.String("TCBS_ORDER_STATUS", ""),
+		OrderStatus:  env.String("TCBS_ORDER_STATUS", "0"),
 		OrderType:    env.String("TCBS_ORDER_TYPE", ""),
-		Symbol:       env.String("TCBS_SYMBOL", ""),
+		Symbol:       env.String("TCBS_SYMBOL", "41I1G6000"),
 	}
 	response, err := broker.Native().Trading().GetDerivativeConditionalOrders(context.Background(), request)
 	if err != nil {

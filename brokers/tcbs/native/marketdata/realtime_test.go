@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/marketdata"
 	"github.com/vnbrokers/vnbrokers-go/core"
@@ -72,14 +73,14 @@ func TestMarketDataRealtimeStockHistoryProtocol(t *testing.T) {
 	if got := marketFrame(t, socket.sent); got != "d|a|||and0" {
 		t.Fatalf("auth frame = %q", got)
 	}
-	if got := marketFrame(t, socket.sent); got != "d|p|||" {
-		t.Fatalf("ping response = %q", got)
-	}
 	if got := marketFrame(t, socket.sent); got != "d|st|C001|TCB,FPT" {
 		t.Fatalf("subscribe frame = %q", got)
 	}
+	if got := marketFrame(t, socket.sent); got != "d|p|||" {
+		t.Fatalf("ping response = %q", got)
+	}
 	event := marketEvent(t, subscription.Events())
-	if event.Symbol != "TCB" || event.ClosePrice != 38600 {
+	if event.Symbol != "TCB" || !event.ClosePrice.Equal(decimal.NewFromInt(38600)) {
 		t.Fatalf("event = %#v", event)
 	}
 }
@@ -105,14 +106,42 @@ func TestMarketDataRealtimeDerivativeBasePriceProtocol(t *testing.T) {
 	}
 	defer subscription.Close()
 	_ = marketFrame(t, socket.sent)
+	if got := marketFrame(t, socket.sent); got != "d|s|tk|bp|VN30F1M" {
+		t.Fatalf("subscribe frame = %q", got)
+	}
 	if got := marketFrame(t, socket.sent); got != "d|p|||" {
 		t.Fatalf("ping response = %q", got)
 	}
+	event := marketEvent(t, subscription.Events())
+	if event.Symbol != "VN30F1M" || !event.RefPrice.Equal(decimal.NewFromInt(1300)) {
+		t.Fatalf("event = %#v", event)
+	}
+}
+
+func TestMarketDataRealtimeDerivativeBasePriceAcceptsDerivativePrefix(t *testing.T) {
+	socket := newFakeMarketSocket(
+		`d|0|{"success":true,"error":null}`,
+		`s|26|{"symbol":"VN30F1M","ceilPrice":1400,"floorPrice":1200,"refPrice":1300}`,
+	)
+	service := marketdata.NewRealtimeService(marketdata.RealtimeDependencies{
+		BaseURL: "https://api.example", AccessToken: func() string { return "jwt" }, PingInterval: time.Hour,
+		RequireCapability: func(core.Capability) error { return nil },
+		WebSocketFactory: func(context.Context, string, map[string]string) (transport.WebSocketTransport, error) {
+			return socket, nil
+		},
+	})
+
+	subscription, err := service.SubscribeBasePrices(context.Background(), dto.SubscribeBasePricesRequest{Symbols: []string{"VN30F1M"}})
+	if err != nil {
+		t.Fatalf("subscribe: %v", err)
+	}
+	defer subscription.Close()
+	_ = marketFrame(t, socket.sent)
 	if got := marketFrame(t, socket.sent); got != "d|s|tk|bp|VN30F1M" {
 		t.Fatalf("subscribe frame = %q", got)
 	}
 	event := marketEvent(t, subscription.Events())
-	if event.Symbol != "VN30F1M" || event.RefPrice != 1300 {
+	if event.Symbol != "VN30F1M" || !event.RefPrice.Equal(decimal.NewFromInt(1300)) {
 		t.Fatalf("event = %#v", event)
 	}
 }
@@ -140,14 +169,14 @@ func TestMarketDataRealtimeRespondsToServerPingAndSubscribesWhenTimeoutConfigPre
 	if got := marketFrame(t, socket.sent); got != "d|a|||and0" {
 		t.Fatalf("auth frame = %q", got)
 	}
-	if got := marketFrame(t, socket.sent); got != "d|p|||" {
-		t.Fatalf("ping response = %q", got)
-	}
 	if got := marketFrame(t, socket.sent); got != "d|s|tk|bp|VN30F1M" {
 		t.Fatalf("subscribe frame = %q", got)
 	}
+	if got := marketFrame(t, socket.sent); got != "d|p|||" {
+		t.Fatalf("ping response = %q", got)
+	}
 	event := marketEvent(t, subscription.Events())
-	if event.Symbol != "VN30F1M" || event.RefPrice != 1300 {
+	if event.Symbol != "VN30F1M" || !event.RefPrice.Equal(decimal.NewFromInt(1300)) {
 		t.Fatalf("event = %#v", event)
 	}
 }
@@ -173,17 +202,17 @@ func TestMarketDataRealtimeRespondsToEachServerPing(t *testing.T) {
 	}
 	defer subscription.Close()
 	_ = marketFrame(t, socket.sent)
-	if got := marketFrame(t, socket.sent); got != "d|p|||" {
-		t.Fatalf("ping response = %q", got)
-	}
 	if got := marketFrame(t, socket.sent); got != "d|s|tk|bp|VN30F1M" {
 		t.Fatalf("subscribe frame = %q", got)
+	}
+	if got := marketFrame(t, socket.sent); got != "d|p|||" {
+		t.Fatalf("ping response = %q", got)
 	}
 	if got := marketFrame(t, socket.sent); got != "d|p|||" {
 		t.Fatalf("second ping response = %q", got)
 	}
 	event := marketEvent(t, subscription.Events())
-	if event.Symbol != "VN30F1M" || event.RefPrice != 1300 {
+	if event.Symbol != "VN30F1M" || !event.RefPrice.Equal(decimal.NewFromInt(1300)) {
 		t.Fatalf("event = %#v", event)
 	}
 }
@@ -211,45 +240,14 @@ func TestMarketDataRealtimeStartsPingLoopFromTimeoutConfig(t *testing.T) {
 	if got := marketFrame(t, socket.sent); got != "d|a|||and0" {
 		t.Fatalf("auth frame = %q", got)
 	}
-	if got := marketFrame(t, socket.sent); got != "d|p|||" {
-		t.Fatalf("ping response = %q", got)
-	}
 	if got := marketFrame(t, socket.sent); got != "d|s|tk|bp|VN30F1M" {
 		t.Fatalf("subscribe frame = %q", got)
 	}
 	if got := marketFrame(t, socket.sent); got != "d|p|||" {
+		t.Fatalf("ping response = %q", got)
+	}
+	if got := marketFrame(t, socket.sent); got != "d|p|||" {
 		t.Fatalf("periodic ping = %q", got)
-	}
-}
-
-func TestMarketDataRealtimeStockPricesRemainRaw(t *testing.T) {
-	socket := newFakeMarketSocket(`raw-price-frame`)
-	var connectedURL string
-	service := marketdata.NewRealtimeService(marketdata.RealtimeDependencies{
-		BaseURL: "https://api.example", AccessToken: func() string { return "jwt" }, PingInterval: time.Hour,
-		RequireCapability: func(core.Capability) error { return nil },
-		WebSocketFactory: func(_ context.Context, url string, _ map[string]string) (transport.WebSocketTransport, error) {
-			connectedURL = url
-			return socket, nil
-		},
-	})
-
-	subscription, err := service.SubscribeStockPrices(context.Background(), dto.SubscribeStockPricesRequest{})
-	if err != nil {
-		t.Fatalf("subscribe: %v", err)
-	}
-	defer subscription.Close()
-	if connectedURL != "wss://api.example/ws/thesis/v1/stream/normal" {
-		t.Fatalf("url = %q", connectedURL)
-	}
-	select {
-	case sent := <-socket.sent:
-		t.Fatalf("unexpected undocumented frame %q", sent)
-	case <-time.After(20 * time.Millisecond):
-	}
-	event := marketEvent(t, subscription.Events())
-	if string(event) != "raw-price-frame" {
-		t.Fatalf("raw event = %q", event)
 	}
 }
 

@@ -3,6 +3,7 @@ package marketdata
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -80,6 +81,7 @@ func do[T any](s *service, ctx context.Context, capability core.Capability, path
 	}
 	result := new(T)
 	if err := json.Unmarshal(payload, result); err != nil {
+		fmt.Printf(">>> %s\n", string(payload))
 		return nil, sdkerrors.Decode("tcbs", string(capability), "decode TCBS native market-data response", response.Body, err)
 	}
 	return result, nil

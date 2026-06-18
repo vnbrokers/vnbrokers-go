@@ -95,11 +95,11 @@ func TestTradingHTTPContracts(t *testing.T) {
 			_, err := s.GetCashInvestments(ctx, dto.GetCashInvestmentsRequest{AccountNo: "0001"})
 			return err
 		}},
-		{"cash statements", "GET", "/erebos/v2/digital/trans-hist-cashStatements?accountNo=0001&fromDate=2025-01-01&pageIndex=1&pageSize=25&toDate=2025-01-15&transactionCode=1153", false, func(ctx context.Context, s trading.Service) error {
+		{"cash statements", "GET", "/erebos/v2/digital/trans-hist-cashStatements?acctno=0001&fromDate=2025-01-01&pageIndex=1&pageSize=25&toDate=2025-01-15&transactionCode=1153", false, func(ctx context.Context, s trading.Service) error {
 			_, err := s.GetCashStatements(ctx, dto.GetCashStatementsRequest{AccountNo: "0001", FromDate: "2025-01-01", ToDate: "2025-01-15", PageSize: "25", PageIndex: "1", TransactionCode: "1153"})
 			return err
 		}},
-		{"cash statements without transaction code", "GET", "/erebos/v2/digital/trans-hist-cashStatements?accountNo=0001&fromDate=2025-01-01&pageIndex=1&pageSize=25&toDate=2025-01-15", false, func(ctx context.Context, s trading.Service) error {
+		{"cash statements without transaction code", "GET", "/erebos/v2/digital/trans-hist-cashStatements?acctno=0001&fromDate=2025-01-01&pageIndex=1&pageSize=25&toDate=2025-01-15", false, func(ctx context.Context, s trading.Service) error {
 			_, err := s.GetCashStatements(ctx, dto.GetCashStatementsRequest{AccountNo: "0001", FromDate: "2025-01-01", ToDate: "2025-01-15", PageSize: "25", PageIndex: "1"})
 			return err
 		}},

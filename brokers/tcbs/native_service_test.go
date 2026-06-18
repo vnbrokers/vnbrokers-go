@@ -78,9 +78,17 @@ func TestBrokerExposesTypedAuthAndNativeServices(t *testing.T) {
 	}
 }
 
+func TestBrokerSupportsNativeMarketDataRealtimeRaw(t *testing.T) {
+	broker := tcbs.NewBroker(tcbs.Config{})
+
+	if err := broker.RequireCapability("native.marketdata.realtime.raw"); err != nil {
+		t.Fatalf("raw realtime capability: %v", err)
+	}
+}
+
 func TestCapabilitiesCoverAuthAndEveryNativeMethod(t *testing.T) {
-	if len(tcbs.Capabilities) != 56 {
-		t.Fatalf("capability count = %d, want 56", len(tcbs.Capabilities))
+	if len(tcbs.Capabilities) != 58 {
+		t.Fatalf("capability count = %d, want 58", len(tcbs.Capabilities))
 	}
 	seen := make(map[string]struct{}, len(tcbs.Capabilities))
 	for _, capability := range tcbs.Capabilities {

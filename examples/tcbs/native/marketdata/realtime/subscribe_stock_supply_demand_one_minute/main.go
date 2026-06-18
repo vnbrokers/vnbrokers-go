@@ -20,7 +20,8 @@ func main() {
 	defer cancel()
 
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
-	request := nativedto.SubscribeStockSupplyDemandOneMinuteRequest{Tickers: env.List("TCBS_TICKERS", "ACB,BID,BSR,CTG,FPT,GAS,GVR,HDB,HPG,LPB,MBB,MSN,MWG,PLX,SAB,SHB,SSB,SSI,STB,TCB,TPB,VCB,VHM,VIB,VIC,VJC,VNM,VPB,VPL,VRE")}
+	tickers := "ACB,BID,BSR,CTG,FPT,GAS,GVR,HDB,HPG,LPB,MBB,MSN,MWG,PLX,SAB,SHB,SSB,SSI,STB,TCB,TPB,VCB,VHM,VIB,VIC,VJC,VNM,VPB,VPL,VRE"
+	request := nativedto.SubscribeStockSupplyDemandOneMinuteRequest{Tickers: env.List("TCBS_TICKERS", tickers)}
 	subscription, err := broker.Native().MarketData().Realtime().SubscribeStockSupplyDemandOneMinute(ctx, request)
 	if err != nil {
 		panic(err)

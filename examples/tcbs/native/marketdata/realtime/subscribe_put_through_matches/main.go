@@ -16,12 +16,12 @@ import (
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
-	ctx, cancel := context.WithTimeout(ctx, env.Duration("TCBS_STREAM_DURATION", time.Minute))
+	ctx, cancel := context.WithTimeout(ctx, env.Duration("TCBS_STREAM_DURATION", 8*time.Hour))
 	defer cancel()
 
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
-	request := nativedto.SubscribeStockPricesRequest{}
-	subscription, err := broker.Native().MarketData().Realtime().SubscribeStockPrices(ctx, request)
+	request := nativedto.SubscribePutThroughMatchesRequest{Symbols: env.List("TCBS_SYMBOLS", "1,2,3,4,5")}
+	subscription, err := broker.Native().MarketData().Realtime().SubscribePutThroughMatches(ctx, request)
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +33,7 @@ func main() {
 			if !ok {
 				return
 			}
-			fmt.Printf("event: %s\n", event)
+			fmt.Printf("event: %+v\n", event)
 		case status, ok := <-subscription.Status():
 			if !ok {
 				return

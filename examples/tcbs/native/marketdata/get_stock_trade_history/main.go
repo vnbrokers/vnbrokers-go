@@ -13,7 +13,7 @@ import (
 func main() {
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
 	request := nativedto.GetStockTradeHistoryRequest{
-		Ticker:    env.String("TCBS_TICKER", "TCBS"),
+		Ticker:    env.String("TCBS_TICKER", "TCX"),
 		Page:      env.Float("TCBS_PAGE", 0),
 		Size:      env.Float("TCBS_SIZE", 20),
 		HeadIndex: env.Float("TCBS_HEAD_INDEX", 0),

@@ -16,11 +16,11 @@ import (
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
-	ctx, cancel := context.WithTimeout(ctx, env.Duration("TCBS_STREAM_DURATION", time.Minute))
+	ctx, cancel := context.WithTimeout(ctx, env.Duration("TCBS_STREAM_DURATION", 8*time.Hour))
 	defer cancel()
 
 	broker := vnbrokers.NewTCBS(tcbs.Config{AccessToken: env.RequiredString("TCBS_ACCESS_TOKEN")})
-	request := nativedto.SubscribeForeignTradingRequest{Symbols: env.List("TCBS_SYMBOLS", "")}
+	request := nativedto.SubscribeForeignTradingRequest{}
 	subscription, err := broker.Native().MarketData().Realtime().SubscribeForeignTrading(ctx, request)
 	if err != nil {
 		panic(err)

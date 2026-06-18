@@ -55,7 +55,7 @@ func TestTradingRealtimeStockOrdersProtocol(t *testing.T) {
 	socket := newFakeSocket(
 		`authenticate|{"success":true,"error":null}`,
 		`pingTimeout|7`,
-		`message_proto|STOCK_ORDER|{"orderId":"42","orderQtty":"100","symbol":"FPT"}`,
+		`message_proto|STOCK_ORDER|{"orderId":"42","orderQtty":100,"symbol":"FPT"}`,
 	)
 	var connectedURL string
 	service := trading.NewRealtimeService(trading.RealtimeDependencies{

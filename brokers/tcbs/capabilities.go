@@ -51,7 +51,6 @@ const (
 	CapabilityNativeMarketDataGetStockSupplyDemand15Minutes      = nativemarketdata.CapabilityGetStockSupplyDemand15Minutes
 	CapabilityNativeMarketDataGetStockSupplyDemandDaily          = nativemarketdata.CapabilityGetStockSupplyDemandDaily
 	CapabilityNativeMarketDataGetStockSupplyDemandMonthly        = nativemarketdata.CapabilityGetStockSupplyDemandMonthly
-	CapabilityNativeMarketDataRealtimeStockPrices                = nativemarketdata.CapabilityRealtimeStockPrices
 	CapabilityNativeMarketDataRealtimeStockTradeHistory          = nativemarketdata.CapabilityRealtimeStockTradeHistory
 	CapabilityNativeMarketDataRealtimeStockSupplyDemandOneMinute = nativemarketdata.CapabilityRealtimeStockSupplyDemandOneMinute
 	CapabilityNativeMarketDataRealtimeStockSupplyDemand15Minutes = nativemarketdata.CapabilityRealtimeStockSupplyDemandFifteenMinutes
@@ -62,6 +61,9 @@ const (
 	CapabilityNativeMarketDataRealtimeMatchedPrices              = nativemarketdata.CapabilityRealtimeMatchedPrices
 	CapabilityNativeMarketDataRealtimeTickerMatches              = nativemarketdata.CapabilityRealtimeTickerMatches
 	CapabilityNativeMarketDataRealtimeIndexes                    = nativemarketdata.CapabilityRealtimeIndexes
+	CapabilityNativeMarketDataRealtimePutThroughAdvertisements   = nativemarketdata.CapabilityRealtimePutThroughAdvertisements
+	CapabilityNativeMarketDataRealtimePutThroughMatches          = nativemarketdata.CapabilityRealtimePutThroughMatches
+	CapabilityNativeMarketDataRealtimeRaw                        = nativemarketdata.CapabilityRealtimeRaw
 )
 
 var Capabilities = []core.Capability{
@@ -110,7 +112,6 @@ var Capabilities = []core.Capability{
 	CapabilityNativeMarketDataGetStockSupplyDemand15Minutes,
 	CapabilityNativeMarketDataGetStockSupplyDemandDaily,
 	CapabilityNativeMarketDataGetStockSupplyDemandMonthly,
-	CapabilityNativeMarketDataRealtimeStockPrices,
 	CapabilityNativeMarketDataRealtimeStockTradeHistory,
 	CapabilityNativeMarketDataRealtimeStockSupplyDemandOneMinute,
 	CapabilityNativeMarketDataRealtimeStockSupplyDemand15Minutes,
@@ -121,4 +122,7 @@ var Capabilities = []core.Capability{
 	CapabilityNativeMarketDataRealtimeMatchedPrices,
 	CapabilityNativeMarketDataRealtimeTickerMatches,
 	CapabilityNativeMarketDataRealtimeIndexes,
+	CapabilityNativeMarketDataRealtimePutThroughAdvertisements,
+	CapabilityNativeMarketDataRealtimePutThroughMatches,
+	CapabilityNativeMarketDataRealtimeRaw,
 }

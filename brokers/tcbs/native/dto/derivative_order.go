@@ -8,6 +8,7 @@ type DerivativeOrder struct {
 	AccountCode  string          `json:"accountCode"`
 	AutoType     string          `json:"autoType"`
 	CancelTime   string          `json:"cancelTime"`
+	BaseOrder    *string         `json:"baseOrder"`
 	Channel      string          `json:"channel"`
 	Group        string          `json:"group"`
 	Info         string          `json:"info"`
@@ -22,6 +23,7 @@ type DerivativeOrder struct {
 	OrderTime    string          `json:"orderTime"`
 	OrderType    string          `json:"orderType"`
 	PkOrderNo    string          `json:"pk_orderNo"`
+	PriceType    string          `json:"priceType"`
 	Product      string          `json:"product"`
 	Quote        string          `json:"quote"`
 	RefID        string          `json:"refId"`

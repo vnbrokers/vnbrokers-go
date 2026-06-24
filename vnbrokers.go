@@ -5,6 +5,7 @@ import (
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
 	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
+	"github.com/vnbrokers/vnbrokers-go/brokers/fhsc"
 	"github.com/vnbrokers/vnbrokers-go/brokers/ssi"
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs"
 	"github.com/vnbrokers/vnbrokers-go/core"
@@ -26,9 +27,14 @@ func NewTCBS(config tcbs.Config) *tcbs.Broker {
 	return tcbs.NewBroker(config)
 }
 
+func NewFHSC(config fhsc.Config) *fhsc.Broker {
+	return fhsc.NewBroker(config)
+}
+
 type FactoryConfig struct {
 	DNSE    *dnse.Config
 	Entrade *entrade.Config
+	FHSC    *fhsc.Config
 	SSI     *ssi.Config
 	TCBS    *tcbs.Config
 }
@@ -45,6 +51,11 @@ func NewBroker(name string, config FactoryConfig) (core.Broker, error) {
 			return nil, fmt.Errorf("entrade config is required")
 		}
 		return entrade.NewBroker(*config.Entrade), nil
+	case "fhsc":
+		if config.FHSC == nil {
+			return nil, fmt.Errorf("fhsc config is required")
+		}
+		return fhsc.NewBroker(*config.FHSC), nil
 	case "ssi":
 		if config.SSI == nil {
 			return nil, fmt.Errorf("ssi config is required")

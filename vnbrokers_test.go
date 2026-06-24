@@ -7,6 +7,8 @@ import (
 	nativemarketdata "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/marketdata"
 	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
 	nativetrading "github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/trading"
+	"github.com/vnbrokers/vnbrokers-go/brokers/fhsc"
+	fhscmarketdata "github.com/vnbrokers/vnbrokers-go/brokers/fhsc/native/marketdata"
 )
 
 func TestNewBrokerBuildsDNSEBroker(t *testing.T) {
@@ -32,6 +34,19 @@ func TestNewBrokerBuildsEntradeBroker(t *testing.T) {
 	}
 	if !broker.Supports(nativetrading.CapabilityPlaceDerivativeOrder) {
 		t.Fatalf("expected entrade place order capability")
+	}
+}
+
+func TestNewBrokerBuildsFHSCBroker(t *testing.T) {
+	broker, err := NewBroker("fhsc", FactoryConfig{FHSC: &fhsc.Config{}})
+	if err != nil {
+		t.Fatalf("new broker: %v", err)
+	}
+	if broker.Name() != "fhsc" {
+		t.Fatalf("broker name = %q", broker.Name())
+	}
+	if !broker.Supports(fhscmarketdata.CapabilityGetStockRealtime) {
+		t.Fatalf("expected fhsc stock realtime capability")
 	}
 }
 

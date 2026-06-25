@@ -393,12 +393,18 @@ type Foreign struct {
 	SellTradedAmount             *decimal.Decimal `json:"sellTradedAmount,omitempty"`
 	SellVolume                   int64            `json:"sellVolume,omitempty"`
 	Symbol                       string           `json:"symbol,omitempty"`
+	Time                         string           `json:"time,omitempty"`
 	TotalBuyTradedAmount         *decimal.Decimal `json:"totalBuyTradedAmount,omitempty"`
 	TotalBuyVolume               int64            `json:"totalBuyVolume,omitempty"`
 	TotalSellTradedAmount        *decimal.Decimal `json:"totalSellTradedAmount,omitempty"`
 	TotalSellVolume              int64            `json:"totalSellVolume,omitempty"`
 	TradingSessionID             string           `json:"tradingSessionId,omitempty"`
 	TransactTime                 string           `json:"transactTime,omitempty"`
+}
+
+type GetForeignTradingResponse struct {
+	Foreigners    []Foreign `json:"foreigners,omitempty"`
+	NextPageToken string    `json:"nextPageToken,omitempty"`
 }
 
 type EstimatedMarketIndex struct {

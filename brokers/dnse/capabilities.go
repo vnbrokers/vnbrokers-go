@@ -18,6 +18,7 @@ var Capabilities = []core.Capability{
 	nativemarketdata.CapabilityOHLC,
 	nativemarketdata.CapabilityClosePrice,
 	nativemarketdata.CapabilityQuoteHistory,
+	nativemarketdata.CapabilityForeignTrading,
 	nativemarketdata.CapabilitySecurityDefinition,
 	nativemarketdata.CapabilityWorkingDates,
 	nativemarketdata.CapabilityRealtimeExpectedPrices,

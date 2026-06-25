@@ -47,6 +47,10 @@ func TestMarketDataServiceBuildsTypedRequests(t *testing.T) {
 			_, err := s.GetQuoteHistory(context.Background(), dto.GetQuoteHistoryRequest{Symbol: "ACB", BoardID: "G1", From: 1, To: 2, Limit: 100})
 			return err
 		}},
+		{"foreign trading", "/price/ACB/foreign-trading?boardId=G1&from=1&limit=100&order=desc&to=2", func(s Service) error {
+			_, err := s.GetForeignTrading(context.Background(), dto.GetForeignTradingRequest{Symbol: "ACB", BoardID: "G1", From: 1, To: 2, Limit: 100, Order: "desc"})
+			return err
+		}},
 		{"security definition", "/price/ACB/secdef?boardId=G1", func(s Service) error {
 			_, err := s.GetSecurityDefinition(context.Background(), dto.GetSecurityDefinitionRequest{Symbol: "ACB", BoardID: "G1"})
 			return err
@@ -75,5 +79,52 @@ func TestMarketDataServiceBuildsTypedRequests(t *testing.T) {
 				t.Fatalf("URL = %q", got.URL)
 			}
 		})
+	}
+}
+
+func TestMarketDataServiceDecodesForeignTradingResponse(t *testing.T) {
+	service := NewService(Dependencies{
+		BaseURL:           "https://openapi.dnse.com.vn",
+		RequireCapability: func(core.Capability) error { return nil },
+		Send: func(_ context.Context, _ string, _ transport.HTTPRequest) (transport.HTTPResponse, error) {
+			return transport.HTTPResponse{StatusCode: 200, Raw: []byte(`{
+				"foreigners": [{
+					"marketId": "STO",
+					"boardId": "G1",
+					"symbol": "ACB",
+					"tradingSessionId": "99",
+					"sellVolume": 1239300,
+					"sellTradedAmount": 32683015000,
+					"buyVolume": 1299400,
+					"buyTradedAmount": 34345090000,
+					"totalSellVolume": 1239352,
+					"totalSellTradedAmount": 32684385850,
+					"totalBuyVolume": 1299415,
+					"totalBuyTradedAmount": 34345486100,
+					"foreignerOrderLimitQuantity": 1743293567,
+					"foreignerBuyPossibleQuantity": 2053706002,
+					"time": "2026-06-11 15:33:00.368"
+				}],
+				"nextPageToken": "next-token"
+			}`)}, nil
+		},
+	})
+
+	response, err := service.GetForeignTrading(context.Background(), dto.GetForeignTradingRequest{Symbol: "ACB", From: 1, To: 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if response.NextPageToken != "next-token" {
+		t.Fatalf("NextPageToken = %q", response.NextPageToken)
+	}
+	if len(response.Foreigners) != 1 {
+		t.Fatalf("foreigners length = %d", len(response.Foreigners))
+	}
+	foreign := response.Foreigners[0]
+	if foreign.Symbol != "ACB" || foreign.MarketID != "STO" || foreign.Time != "2026-06-11 15:33:00.368" {
+		t.Fatalf("foreign = %+v", foreign)
+	}
+	if foreign.BuyTradedAmount == nil || foreign.BuyTradedAmount.String() != "34345090000" {
+		t.Fatalf("BuyTradedAmount = %v", foreign.BuyTradedAmount)
 	}
 }

@@ -25,5 +25,11 @@ type GetQuoteHistoryRequest struct {
 	From, To        int64
 	Limit           int
 }
+type GetForeignTradingRequest struct {
+	Symbol, BoardID string
+	From, To        int64
+	Limit           int
+	Order           string
+}
 type GetSecurityDefinitionRequest struct{ Symbol, BoardID string }
 type GetWorkingDatesRequest struct{}

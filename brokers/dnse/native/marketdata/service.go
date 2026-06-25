@@ -23,6 +23,7 @@ const (
 	CapabilityOHLC                           core.Capability = "native.marketdata.ohlc"
 	CapabilityClosePrice                     core.Capability = "native.marketdata.close_price"
 	CapabilityQuoteHistory                   core.Capability = "native.marketdata.quote_history"
+	CapabilityForeignTrading                 core.Capability = "native.marketdata.foreign_trading"
 	CapabilitySecurityDefinition             core.Capability = "native.marketdata.security_definition"
 	CapabilityWorkingDates                   core.Capability = "native.marketdata.working_dates"
 	CapabilityRealtimeExpectedPrices         core.Capability = "native.marketdata.realtime.expected_prices"
@@ -47,6 +48,7 @@ type Service interface {
 	GetOHLC(context.Context, dto.GetOHLCRequest) (*dto.OhlcResponse, error)
 	GetClosePrice(context.Context, dto.GetClosePriceRequest) (*dto.PriceSymbolCloseResponse, error)
 	GetQuoteHistory(context.Context, dto.GetQuoteHistoryRequest) (*dto.QuotesResponse, error)
+	GetForeignTrading(context.Context, dto.GetForeignTradingRequest) (*dto.GetForeignTradingResponse, error)
 	GetSecurityDefinition(context.Context, dto.GetSecurityDefinitionRequest) (*dto.SecdefResponse, error)
 	GetWorkingDates(context.Context, dto.GetWorkingDatesRequest) (*dto.WorkingDatesResponse, error)
 }
@@ -141,6 +143,15 @@ func (s *service) GetQuoteHistory(ctx context.Context, r dto.GetQuoteHistoryRequ
 	setInt64(q, "to", r.To)
 	setInt(q, "limit", r.Limit)
 	return get[dto.QuotesResponse](ctx, s, CapabilityQuoteHistory, "/price/"+url.PathEscape(r.Symbol)+"/quotes", q)
+}
+func (s *service) GetForeignTrading(ctx context.Context, r dto.GetForeignTradingRequest) (*dto.GetForeignTradingResponse, error) {
+	q := url.Values{}
+	set(q, "boardId", r.BoardID)
+	setInt64(q, "from", r.From)
+	setInt64(q, "to", r.To)
+	setInt(q, "limit", r.Limit)
+	set(q, "order", r.Order)
+	return get[dto.GetForeignTradingResponse](ctx, s, CapabilityForeignTrading, "/price/"+url.PathEscape(r.Symbol)+"/foreign-trading", q)
 }
 func (s *service) GetSecurityDefinition(ctx context.Context, r dto.GetSecurityDefinitionRequest) (*dto.SecdefResponse, error) {
 	q := url.Values{}

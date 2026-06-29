@@ -2,12 +2,10 @@ package brokerage
 
 import (
 	"context"
-	"encoding/json"
-	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
-	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -33,20 +31,13 @@ func (s *service) GetCareByAccounts(ctx context.Context, r dto.GetCareByAccounts
 	if r.Version != "" {
 		headers["version"] = r.Version
 	}
-	response, err := s.dependencies.Send(ctx, string(CapabilityCareByAccounts), transport.HTTPRequest{Method: "GET", URL: strings.TrimRight(s.dependencies.BaseURL, "/") + "/brokers/accounts/care-by", Headers: headers})
+	response, err := s.dependencies.Send(ctx, string(CapabilityCareByAccounts), transport.HTTPRequest{
+		Method:  "GET",
+		URL:     httpx.URL(s.dependencies.BaseURL, "/brokers/accounts/care-by", nil),
+		Headers: headers,
+	})
 	if err != nil {
 		return nil, err
 	}
-	payload := response.Raw
-	if len(payload) == 0 {
-		payload, err = json.Marshal(response.Body)
-		if err != nil {
-			return nil, err
-		}
-	}
-	result := new(dto.CareByResponse)
-	if err = json.Unmarshal(payload, result); err != nil {
-		return nil, sdkerrors.Decode("dnse", string(CapabilityCareByAccounts), "decode DNSE native brokerage response", response.Body, err)
-	}
-	return result, nil
+	return httpx.DecodeResponse[dto.CareByResponse]("dnse", string(CapabilityCareByAccounts), "decode DNSE native brokerage response", response)
 }

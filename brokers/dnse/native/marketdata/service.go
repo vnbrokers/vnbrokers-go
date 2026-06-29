@@ -2,14 +2,12 @@ package marketdata
 
 import (
 	"context"
-	"encoding/json"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
-	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/realtime"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
@@ -166,30 +164,19 @@ func get[T any](ctx context.Context, s *service, capability core.Capability, pat
 	if err := s.dependencies.RequireCapability(capability); err != nil {
 		return nil, err
 	}
-	endpoint := strings.TrimRight(s.dependencies.BaseURL, "/") + path
-	if encoded := q.Encode(); encoded != "" {
-		endpoint += "?" + encoded
-	}
 	headers := map[string]string{}
 	if s.dependencies.Headers != nil {
 		headers = s.dependencies.Headers()
 	}
-	response, err := s.dependencies.Send(ctx, string(capability), transport.HTTPRequest{Method: "GET", URL: endpoint, Headers: headers})
+	response, err := s.dependencies.Send(ctx, string(capability), transport.HTTPRequest{
+		Method:  "GET",
+		URL:     httpx.URL(s.dependencies.BaseURL, path, q),
+		Headers: headers,
+	})
 	if err != nil {
 		return nil, err
 	}
-	result := new(T)
-	payload := response.Raw
-	if len(payload) == 0 {
-		payload, err = json.Marshal(response.Body)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if err = json.Unmarshal(payload, result); err != nil {
-		return nil, sdkerrors.Decode("dnse", string(capability), "decode DNSE native market data response", response.Body, err)
-	}
-	return result, nil
+	return httpx.DecodeResponse[T]("dnse", string(capability), "decode DNSE native market data response", response)
 }
 func set(q url.Values, key, value string) {
 	if value != "" {

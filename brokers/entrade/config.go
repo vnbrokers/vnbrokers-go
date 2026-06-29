@@ -14,6 +14,8 @@ type Config struct {
 	HTTPTransport transport.HTTPTransport
 }
 
+func (Config) BrokerName() string { return "entrade" }
+
 func (c Config) withDefaults() Config {
 	if c.BaseURL == "" {
 		c.BaseURL = "https://services-staging.entrade.com.vn/papertrade-entrade-api"

@@ -28,6 +28,8 @@ type Config struct {
 	WebSocketFactory      transport.WebSocketFactory
 }
 
+func (Config) BrokerName() string { return "dnse" }
+
 func (c Config) withDefaults() Config {
 	if c.BaseURL == "" {
 		c.BaseURL = "https://openapi.dnse.com.vn"

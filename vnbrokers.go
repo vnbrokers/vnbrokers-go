@@ -31,6 +31,7 @@ func NewFHSC(config fhsc.Config) *fhsc.Broker {
 
 type BrokerFactory = core.BrokerFactory
 type BrokerDescriptor = core.BrokerDescriptor
+type NamedBrokerConfig = core.NamedBrokerConfig
 type BrokerConfig = core.BrokerConfig
 type Brokers = core.Brokers
 

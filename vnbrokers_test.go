@@ -73,9 +73,9 @@ func TestNewBrokerRejectsUnknownBroker(t *testing.T) {
 
 func TestNewBrokersBuildsMultipleBrokerInstances(t *testing.T) {
 	brokers, err := NewBrokers([]BrokerConfig{
-		{ID: "dnse-main", Name: "dnse", Config: dnse.Config{}},
-		{ID: "dnse-alt", Name: "dnse", Config: &dnse.Config{}},
-		{ID: "fhsc", Name: "fhsc", Config: fhsc.Config{}},
+		{ID: "dnse-main", Config: dnse.Config{}},
+		{ID: "dnse-alt", Config: &dnse.Config{}},
+		{ID: "fhsc", Config: fhsc.Config{}},
 	})
 	if err != nil {
 		t.Fatalf("new brokers: %v", err)
@@ -96,10 +96,17 @@ func TestNewBrokersBuildsMultipleBrokerInstances(t *testing.T) {
 
 func TestNewBrokersRejectsDuplicateInstanceID(t *testing.T) {
 	_, err := NewBrokers([]BrokerConfig{
-		{ID: "main", Name: "dnse", Config: dnse.Config{}},
-		{ID: "main", Name: "fhsc", Config: fhsc.Config{}},
+		{ID: "main", Config: dnse.Config{}},
+		{ID: "main", Config: fhsc.Config{}},
 	})
 	if err == nil {
 		t.Fatal("expected duplicate id error")
+	}
+}
+
+func TestNewBrokersRejectsMissingConfig(t *testing.T) {
+	_, err := NewBrokers([]BrokerConfig{{ID: "main"}})
+	if err == nil {
+		t.Fatal("expected missing config error")
 	}
 }

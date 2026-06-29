@@ -45,6 +45,8 @@ type Config struct {
 	SignalRFactory        SignalRFactory
 }
 
+func (Config) BrokerName() string { return "ssi" }
+
 func (c Config) withDefaults() Config {
 	if c.BaseURL == "" {
 		c.BaseURL = "https://fc-tradeapi.ssi.com.vn"

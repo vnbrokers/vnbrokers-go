@@ -17,14 +17,18 @@ type BrokerDescriptor struct {
 	New     BrokerFactory
 }
 
+// NamedBrokerConfig is implemented by broker-specific config values that know
+// which registered broker adapter should build them.
+type NamedBrokerConfig interface {
+	BrokerName() string
+}
+
 // BrokerConfig describes one broker instance to build.
 type BrokerConfig struct {
 	// ID is the caller-defined instance key, for example "dnse-main" or "tcbs-paper".
 	ID string
-	// Name is the registered broker adapter name, for example "dnse" or "tcbs".
-	Name string
 	// Config is the broker-specific config value accepted by the adapter factory.
-	Config any
+	Config NamedBrokerConfig
 }
 
 // Brokers is a keyed set of broker instances.
@@ -126,9 +130,14 @@ func NewBrokers(configs []BrokerConfig) (Brokers, error) {
 			return nil, fmt.Errorf("duplicate broker instance id: %s", id)
 		}
 
-		broker, err := NewBroker(config.Name, config.Config)
+		if config.Config == nil {
+			return nil, fmt.Errorf("broker config is required for %q", id)
+		}
+
+		name := normalizeBrokerName(config.Config.BrokerName())
+		broker, err := NewBroker(name, config.Config)
 		if err != nil {
-			return nil, fmt.Errorf("build broker %q (%s): %w", id, normalizeBrokerName(config.Name), err)
+			return nil, fmt.Errorf("build broker %q (%s): %w", id, name, err)
 		}
 		brokers[id] = broker
 	}

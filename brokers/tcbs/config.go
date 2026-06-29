@@ -21,6 +21,8 @@ type Config struct {
 	WebSocketFactory TCBSWebSocketFactory
 }
 
+func (Config) BrokerName() string { return "tcbs" }
+
 type TCBSWebSocketFactory func(context.Context, string, map[string]string) (transport.WebSocketTransport, error)
 
 func (c Config) withDefaults() Config {

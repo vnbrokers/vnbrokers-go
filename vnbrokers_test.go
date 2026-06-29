@@ -1,6 +1,7 @@
 package vnbrokers
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestNewBrokerBuildsDNSEBroker(t *testing.T) {
-	broker, err := NewBroker("dnse", FactoryConfig{DNSE: &dnse.Config{}})
+	broker, err := NewBroker("dnse", dnse.Config{})
 	if err != nil {
 		t.Fatalf("new broker: %v", err)
 	}
@@ -25,7 +26,7 @@ func TestNewBrokerBuildsDNSEBroker(t *testing.T) {
 }
 
 func TestNewBrokerBuildsEntradeBroker(t *testing.T) {
-	broker, err := NewBroker("entrade", FactoryConfig{Entrade: &entrade.Config{}})
+	broker, err := NewBroker("entrade", entrade.Config{})
 	if err != nil {
 		t.Fatalf("new broker: %v", err)
 	}
@@ -38,7 +39,7 @@ func TestNewBrokerBuildsEntradeBroker(t *testing.T) {
 }
 
 func TestNewBrokerBuildsFHSCBroker(t *testing.T) {
-	broker, err := NewBroker("fhsc", FactoryConfig{FHSC: &fhsc.Config{}})
+	broker, err := NewBroker("fhsc", &fhsc.Config{})
 	if err != nil {
 		t.Fatalf("new broker: %v", err)
 	}
@@ -50,8 +51,22 @@ func TestNewBrokerBuildsFHSCBroker(t *testing.T) {
 	}
 }
 
+func TestRegisteredBrokersIncludesBuiltIns(t *testing.T) {
+	got := RegisteredBrokers()
+	want := []string{"dnse", "entrade", "fhsc", "ssi", "tcbs"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("registered brokers = %#v, want %#v", got, want)
+	}
+}
+
+func TestNewBrokerRejectsWrongConfigType(t *testing.T) {
+	if _, err := NewBroker("dnse", entrade.Config{}); err == nil {
+		t.Fatal("expected wrong config type error")
+	}
+}
+
 func TestNewBrokerRejectsUnknownBroker(t *testing.T) {
-	if _, err := NewBroker("unknown", FactoryConfig{}); err == nil {
+	if _, err := NewBroker("unknown", nil); err == nil {
 		t.Fatalf("expected unknown broker error")
 	}
 }

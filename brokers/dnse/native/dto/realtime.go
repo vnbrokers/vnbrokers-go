@@ -1,6 +1,11 @@
 package dto
 
-import "github.com/shopspring/decimal"
+import (
+	"encoding/json"
+	"strconv"
+
+	"github.com/shopspring/decimal"
+)
 
 type SubscribeSymbolsRequest struct {
 	Symbols []string
@@ -23,6 +28,40 @@ type StreamTimestamp struct {
 	Nanos   int64 `json:"Nanos,omitempty"`
 	Seconds int64 `json:"Seconds,omitempty"`
 }
+
+func (t *StreamTimestamp) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" || string(data) == `""` {
+		*t = StreamTimestamp{}
+		return nil
+	}
+
+	type timestampAlias StreamTimestamp
+	var object timestampAlias
+	if err := json.Unmarshal(data, &object); err == nil {
+		*t = StreamTimestamp(object)
+		return nil
+	}
+
+	var seconds int64
+	if err := json.Unmarshal(data, &seconds); err == nil {
+		t.Seconds = seconds
+		t.Nanos = 0
+		return nil
+	}
+
+	var value string
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return err
+	}
+	t.Seconds = parsed
+	t.Nanos = 0
+	return nil
+}
+
 type MarketIndexEvent struct {
 	T                               string           `json:"T,omitempty"`
 	BlockTradeAccumulatedValue      *decimal.Decimal `json:"blkTrdAccTrdVal,omitempty"`

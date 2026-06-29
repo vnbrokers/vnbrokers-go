@@ -1,8 +1,6 @@
 package vnbrokers
 
 import (
-	"fmt"
-
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse"
 	"github.com/vnbrokers/vnbrokers-go/brokers/entrade"
 	"github.com/vnbrokers/vnbrokers-go/brokers/fhsc"
@@ -31,6 +29,11 @@ func NewFHSC(config fhsc.Config) *fhsc.Broker {
 	return fhsc.NewBroker(config)
 }
 
+type BrokerFactory = core.BrokerFactory
+type BrokerDescriptor = core.BrokerDescriptor
+
+// FactoryConfig is kept for transition while callers migrate to broker-specific config values.
+// Deprecated: use NewBroker with a broker-specific Config value instead.
 type FactoryConfig struct {
 	DNSE    *dnse.Config
 	Entrade *entrade.Config
@@ -39,34 +42,22 @@ type FactoryConfig struct {
 	TCBS    *tcbs.Config
 }
 
-func NewBroker(name string, config FactoryConfig) (core.Broker, error) {
-	switch name {
-	case "dnse":
-		if config.DNSE == nil {
-			return nil, fmt.Errorf("dnse config is required")
-		}
-		return dnse.NewBroker(*config.DNSE), nil
-	case "entrade":
-		if config.Entrade == nil {
-			return nil, fmt.Errorf("entrade config is required")
-		}
-		return entrade.NewBroker(*config.Entrade), nil
-	case "fhsc":
-		if config.FHSC == nil {
-			return nil, fmt.Errorf("fhsc config is required")
-		}
-		return fhsc.NewBroker(*config.FHSC), nil
-	case "ssi":
-		if config.SSI == nil {
-			return nil, fmt.Errorf("ssi config is required")
-		}
-		return ssi.NewBroker(*config.SSI), nil
-	case "tcbs":
-		if config.TCBS == nil {
-			return nil, fmt.Errorf("tcbs config is required")
-		}
-		return tcbs.NewBroker(*config.TCBS), nil
-	default:
-		return nil, fmt.Errorf("unsupported broker: %s", name)
-	}
+// RegisterBroker registers a broker adapter factory.
+func RegisterBroker(descriptor BrokerDescriptor) error {
+	return core.RegisterBroker(descriptor)
+}
+
+// MustRegisterBroker registers a broker adapter factory and panics on error.
+func MustRegisterBroker(descriptor BrokerDescriptor) {
+	core.MustRegisterBroker(descriptor)
+}
+
+// RegisteredBrokers returns the sorted names of registered broker adapters.
+func RegisteredBrokers() []string {
+	return core.RegisteredBrokers()
+}
+
+// NewBroker builds a registered broker by name from broker-specific config.
+func NewBroker(name string, config any) (core.Broker, error) {
+	return core.NewBroker(name, config)
 }

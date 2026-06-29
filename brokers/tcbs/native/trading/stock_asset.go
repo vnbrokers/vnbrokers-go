@@ -61,7 +61,7 @@ func (s *service) GetMarginInformation(ctx context.Context, request dto.GetMargi
 	query := url.Values{}
 	set(query, "acctno", request.AccountNo)
 	set(query, "fromdate", request.FromDate)
-	set(query, "todate", request.ToDate)
+	set(query, "toDate", request.ToDate)
 	set(query, "page", request.Page)
 	set(query, "size", request.Size)
 	set(query, "custodycd", request.CustodyCode)

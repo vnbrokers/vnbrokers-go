@@ -1,5 +1,7 @@
 package dto
 
+import "encoding/json"
+
 type GetStockPurchasingPowerRequest struct{ AccountNo string }
 type GetStockPurchasingPowerResponse StockPurchasingPower
 
@@ -21,6 +23,21 @@ type GetMarginQuotaResponse []MarginQuota
 
 type GetMarginAccountInformationRequest struct{ AccountNo string }
 type GetMarginAccountInformationResponse MarginAccountInformation
+
+func (r *GetMarginAccountInformationResponse) UnmarshalJSON(data []byte) error {
+	var empty []MarginAccountInformation
+	if err := json.Unmarshal(data, &empty); err == nil && len(empty) == 0 {
+		*r = GetMarginAccountInformationResponse{}
+		return nil
+	}
+
+	var response MarginAccountInformation
+	if err := json.Unmarshal(data, &response); err != nil {
+		return err
+	}
+	*r = GetMarginAccountInformationResponse(response)
+	return nil
+}
 
 type GetSupplementaryLoanPackagesRequest struct{ AccountNo string }
 type GetSupplementaryLoanPackagesResponse SupplementaryLoanPackages

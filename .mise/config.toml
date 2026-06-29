@@ -2,17 +2,37 @@
 go = "1.26.4"
 
 [tasks.test]
-description = "Run Go tests"
+description = "Run all Go tests"
 run = "go test ./..."
+
+[tasks.test-unit]
+description = "Run unit-focused Go tests"
+run = "go test ./brokers/... ./core/... ./internal/... ./transport/... ./realtime/... ./auth/... ./domain/... ./marketdata/... ./trading/..."
+
+[tasks.test-integration]
+description = "Run integration-style Go tests"
+run = "go test ./tests/..."
 
 [tasks.vet]
 description = "Run go vet"
 run = "go vet ./..."
 
-[tasks.format]
+[tasks.fmt]
 description = "Format Go files"
-run = "gofmt -w {} +"
+run = "gofmt -w ."
+
+[tasks.format]
+description = "Alias for fmt"
+run = "mise run fmt"
+
+[tasks.check]
+description = "Format, test, and vet the repository"
+run = "mise run fmt && mise run test && mise run vet"
+
+[tasks.ci]
+description = "CI entrypoint"
+run = "mise run test && mise run vet"
 
 [tasks.lint]
 description = "Run static Go checks available in the toolchain"
-run = "go test ./... && go vet ./..."
+run = "mise run ci"

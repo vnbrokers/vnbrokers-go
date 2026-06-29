@@ -17,6 +17,19 @@ type BrokerDescriptor struct {
 	New     BrokerFactory
 }
 
+// BrokerConfig describes one broker instance to build.
+type BrokerConfig struct {
+	// ID is the caller-defined instance key, for example "dnse-main" or "tcbs-paper".
+	ID string
+	// Name is the registered broker adapter name, for example "dnse" or "tcbs".
+	Name string
+	// Config is the broker-specific config value accepted by the adapter factory.
+	Config any
+}
+
+// Brokers is a keyed set of broker instances.
+type Brokers map[string]Broker
+
 var brokerRegistry = struct {
 	sync.RWMutex
 	factories map[string]BrokerFactory
@@ -99,6 +112,33 @@ func NewBroker(name string, config any) (Broker, error) {
 		return nil, fmt.Errorf("unsupported broker: %s", name)
 	}
 	return factory(config)
+}
+
+// NewBrokers builds multiple registered broker instances keyed by caller-defined ID.
+func NewBrokers(configs []BrokerConfig) (Brokers, error) {
+	brokers := make(Brokers, len(configs))
+	for _, config := range configs {
+		id := strings.TrimSpace(config.ID)
+		if id == "" {
+			return nil, fmt.Errorf("broker instance id is required")
+		}
+		if _, exists := brokers[id]; exists {
+			return nil, fmt.Errorf("duplicate broker instance id: %s", id)
+		}
+
+		broker, err := NewBroker(config.Name, config.Config)
+		if err != nil {
+			return nil, fmt.Errorf("build broker %q (%s): %w", id, normalizeBrokerName(config.Name), err)
+		}
+		brokers[id] = broker
+	}
+	return brokers, nil
+}
+
+// Get returns a broker by instance ID.
+func (b Brokers) Get(id string) (Broker, bool) {
+	broker, ok := b[strings.TrimSpace(id)]
+	return broker, ok
 }
 
 func normalizeBrokerName(name string) string {

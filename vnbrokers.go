@@ -31,6 +31,8 @@ func NewFHSC(config fhsc.Config) *fhsc.Broker {
 
 type BrokerFactory = core.BrokerFactory
 type BrokerDescriptor = core.BrokerDescriptor
+type BrokerConfig = core.BrokerConfig
+type Brokers = core.Brokers
 
 // FactoryConfig is kept for transition while callers migrate to broker-specific config values.
 // Deprecated: use NewBroker with a broker-specific Config value instead.
@@ -60,4 +62,9 @@ func RegisteredBrokers() []string {
 // NewBroker builds a registered broker by name from broker-specific config.
 func NewBroker(name string, config any) (core.Broker, error) {
 	return core.NewBroker(name, config)
+}
+
+// NewBrokers builds multiple registered brokers keyed by caller-defined ID.
+func NewBrokers(configs []BrokerConfig) (Brokers, error) {
+	return core.NewBrokers(configs)
 }

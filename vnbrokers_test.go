@@ -70,3 +70,36 @@ func TestNewBrokerRejectsUnknownBroker(t *testing.T) {
 		t.Fatalf("expected unknown broker error")
 	}
 }
+
+func TestNewBrokersBuildsMultipleBrokerInstances(t *testing.T) {
+	brokers, err := NewBrokers([]BrokerConfig{
+		{ID: "dnse-main", Name: "dnse", Config: dnse.Config{}},
+		{ID: "dnse-alt", Name: "dnse", Config: &dnse.Config{}},
+		{ID: "fhsc", Name: "fhsc", Config: fhsc.Config{}},
+	})
+	if err != nil {
+		t.Fatalf("new brokers: %v", err)
+	}
+	if len(brokers) != 3 {
+		t.Fatalf("brokers length = %d", len(brokers))
+	}
+	if broker, ok := brokers.Get("dnse-main"); !ok || broker.Name() != "dnse" {
+		t.Fatalf("dnse-main broker = %#v, %t", broker, ok)
+	}
+	if broker, ok := brokers.Get("dnse-alt"); !ok || broker.Name() != "dnse" {
+		t.Fatalf("dnse-alt broker = %#v, %t", broker, ok)
+	}
+	if broker, ok := brokers.Get("fhsc"); !ok || broker.Name() != "fhsc" {
+		t.Fatalf("fhsc broker = %#v, %t", broker, ok)
+	}
+}
+
+func TestNewBrokersRejectsDuplicateInstanceID(t *testing.T) {
+	_, err := NewBrokers([]BrokerConfig{
+		{ID: "main", Name: "dnse", Config: dnse.Config{}},
+		{ID: "main", Name: "fhsc", Config: fhsc.Config{}},
+	})
+	if err == nil {
+		t.Fatal("expected duplicate id error")
+	}
+}

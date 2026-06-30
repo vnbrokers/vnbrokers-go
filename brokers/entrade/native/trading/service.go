@@ -2,14 +2,12 @@ package trading
 
 import (
 	"context"
-	"encoding/json"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
-	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -115,35 +113,17 @@ func send[T any](ctx context.Context, s *service, capability core.Capability, op
 		return nil, err
 	}
 	response, err := s.dependencies.Send(ctx, "native.trading."+operation, transport.HTTPRequest{
-		Method: method, URL: strings.TrimRight(s.dependencies.BaseURL, "/") + path,
+		Method: method, URL: httpx.URL(s.dependencies.BaseURL, path, nil),
 		Headers: s.dependencies.Headers(body != nil), JSON: body,
 	})
 	if err != nil {
 		return nil, err
 	}
-	var out T
-	if err := decode(response, &out); err != nil {
-		return nil, sdkerrors.Decode("entrade", "native.trading."+operation, "decode response", responsePayload(response), err)
-	}
-	return &out, nil
-}
-
-func responsePayload(response transport.HTTPResponse) any {
-	if len(response.Raw) > 0 {
-		return response.Raw
-	}
-	return response.Body
-}
-
-func decode(response transport.HTTPResponse, out any) error {
-	if len(response.Raw) > 0 {
-		return json.Unmarshal(response.Raw, out)
-	}
-	payload, err := json.Marshal(response.Body)
+	out, err := httpx.DecodeResponse[T]("entrade", "native.trading."+operation, "decode response", response)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return json.Unmarshal(payload, out)
+	return out, nil
 }
 
 func rangeQuery(accountID string, start, end int, sort, order string) url.Values {

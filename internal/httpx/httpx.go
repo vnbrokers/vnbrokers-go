@@ -31,7 +31,15 @@ func DecodeResponse[T any](broker, operation, message string, response transport
 
 	result := new(T)
 	if err := json.Unmarshal(payload, result); err != nil {
-		return nil, sdkerrors.Decode(broker, operation, message, response.Body, err)
+		return nil, sdkerrors.Decode(broker, operation, message, RawPayload(response), err)
 	}
 	return result, nil
+}
+
+// RawPayload returns the raw response bytes when available, otherwise the decoded body.
+func RawPayload(response transport.HTTPResponse) any {
+	if len(response.Raw) > 0 {
+		return response.Raw
+	}
+	return response.Body
 }

@@ -2,13 +2,12 @@ package entrade
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/entrade/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
 	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -29,12 +28,12 @@ func (s *AuthService) Login(ctx context.Context, request dto.LoginRequest) (*dto
 	if err != nil {
 		return nil, err
 	}
-	var loginResponse dto.LoginResponse
-	if err := decode(response, &loginResponse); err != nil {
-		return nil, sdkerrors.Decode("entrade", "auth.login", "decode login response", response.Body, err)
+	loginResponse, err := httpx.DecodeResponse[dto.LoginResponse]("entrade", "auth.login", "decode login response", response)
+	if err != nil {
+		return nil, err
 	}
 	s.broker.config.Token = loginResponse.Token
-	return &loginResponse, nil
+	return loginResponse, nil
 }
 
 func (b *Broker) send(
@@ -63,11 +62,11 @@ func (b *Broker) send(
 }
 
 func (b *Broker) url(path string) string {
-	return strings.TrimRight(b.config.BaseURL, "/") + path
+	return httpx.URL(b.config.BaseURL, path, nil)
 }
 
 func (b *Broker) authURL(path string) string {
-	return strings.TrimRight(b.config.AuthBaseURL, "/") + path
+	return httpx.URL(b.config.AuthBaseURL, path, nil)
 }
 
 func (b *Broker) headers(authenticated bool, includeContentType bool) map[string]string {
@@ -92,15 +91,4 @@ func (b *Broker) withAuthorization(headers map[string]string) map[string]string 
 		out["Authorization"] = "Bearer " + b.config.Token
 	}
 	return out
-}
-
-func decode(response transport.HTTPResponse, out any) error {
-	if len(response.Raw) > 0 {
-		return json.Unmarshal(response.Raw, out)
-	}
-	payload, err := json.Marshal(response.Body)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(payload, out)
 }

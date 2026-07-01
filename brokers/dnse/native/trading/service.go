@@ -2,14 +2,12 @@ package trading
 
 import (
 	"context"
-	"encoding/json"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
-	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/realtime"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
@@ -180,30 +178,19 @@ func do[T any](s *service, ctx context.Context, capability core.Capability, meth
 	if err := s.dependencies.RequireCapability(capability); err != nil {
 		return nil, err
 	}
-	endpoint := strings.TrimRight(s.dependencies.BaseURL, "/") + path
-	if encoded := q.Encode(); encoded != "" {
-		endpoint += "?" + encoded
-	}
 	headers := map[string]string{}
 	if trading && s.dependencies.TradingHeaders != nil {
 		headers = s.dependencies.TradingHeaders(body != nil)
 	} else if s.dependencies.APIHeaders != nil {
 		headers = s.dependencies.APIHeaders(false)
 	}
-	response, err := s.dependencies.Send(ctx, string(capability), transport.HTTPRequest{Method: method, URL: endpoint, Headers: headers, JSON: body})
+	response, err := s.dependencies.Send(ctx, string(capability), transport.HTTPRequest{Method: method, URL: httpx.URL(s.dependencies.BaseURL, path, q), Headers: headers, JSON: body})
 	if err != nil {
 		return nil, err
 	}
-	payload := response.Raw
-	if len(payload) == 0 {
-		payload, err = json.Marshal(response.Body)
-		if err != nil {
-			return nil, err
-		}
-	}
-	result := new(T)
-	if err = json.Unmarshal(payload, result); err != nil {
-		return nil, sdkerrors.Decode("dnse", string(capability), "decode DNSE native trading response", response.Body, err)
+	result, err := httpx.DecodeResponse[T]("dnse", string(capability), "decode DNSE native trading response", response)
+	if err != nil {
+		return nil, err
 	}
 	return result, nil
 }

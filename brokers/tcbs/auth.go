@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
 	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -29,12 +29,12 @@ func (s *AuthService) GetToken(ctx context.Context, request dto.GetTokenRequest)
 	if err != nil {
 		return nil, err
 	}
-	var tokenResponse dto.GetTokenResponse
-	if err := decode(response, &tokenResponse); err != nil {
-		return nil, sdkerrors.Decode("tcbs", "auth.get_token", "decode token response", response.Body, err)
+	tokenResponse, err := httpx.DecodeResponse[dto.GetTokenResponse]("tcbs", "auth.get_token", "decode token response", response)
+	if err != nil {
+		return nil, err
 	}
 	s.broker.accessToken = tokenResponse.Token
-	return &tokenResponse, nil
+	return tokenResponse, nil
 }
 
 func (b *Broker) send(
@@ -52,26 +52,24 @@ func (b *Broker) send(
 	}
 	if response.StatusCode >= 400 {
 		body := expectObject(response.Body)
-		raw := response.Body
 		if len(response.Raw) > 0 {
 			var decoded map[string]any
 			if json.Unmarshal(response.Raw, &decoded) == nil {
 				body = decoded
 			}
-			raw = response.Raw
 		}
 		code := stringify(body["code"])
 		message := stringify(body["message"])
 		if message == "" {
 			message = fmt.Sprintf("TCBS request failed with status %d", response.StatusCode)
 		}
-		return transport.HTTPResponse{}, sdkerrors.BrokerRejected("tcbs", operation, code, message, raw)
+		return transport.HTTPResponse{}, sdkerrors.BrokerRejected("tcbs", operation, code, message, httpx.RawPayload(response))
 	}
 	return response, nil
 }
 
 func (b *Broker) url(path string) string {
-	return strings.TrimRight(b.config.BaseURL, "/") + path
+	return httpx.URL(b.config.BaseURL, path, nil)
 }
 
 func (b *Broker) headers(authenticated bool, includeContentType bool) map[string]string {
@@ -93,15 +91,4 @@ func (b *Broker) withAuthorization(headers map[string]string) map[string]string 
 		out["Authorization"] = "Bearer " + b.accessToken
 	}
 	return out
-}
-
-func decode(response transport.HTTPResponse, out any) error {
-	if len(response.Raw) > 0 {
-		return json.Unmarshal(response.Raw, out)
-	}
-	payload, err := json.Marshal(response.Body)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(payload, out)
 }

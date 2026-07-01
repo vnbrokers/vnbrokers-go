@@ -11,6 +11,7 @@ import (
 	"github.com/vnbrokers/vnbrokers-go/core"
 	"github.com/vnbrokers/vnbrokers-go/domain"
 	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -42,7 +43,7 @@ func (s *AuthService) GetAccessToken(
 ) (AccessTokenResponse, error) {
 	response, err := s.broker.send(ctx, "auth.get_data_access_token", false, false, transport.HTTPRequest{
 		Method:  "POST",
-		URL:     strings.TrimRight(s.broker.config.DataBaseURL, "/") + "/api/v2/Market/AccessToken",
+		URL:     httpx.URL(s.broker.config.DataBaseURL, "/api/v2/Market/AccessToken", nil),
 		Headers: s.broker.headers(false, true),
 		JSON: map[string]any{
 			"consumerID":     s.broker.config.ConsumerID,
@@ -52,12 +53,12 @@ func (s *AuthService) GetAccessToken(
 	if err != nil {
 		return AccessTokenResponse{}, err
 	}
-	var envelope TradingResponse[AccessTokenResponse]
-	if err := decode(response, &envelope); err != nil {
-		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_data_access_token", "decode SSI data access token response", response.Body, err)
+	envelope, err := httpx.DecodeResponse[TradingResponse[AccessTokenResponse]]("ssi", "auth.get_data_access_token", "decode SSI data access token response", response)
+	if err != nil {
+		return AccessTokenResponse{}, err
 	}
 	if envelope.Data.AccessToken == "" {
-		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_data_access_token", "decode SSI data access token response", response.Body, errors.New("SSI data token response missing accessToken"))
+		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_data_access_token", "decode SSI data access token response", httpx.RawPayload(response), errors.New("SSI data token response missing accessToken"))
 	}
 	s.broker.setDataToken(envelope.Data.AccessToken)
 	return envelope.Data, nil
@@ -85,12 +86,12 @@ func (s *AuthService) GetTradingToken(
 	if err != nil {
 		return AccessTokenResponse{}, err
 	}
-	var envelope TradingResponse[AccessTokenResponse]
-	if err := decode(response, &envelope); err != nil {
-		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_trading_token", "decode SSI trading access token response", response.Body, err)
+	envelope, err := httpx.DecodeResponse[TradingResponse[AccessTokenResponse]]("ssi", "auth.get_trading_token", "decode SSI trading access token response", response)
+	if err != nil {
+		return AccessTokenResponse{}, err
 	}
 	if envelope.Data.AccessToken == "" {
-		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_trading_token", "decode SSI trading access token response", response.Body, errors.New("SSI trading token response missing accessToken"))
+		return AccessTokenResponse{}, sdkerrors.Decode("ssi", "auth.get_trading_token", "decode SSI trading access token response", httpx.RawPayload(response), errors.New("SSI trading token response missing accessToken"))
 	}
 	s.broker.setTradingToken(envelope.Data.AccessToken)
 	return envelope.Data, nil
@@ -124,19 +125,19 @@ func (b *Broker) send(
 		if message == "" {
 			message = fmt.Sprintf("SSI request failed with status %d", response.StatusCode)
 		}
-		return transport.HTTPResponse{}, sdkerrors.BrokerRejected("ssi", operation, stringify(firstNonNil(body["status"], body["code"])), message, response.Body)
+		return transport.HTTPResponse{}, sdkerrors.BrokerRejected("ssi", operation, stringify(firstNonNil(body["status"], body["code"])), message, httpx.RawPayload(response))
 	}
 	if rejected, code, message := rejectedStatus(response.Body); rejected {
 		if message == "" {
 			message = "SSI request rejected"
 		}
-		return transport.HTTPResponse{}, sdkerrors.BrokerRejected("ssi", operation, code, message, response.Body)
+		return transport.HTTPResponse{}, sdkerrors.BrokerRejected("ssi", operation, code, message, httpx.RawPayload(response))
 	}
 	return response, nil
 }
 
 func (b *Broker) url(path string) string {
-	return strings.TrimRight(b.config.BaseURL, "/") + path
+	return httpx.URL(b.config.BaseURL, path, nil)
 }
 
 func (b *Broker) headers(authenticated bool, includeContentType bool) map[string]string {
@@ -165,17 +166,6 @@ func (b *Broker) query(path string, values url.Values) string {
 		return b.url(path)
 	}
 	return b.url(path + "?" + values.Encode())
-}
-
-func decode(response transport.HTTPResponse, out any) error {
-	if len(response.Raw) > 0 {
-		return json.Unmarshal(response.Raw, out)
-	}
-	payload, err := json.Marshal(response.Body)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(payload, out)
 }
 
 func rawPayload(data any, raw []byte) domain.RawPayload {

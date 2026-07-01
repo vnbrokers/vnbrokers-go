@@ -2,13 +2,12 @@ package trading
 
 import (
 	"context"
-	"encoding/json"
 	"net/url"
-	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/fhsc/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
 	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -79,13 +78,9 @@ func do[T any](s *service, ctx context.Context, capability core.Capability, meth
 	if err := s.dependencies.RequireCapability(capability); err != nil {
 		return nil, err
 	}
-	endpoint := strings.TrimRight(s.dependencies.BaseURL, "/") + path
-	if encoded := query.Encode(); encoded != "" {
-		endpoint += "?" + encoded
-	}
 	response, err := s.dependencies.Send(ctx, string(capability), transport.HTTPRequest{
 		Method:  method,
-		URL:     endpoint,
+		URL:     httpx.URL(s.dependencies.BaseURL, path, query),
 		Headers: s.dependencies.Headers(true, body != nil),
 		JSON:    body,
 	})
@@ -93,12 +88,12 @@ func do[T any](s *service, ctx context.Context, capability core.Capability, meth
 		return nil, err
 	}
 
-	var env envelope[T]
-	if err := decode(response, &env); err != nil {
-		return nil, sdkerrors.Decode("fhsc", string(capability), "decode FHSC trading response", responsePayload(response), err)
+	env, err := httpx.DecodeResponse[envelope[T]]("fhsc", string(capability), "decode FHSC trading response", response)
+	if err != nil {
+		return nil, err
 	}
 	if code := stringValue(env.ErrorCode); code != "" && code != "0" {
-		return nil, sdkerrors.BrokerRejected("fhsc", string(capability), code, firstNonEmpty(env.Message, env.PopupMessage, env.Title), responsePayload(response))
+		return nil, sdkerrors.BrokerRejected("fhsc", string(capability), code, firstNonEmpty(env.Message, env.PopupMessage, env.Title), httpx.RawPayload(response))
 	}
 	if env.Result != nil {
 		return env.Result, nil
@@ -134,22 +129,4 @@ func firstNonEmpty(values ...*string) string {
 		}
 	}
 	return ""
-}
-
-func decode(response transport.HTTPResponse, out any) error {
-	if len(response.Raw) > 0 {
-		return json.Unmarshal(response.Raw, out)
-	}
-	payload, err := json.Marshal(response.Body)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(payload, out)
-}
-
-func responsePayload(response transport.HTTPResponse) any {
-	if len(response.Raw) > 0 {
-		return response.Raw
-	}
-	return response.Body
 }

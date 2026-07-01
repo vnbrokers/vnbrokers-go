@@ -2,14 +2,12 @@ package trading
 
 import (
 	"context"
-	"encoding/json"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/ssi/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
-	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/realtime"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
@@ -142,26 +140,22 @@ func get[T any](ctx context.Context, s *service, capability core.Capability, pat
 		return nil, err
 	}
 
-	endpoint := strings.TrimRight(s.dependencies.BaseURL, "/") + path
-	if encoded := params.Encode(); encoded != "" {
-		endpoint += "?" + encoded
-	}
 	headers := map[string]string{"Accept": "application/json"}
 	if token := s.dependencies.TradingToken(); token != "" {
 		headers["Authorization"] = "Bearer " + token
 	}
 	response, err := s.dependencies.Send(ctx, string(capability), transport.HTTPRequest{
 		Method:  "GET",
-		URL:     endpoint,
+		URL:     httpx.URL(s.dependencies.BaseURL, path, params),
 		Headers: headers,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	result := new(T)
-	if err := decode(response, result); err != nil {
-		return nil, sdkerrors.Decode("ssi", string(capability), "decode SSI native trading response", response.Body, err)
+	result, err := httpx.DecodeResponse[T]("ssi", string(capability), "decode SSI native trading response", response)
+	if err != nil {
+		return nil, err
 	}
 	return result, nil
 }
@@ -171,7 +165,6 @@ func post[T any](ctx context.Context, s *service, capability core.Capability, pa
 		return nil, err
 	}
 
-	endpoint := strings.TrimRight(s.dependencies.BaseURL, "/") + path
 	headers := map[string]string{
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
@@ -181,7 +174,7 @@ func post[T any](ctx context.Context, s *service, capability core.Capability, pa
 	}
 	response, err := s.dependencies.Send(ctx, string(capability), transport.HTTPRequest{
 		Method:  "POST",
-		URL:     endpoint,
+		URL:     httpx.URL(s.dependencies.BaseURL, path, nil),
 		Headers: headers,
 		JSON:    body,
 	})
@@ -189,22 +182,11 @@ func post[T any](ctx context.Context, s *service, capability core.Capability, pa
 		return nil, err
 	}
 
-	result := new(T)
-	if err := decode(response, result); err != nil {
-		return nil, sdkerrors.Decode("ssi", string(capability), "decode SSI native trading response", response.Body, err)
+	result, err := httpx.DecodeResponse[T]("ssi", string(capability), "decode SSI native trading response", response)
+	if err != nil {
+		return nil, err
 	}
 	return result, nil
-}
-
-func decode(response transport.HTTPResponse, out any) error {
-	if len(response.Raw) > 0 {
-		return json.Unmarshal(response.Raw, out)
-	}
-	payload, err := json.Marshal(response.Body)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(payload, out)
 }
 
 func setOptionalString(params url.Values, key string, value string) {

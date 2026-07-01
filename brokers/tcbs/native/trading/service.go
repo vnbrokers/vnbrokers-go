@@ -2,13 +2,11 @@ package trading
 
 import (
 	"context"
-	"encoding/json"
 	"net/url"
-	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/brokers/tcbs/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
-	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -109,26 +107,15 @@ func do[T any](s *service, ctx context.Context, capability core.Capability, meth
 	if err := s.dependencies.RequireCapability(capability); err != nil {
 		return nil, err
 	}
-	endpoint := strings.TrimRight(s.dependencies.BaseURL, "/") + path
-	if encoded := query.Encode(); encoded != "" {
-		endpoint += "?" + encoded
-	}
 	response, err := s.dependencies.Send(ctx, string(capability), transport.HTTPRequest{
-		Method: method, URL: endpoint, Headers: s.dependencies.Headers(true, body != nil), JSON: body,
+		Method: method, URL: httpx.URL(s.dependencies.BaseURL, path, query), Headers: s.dependencies.Headers(true, body != nil), JSON: body,
 	})
 	if err != nil {
 		return nil, err
 	}
-	payload := response.Raw
-	if len(payload) == 0 {
-		payload, err = json.Marshal(response.Body)
-		if err != nil {
-			return nil, err
-		}
-	}
-	result := new(T)
-	if err := json.Unmarshal(payload, result); err != nil {
-		return nil, sdkerrors.Decode("tcbs", string(capability), "decode TCBS native trading response", response.Body, err)
+	result, err := httpx.DecodeResponse[T]("tcbs", string(capability), "decode TCBS native trading response", response)
+	if err != nil {
+		return nil, err
 	}
 	return result, nil
 }

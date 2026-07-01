@@ -13,6 +13,7 @@ import (
 	"github.com/vnbrokers/vnbrokers-go/brokers/fhsc/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
 	sdkerrors "github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -69,14 +70,14 @@ func (s *AuthService) GetCurrentUser(ctx context.Context) (*dto.GetCurrentUserRe
 	if err != nil {
 		return nil, err
 	}
-	var out dto.GetCurrentUserResponse
-	if err := decode(response, &out); err != nil {
-		return nil, sdkerrors.Decode("fhsc", "auth.get_current_user", "decode current user response", brokerPayload(response), err)
+	out, err := httpx.DecodeResponse[dto.GetCurrentUserResponse]("fhsc", "auth.get_current_user", "decode current user response", response)
+	if err != nil {
+		return nil, err
 	}
 	if out.Data.UserID != 0 {
 		s.broker.config.UserID = out.Data.UserID
 	}
-	return &out, nil
+	return out, nil
 }
 
 func (s *AuthService) GetSubAccounts(ctx context.Context, userID int64) (*dto.GetSubAccountsResponse, error) {
@@ -91,11 +92,11 @@ func (s *AuthService) GetSubAccounts(ctx context.Context, userID int64) (*dto.Ge
 	if err != nil {
 		return nil, err
 	}
-	var out dto.GetSubAccountsResponse
-	if err := decode(response, &out); err != nil {
-		return nil, sdkerrors.Decode("fhsc", "auth.get_sub_accounts", "decode sub accounts response", brokerPayload(response), err)
+	out, err := httpx.DecodeResponse[dto.GetSubAccountsResponse]("fhsc", "auth.get_sub_accounts", "decode sub accounts response", response)
+	if err != nil {
+		return nil, err
 	}
-	return &out, nil
+	return out, nil
 }
 
 func (s *AuthService) RequestTwoFactorOTP(ctx context.Context, request dto.TwoFactorRequestPayload) (*dto.TwoFactorRequestResponse, error) {
@@ -111,11 +112,11 @@ func (s *AuthService) RequestTwoFactorOTP(ctx context.Context, request dto.TwoFa
 	if err != nil {
 		return nil, err
 	}
-	var out dto.TwoFactorRequestResponse
-	if err := decode(response, &out); err != nil {
-		return nil, sdkerrors.Decode("fhsc", "auth.request_two_factor", "decode request 2fa response", brokerPayload(response), err)
+	out, err := httpx.DecodeResponse[dto.TwoFactorRequestResponse]("fhsc", "auth.request_two_factor", "decode request 2fa response", response)
+	if err != nil {
+		return nil, err
 	}
-	return &out, nil
+	return out, nil
 }
 
 func (s *AuthService) VerifyTwoFactorOTP(ctx context.Context, request dto.TwoFactorVerifyPayload) (*dto.TwoFactorVerifyResponse, error) {
@@ -131,14 +132,14 @@ func (s *AuthService) VerifyTwoFactorOTP(ctx context.Context, request dto.TwoFac
 	if err != nil {
 		return nil, err
 	}
-	var out dto.TwoFactorVerifyResponse
-	if err := decode(response, &out); err != nil {
-		return nil, sdkerrors.Decode("fhsc", "auth.verify_two_factor", "decode verify 2fa response", brokerPayload(response), err)
+	out, err := httpx.DecodeResponse[dto.TwoFactorVerifyResponse]("fhsc", "auth.verify_two_factor", "decode verify 2fa response", response)
+	if err != nil {
+		return nil, err
 	}
 	if out.SessionToken != "" {
 		s.broker.config.TwoFactorToken = out.SessionToken
 	}
-	return &out, nil
+	return out, nil
 }
 
 func (s *AuthService) RevokeTwoFactorSession(ctx context.Context, request dto.TwoFactorRevokePayload) (*dto.TwoFactorRevokeResponse, error) {
@@ -154,14 +155,14 @@ func (s *AuthService) RevokeTwoFactorSession(ctx context.Context, request dto.Tw
 	if err != nil {
 		return nil, err
 	}
-	var out dto.TwoFactorRevokeResponse
-	if err := decode(response, &out); err != nil {
-		return nil, sdkerrors.Decode("fhsc", "auth.revoke_two_factor", "decode revoke 2fa response", brokerPayload(response), err)
+	out, err := httpx.DecodeResponse[dto.TwoFactorRevokeResponse]("fhsc", "auth.revoke_two_factor", "decode revoke 2fa response", response)
+	if err != nil {
+		return nil, err
 	}
 	if request.SessionToken != "" && request.SessionToken == s.broker.config.TwoFactorToken {
 		s.broker.config.TwoFactorToken = ""
 	}
-	return &out, nil
+	return out, nil
 }
 
 func (s *AuthService) InferIdentity(ctx context.Context) (*Identity, error) {
@@ -214,7 +215,7 @@ func (b *Broker) send(ctx context.Context, operation string, authenticated bool,
 	}
 	if response.StatusCode >= 400 {
 		body := expectObject(response.Body)
-		raw := brokerPayload(response)
+		raw := httpx.RawPayload(response)
 		if len(response.Raw) > 0 {
 			var decoded map[string]any
 			if json.Unmarshal(response.Raw, &decoded) == nil {
@@ -289,7 +290,7 @@ func (b *Broker) signRequest(request transport.HTTPRequest) (transport.HTTPReque
 }
 
 func (b *Broker) url(path string) string {
-	return strings.TrimRight(b.config.BaseURL, "/") + path
+	return httpx.URL(b.config.BaseURL, path, nil)
 }
 
 func (b *Broker) headers(authenticated bool, includeContentType bool) map[string]string {
@@ -298,22 +299,4 @@ func (b *Broker) headers(authenticated bool, includeContentType bool) map[string
 		headers["Content-Type"] = "application/json"
 	}
 	return headers
-}
-
-func decode(response transport.HTTPResponse, out any) error {
-	if len(response.Raw) > 0 {
-		return json.Unmarshal(response.Raw, out)
-	}
-	payload, err := json.Marshal(response.Body)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(payload, out)
-}
-
-func brokerPayload(response transport.HTTPResponse) any {
-	if len(response.Raw) > 0 {
-		return response.Raw
-	}
-	return response.Body
 }

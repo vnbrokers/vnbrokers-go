@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
@@ -16,6 +15,7 @@ import (
 	nativedto "github.com/vnbrokers/vnbrokers-go/brokers/dnse/native/dto"
 	"github.com/vnbrokers/vnbrokers-go/core"
 	"github.com/vnbrokers/vnbrokers-go/errors"
+	"github.com/vnbrokers/vnbrokers-go/internal/httpx"
 	"github.com/vnbrokers/vnbrokers-go/transport"
 )
 
@@ -119,19 +119,7 @@ func (s *AuthService) GetTradingToken(
 }
 
 func decodeResponse[T any](operation string, response transport.HTTPResponse) (*T, error) {
-	payload := response.Raw
-	if len(payload) == 0 {
-		var err error
-		payload, err = json.Marshal(response.Body)
-		if err != nil {
-			return nil, err
-		}
-	}
-	result := new(T)
-	if err := json.Unmarshal(payload, result); err != nil {
-		return nil, errors.Decode("dnse", operation, "decode DNSE auth response", response.Body, err)
-	}
-	return result, nil
+	return httpx.DecodeResponse[T]("dnse", operation, "decode DNSE auth response", response)
 }
 
 func (b *Broker) signer() *Signer {
@@ -165,13 +153,13 @@ func (b *Broker) send(
 		if message == "" {
 			message = fmt.Sprintf("DNSE request failed with status %d", response.StatusCode)
 		}
-		return transport.HTTPResponse{}, errors.BrokerRejected("dnse", operation, code, message, response.Body)
+		return transport.HTTPResponse{}, errors.BrokerRejected("dnse", operation, code, message, httpx.RawPayload(response))
 	}
 	return response, nil
 }
 
 func (b *Broker) url(path string) string {
-	return strings.TrimRight(b.config.BaseURL, "/") + path
+	return httpx.URL(b.config.BaseURL, path, nil)
 }
 
 func (b *Broker) apiHeaders() map[string]string {

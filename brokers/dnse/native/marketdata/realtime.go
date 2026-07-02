@@ -43,6 +43,15 @@ func (s *realtimeService) SubscribeQuotes(ctx context.Context, r dto.SubscribeSy
 func (s *realtimeService) SubscribeSecurityDefinitions(ctx context.Context, r dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.SecurityDefinitionEvent], error) {
 	return subscribe[dto.SecurityDefinitionEvent](ctx, s, CapabilityRealtimeSecurityDefinitions, "security_definition", r.BoardID, "", "", r.Symbols)
 }
+func (s *realtimeService) SubscribeTradingSessions(ctx context.Context, r dto.SubscribeTradingSessionRequest) (realtime.Subscription[dto.TradingSessionEvent], error) {
+	if err := s.requireCapability(CapabilityRealtimeTradingSessions); err != nil {
+		return nil, err
+	}
+	channel := buildTradingSessionChannel(r.TSCProdGrpID, r.BoardID, s.dependencies.Encoding)
+	return nativerealtime.Subscribe(ctx, s.dependencies, buildSubscribeMessage(channel, nil), isPayload, func(message map[string]any) (dto.TradingSessionEvent, error) {
+		return decodeEvent[dto.TradingSessionEvent](messageData(message))
+	})
+}
 func (s *realtimeService) SubscribeTrades(ctx context.Context, r dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.TradeEvent], error) {
 	return subscribe[dto.TradeEvent](ctx, s, CapabilityRealtimeTrades, "tick", r.BoardID, "", "", r.Symbols)
 }
@@ -80,6 +89,18 @@ func buildChannel(kind, boardID, resolution, indexName, encoding string) string 
 		return ""
 	}
 }
+func buildTradingSessionChannel(productGroupID, boardID, encoding string) string {
+	if productGroupID == "" {
+		productGroupID = "STO"
+	}
+	if boardID == "" {
+		boardID = "G1"
+	}
+	if encoding == "" {
+		encoding = "msgpack"
+	}
+	return fmt.Sprintf("session.%s.%s.%s", productGroupID, boardID, encoding)
+}
 func buildSubscribeMessage(channel string, symbols []string) map[string]any {
 	item := map[string]any{"name": channel}
 	if symbols != nil {
@@ -102,6 +123,9 @@ func isPayload(message map[string]any) bool {
 	if field, wrapped := wrapperPayloadField(data["T"]); wrapped {
 		_, ok := data[field].(map[string]any)
 		return ok
+	}
+	if data["tradingSessionId"] != nil && data["tscProdGrpId"] != nil {
+		return true
 	}
 	return data["T"] != nil || data["symbol"] != nil || data["indexName"] != nil
 }

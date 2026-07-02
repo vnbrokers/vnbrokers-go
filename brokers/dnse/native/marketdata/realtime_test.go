@@ -70,6 +70,10 @@ func TestRealtimeServiceExposesTypedChannels(t *testing.T) {
 			_, err := service.SubscribeSecurityDefinitions(ctx, dto.SubscribeSymbolsRequest{})
 			return err
 		},
+		func() error {
+			_, err := service.SubscribeTradingSessions(ctx, dto.SubscribeTradingSessionRequest{})
+			return err
+		},
 		func() error { _, err := service.SubscribeTrades(ctx, dto.SubscribeSymbolsRequest{}); return err },
 		func() error { _, err := service.SubscribeTradeExtras(ctx, dto.SubscribeSymbolsRequest{}); return err },
 	}
@@ -104,6 +108,70 @@ func TestEstimatedMarketIndexSubscriptionUsesNativeChannel(t *testing.T) {
 	}
 	if !isPayload(map[string]any{"indexName": "VN30", "valueIndexes": 1948.57}) {
 		t.Fatal("estimated market index payload was ignored")
+	}
+}
+
+func TestTradingSessionSubscriptionUsesNativeChannel(t *testing.T) {
+	var required core.Capability
+	service := NewRealtimeService(nativerealtime.Dependencies{Encoding: "json"}, func(capability core.Capability) error {
+		required = capability
+		return context.Canceled
+	})
+	_, err := service.SubscribeTradingSessions(context.Background(), dto.SubscribeTradingSessionRequest{
+		TSCProdGrpID: "STO",
+		BoardID:      "G1",
+	})
+	if err != context.Canceled {
+		t.Fatalf("error = %v", err)
+	}
+	if required != CapabilityRealtimeTradingSessions {
+		t.Fatalf("capability = %q", required)
+	}
+
+	channel := buildTradingSessionChannel("STO", "G1", "json")
+	if channel != "session.STO.G1.json" {
+		t.Fatalf("channel = %q", channel)
+	}
+	message := buildSubscribeMessage(channel, nil)
+	item := message["channels"].([]any)[0].(map[string]any)
+	if item["name"] != channel {
+		t.Fatalf("channel name = %v", item["name"])
+	}
+	if _, ok := item["symbols"]; ok {
+		t.Fatalf("unexpected symbols = %v", item["symbols"])
+	}
+	if !isPayload(map[string]any{
+		"marketId":           "DVX",
+		"boardId":            "G1",
+		"eventId":            "AB2",
+		"tradingSessionId":   "40",
+		"tscProdGrpId":       "STO",
+		"_receivedAt":        "2025-10-01T02:15:00.487Z",
+		"unexpectedAdditive": "kept compatible",
+	}) {
+		t.Fatal("trading session payload was ignored")
+	}
+}
+
+func TestTradingSessionEventDecodesPayload(t *testing.T) {
+	var message map[string]any
+	if err := json.Unmarshal([]byte(`{
+		"marketId":"DVX",
+		"boardId":"G1",
+		"eventId":"AB2",
+		"tradingSessionId":"40",
+		"tscProdGrpId":"STO",
+		"sendingTime": "",
+		"_receivedAt":"2025-10-01T02:15:00.487Z"
+	}`), &message); err != nil {
+		t.Fatal(err)
+	}
+	event, err := decodeEvent[dto.TradingSessionEvent](messageData(message))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if event.MarketID != "DVX" || event.BoardID != "G1" || event.EventID != "AB2" || event.TradingSessionID != "40" || event.TSCProdGrpID != "STO" || event.ReceivedAt != "2025-10-01T02:15:00.487Z" {
+		t.Fatalf("event = %+v", event)
 	}
 }
 

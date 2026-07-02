@@ -33,3 +33,4 @@ type GetForeignTradingRequest struct {
 }
 type GetSecurityDefinitionRequest struct{ Symbol, BoardID string }
 type GetWorkingDatesRequest struct{}
+type GetTradingSessionRequest struct{ BoardID, TSCProdGrpID string }

@@ -12,8 +12,20 @@ func TestCapabilitiesIncludeRealtimeEstimatedMarketIndexes(t *testing.T) {
 	assertCapability(t, nativemarketdata.CapabilityRealtimeEstimatedMarketIndexes)
 }
 
+func TestCapabilitiesIncludeTradingSession(t *testing.T) {
+	assertCapability(t, nativemarketdata.CapabilityTradingSession)
+}
+
+func TestCapabilitiesIncludeRealtimeTradingSessions(t *testing.T) {
+	assertCapability(t, nativemarketdata.CapabilityRealtimeTradingSessions)
+}
+
 func TestCapabilitiesIncludeRealtimeBrokerOrders(t *testing.T) {
 	assertCapability(t, nativetrading.CapabilityRealtimeBrokerOrders)
+}
+
+func TestCapabilitiesIncludeRealtimeBrokerPositions(t *testing.T) {
+	assertCapability(t, nativetrading.CapabilityRealtimeBrokerPositions)
 }
 
 func assertCapability(t *testing.T, expected core.Capability) {

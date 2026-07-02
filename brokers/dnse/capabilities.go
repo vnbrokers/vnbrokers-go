@@ -21,6 +21,7 @@ var Capabilities = []core.Capability{
 	nativemarketdata.CapabilityForeignTrading,
 	nativemarketdata.CapabilitySecurityDefinition,
 	nativemarketdata.CapabilityWorkingDates,
+	nativemarketdata.CapabilityTradingSession,
 	nativemarketdata.CapabilityRealtimeExpectedPrices,
 	nativemarketdata.CapabilityRealtimeForeign,
 	nativemarketdata.CapabilityRealtimeMarketIndexes,
@@ -29,6 +30,7 @@ var Capabilities = []core.Capability{
 	nativemarketdata.CapabilityRealtimeClosedOHLC,
 	nativemarketdata.CapabilityRealtimeQuotes,
 	nativemarketdata.CapabilityRealtimeSecurityDefinitions,
+	nativemarketdata.CapabilityRealtimeTradingSessions,
 	nativemarketdata.CapabilityRealtimeTrades,
 	nativemarketdata.CapabilityRealtimeTradeExtras,
 	nativetrading.CapabilityAccounts,
@@ -51,5 +53,6 @@ var Capabilities = []core.Capability{
 	nativetrading.CapabilityRealtimeOrders,
 	nativetrading.CapabilityRealtimeBrokerOrders,
 	nativetrading.CapabilityRealtimePositions,
+	nativetrading.CapabilityRealtimeBrokerPositions,
 	nativebrokerage.CapabilityCareByAccounts,
 }

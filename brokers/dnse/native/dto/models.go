@@ -603,6 +603,20 @@ type WorkingDatesResponse struct {
 
 type GetWorkingDatesResponse = WorkingDatesResponse
 
+type TradingSession struct {
+	MarketID         string `json:"marketId,omitempty"`
+	BoardID          string `json:"boardId,omitempty"`
+	TSCProdGrpID     string `json:"tscProdGrpId,omitempty"`
+	TradingSessionID string `json:"tradingSessionId,omitempty"`
+	EventID          string `json:"eventId,omitempty"`
+	Time             string `json:"sendingTime,omitempty"`
+	ReceivedAt       string `json:"_receivedAt,omitempty"`
+}
+
+type GetTradingSessionResponse struct {
+	TradingSessions []TradingSession `json:"tradingSessions,omitempty"`
+}
+
 type CareByResponse struct {
 	CareBy []CareByAccount `json:"careBy,omitempty"`
 	Total  int             `json:"total,omitempty"`

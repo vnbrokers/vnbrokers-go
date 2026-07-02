@@ -120,6 +120,10 @@ func TestRealtimeServiceExposesTypedChannels(t *testing.T) {
 			return err
 		},
 		func() error { _, err := service.SubscribePositions(ctx, dto.SubscribeTradingRequest{}); return err },
+		func() error {
+			_, err := service.SubscribeBrokerPositions(ctx, dto.SubscribeBrokerPositionsRequest{})
+			return err
+		},
 	}
 	_ = compile
 }
@@ -145,6 +149,69 @@ func TestBrokerOrdersSubscriptionUsesInvestorChannel(t *testing.T) {
 	channel := message["channels"].([]any)[0].(map[string]any)
 	if channel["name"] != "order.broker.DERIVATIVE.investor-123.json" {
 		t.Fatalf("channel = %v", channel["name"])
+	}
+}
+
+func TestBrokerPositionsSubscriptionUsesInvestorChannel(t *testing.T) {
+	var required core.Capability
+	service := NewRealtimeService(nativerealtime.Dependencies{Encoding: "json"}, func(capability core.Capability) error {
+		required = capability
+		return context.Canceled
+	})
+	_, err := service.SubscribeBrokerPositions(context.Background(), dto.SubscribeBrokerPositionsRequest{
+		MarketType: "STOCK",
+		InvestorID: "1000009250",
+	})
+	if err != context.Canceled {
+		t.Fatalf("error = %v", err)
+	}
+	if required != CapabilityRealtimeBrokerPositions {
+		t.Fatalf("capability = %q", required)
+	}
+
+	message := buildBrokerPositionsSubscribeMessage("STOCK", "1000009250", "json")
+	channel := message["channels"].([]any)[0].(map[string]any)
+	if channel["name"] != "position.broker.STOCK.1000009250.json" {
+		t.Fatalf("channel = %v", channel["name"])
+	}
+}
+
+func TestBrokerPositionEventDecodesDirectPayloadIntoWrapper(t *testing.T) {
+	var message map[string]any
+	if err := json.Unmarshal([]byte(`{
+		"id": 177796763592657,
+		"accountNo": "0001179019",
+		"symbol": "41I1G5000",
+		"status": "OPEN",
+		"loanPackageId": 2278,
+		"side": "NB",
+		"accumulateQuantity": 247,
+		"tradeQuantity": null,
+		"closedQuantity": 236,
+		"costPrice": 2057.72425,
+		"marketPrice": 2070.0,
+		"breakEvenPrice": 2058.21911,
+		"openQuantity": 11,
+		"overNightQuantity": 0,
+		"averageClosePrice": 2094.28941,
+		"marketType": "DERIVATIVE",
+		"createdDate": "2026-05-05T09:17:50.457893Z",
+		"modifiedDate": "2026-05-07T04:19:20.901188117Z"
+	}`), &message); err != nil {
+		t.Fatal(err)
+	}
+	if !isPayload(message) {
+		t.Fatal("broker position payload was ignored")
+	}
+	event, err := decodeBrokerPositionEvent(message)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if event.Position.ID != 177796763592657 || event.Position.AccountNo != "0001179019" || event.Position.Symbol != "41I1G5000" {
+		t.Fatalf("event = %+v", event)
+	}
+	if event.Position.CostPrice == nil || event.Position.CostPrice.String() != "2057.72425" {
+		t.Fatalf("cost price = %v", event.Position.CostPrice)
 	}
 }
 

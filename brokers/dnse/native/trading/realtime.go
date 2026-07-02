@@ -36,6 +36,18 @@ func (s *realtimeService) SubscribeBrokerOrders(ctx context.Context, r dto.Subsc
 func (s *realtimeService) SubscribePositions(ctx context.Context, r dto.SubscribeTradingRequest) (realtime.Subscription[dto.PositionEvent], error) {
 	return subscribeTrading[dto.PositionEvent](ctx, s, CapabilityRealtimePositions, "position", r)
 }
+func (s *realtimeService) SubscribeBrokerPositions(ctx context.Context, r dto.SubscribeBrokerPositionsRequest) (realtime.Subscription[dto.BrokerPositionEvent], error) {
+	if err := s.requireCapability(CapabilityRealtimeBrokerPositions); err != nil {
+		return nil, err
+	}
+	marketType := r.MarketType
+	if marketType == "" {
+		marketType = "STOCK"
+	}
+	return nativerealtime.Subscribe(ctx, s.dependencies, buildBrokerPositionsSubscribeMessage(marketType, r.InvestorID, s.dependencies.Encoding), isPayload, func(message map[string]any) (dto.BrokerPositionEvent, error) {
+		return decodeBrokerPositionEvent(message)
+	})
+}
 func subscribeTrading[T any](ctx context.Context, s *realtimeService, capability core.Capability, kind string, r dto.SubscribeTradingRequest) (realtime.Subscription[T], error) {
 	if err := s.requireCapability(capability); err != nil {
 		return nil, err
@@ -57,6 +69,13 @@ func buildBrokerOrdersSubscribeMessage(marketType, investorID, encoding string) 
 		encoding = "msgpack"
 	}
 	channel := "order.broker." + marketType + "." + investorID + "." + encoding
+	return map[string]any{"action": "subscribe", "channels": []any{map[string]any{"name": channel, "symbols": []any{}}}}
+}
+func buildBrokerPositionsSubscribeMessage(marketType, investorID, encoding string) map[string]any {
+	if encoding == "" {
+		encoding = "msgpack"
+	}
+	channel := "position.broker." + marketType + "." + investorID + "." + encoding
 	return map[string]any{"action": "subscribe", "channels": []any{map[string]any{"name": channel, "symbols": []any{}}}}
 }
 func messageData(message map[string]any) map[string]any {
@@ -100,4 +119,18 @@ func decodeEvent[T any](message map[string]any) (T, error) {
 	}
 	err = json.Unmarshal(payload, &out)
 	return out, err
+}
+func decodeBrokerPositionEvent(message map[string]any) (dto.BrokerPositionEvent, error) {
+	data := messageData(message)
+	if data["T"] != nil {
+		return decodeEvent[dto.BrokerPositionEvent](data)
+	}
+	if _, ok := data["position"].(map[string]any); ok {
+		return decodeEvent[dto.BrokerPositionEvent](data)
+	}
+	position, err := decodeEvent[dto.Position](data)
+	if err != nil {
+		return dto.BrokerPositionEvent{}, err
+	}
+	return dto.BrokerPositionEvent{Position: position}, nil
 }

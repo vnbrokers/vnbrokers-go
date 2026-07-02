@@ -16,8 +16,13 @@ type SubscribeOHLCRequest struct {
 	Symbols    []string
 	Resolution string
 }
+type SubscribeTradingSessionRequest struct{ TSCProdGrpID, BoardID string }
 type SubscribeTradingRequest struct{ MarketType string }
 type SubscribeBrokerOrdersRequest struct {
+	MarketType string
+	InvestorID string
+}
+type SubscribeBrokerPositionsRequest struct {
 	MarketType string
 	InvestorID string
 }
@@ -100,8 +105,10 @@ type OHLCEvent = OHLC
 type OHLCClosedEvent = OHLCClosed
 type QuoteEvent = Quote
 type SecurityDefinitionEvent = SecurityDefinition
+type TradingSessionEvent = TradingSession
 type TradeEvent = Trade
 type TradeExtraEvent = TradeExtra
 type OrderEvent = WrapperOrderEvent
 type BrokerOrderEvent = WrapperOrderEvent
 type PositionEvent = WrapperPositionEvent
+type BrokerPositionEvent = WrapperPositionEvent

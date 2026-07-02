@@ -59,6 +59,10 @@ func TestMarketDataServiceBuildsTypedRequests(t *testing.T) {
 			_, err := s.GetWorkingDates(context.Background(), dto.GetWorkingDatesRequest{})
 			return err
 		}},
+		{"trading session", "/market/trading-session?boardId=G1&tscProdGrpId=STO", func(s Service) error {
+			_, err := s.GetTradingSession(context.Background(), dto.GetTradingSessionRequest{BoardID: "G1", TSCProdGrpID: "STO"})
+			return err
+		}},
 	}
 
 	for _, tt := range tests {
@@ -79,6 +83,37 @@ func TestMarketDataServiceBuildsTypedRequests(t *testing.T) {
 				t.Fatalf("URL = %q", got.URL)
 			}
 		})
+	}
+}
+
+func TestMarketDataServiceDecodesTradingSessionResponse(t *testing.T) {
+	service := NewService(Dependencies{
+		BaseURL:           "https://openapi.dnse.com.vn",
+		RequireCapability: func(core.Capability) error { return nil },
+		Send: func(_ context.Context, _ string, _ transport.HTTPRequest) (transport.HTTPResponse, error) {
+			return transport.HTTPResponse{StatusCode: 200, Raw: []byte(`{
+				"tradingSessions": [{
+					"marketId": "STO",
+					"boardId": "G1",
+					"tscProdGrpId": "STO",
+					"tradingSessionId": "99",
+					"eventId": "AC2",
+					"time": "2026-06-26 14:45:00.960"
+				}]
+			}`)}, nil
+		},
+	})
+
+	response, err := service.GetTradingSession(context.Background(), dto.GetTradingSessionRequest{TSCProdGrpID: "STO"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(response.TradingSessions) != 1 {
+		t.Fatalf("trading sessions length = %d", len(response.TradingSessions))
+	}
+	session := response.TradingSessions[0]
+	if session.MarketID != "STO" || session.BoardID != "G1" || session.TSCProdGrpID != "STO" || session.TradingSessionID != "99" || session.EventID != "AC2" {
+		t.Fatalf("session = %+v", session)
 	}
 }
 

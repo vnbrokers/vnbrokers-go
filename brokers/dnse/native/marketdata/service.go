@@ -24,6 +24,7 @@ const (
 	CapabilityForeignTrading                 core.Capability = "native.marketdata.foreign_trading"
 	CapabilitySecurityDefinition             core.Capability = "native.marketdata.security_definition"
 	CapabilityWorkingDates                   core.Capability = "native.marketdata.working_dates"
+	CapabilityTradingSession                 core.Capability = "native.marketdata.trading_session"
 	CapabilityRealtimeExpectedPrices         core.Capability = "native.marketdata.realtime.expected_prices"
 	CapabilityRealtimeForeign                core.Capability = "native.marketdata.realtime.foreign"
 	CapabilityRealtimeMarketIndexes          core.Capability = "native.marketdata.realtime.market_indexes"
@@ -32,6 +33,7 @@ const (
 	CapabilityRealtimeClosedOHLC             core.Capability = "native.marketdata.realtime.closed_ohlc"
 	CapabilityRealtimeQuotes                 core.Capability = "native.marketdata.realtime.quotes"
 	CapabilityRealtimeSecurityDefinitions    core.Capability = "native.marketdata.realtime.security_definitions"
+	CapabilityRealtimeTradingSessions        core.Capability = "native.marketdata.realtime.trading_sessions"
 	CapabilityRealtimeTrades                 core.Capability = "native.marketdata.realtime.trades"
 	CapabilityRealtimeTradeExtras            core.Capability = "native.marketdata.realtime.trade_extras"
 )
@@ -49,6 +51,7 @@ type Service interface {
 	GetForeignTrading(context.Context, dto.GetForeignTradingRequest) (*dto.GetForeignTradingResponse, error)
 	GetSecurityDefinition(context.Context, dto.GetSecurityDefinitionRequest) (*dto.SecdefResponse, error)
 	GetWorkingDates(context.Context, dto.GetWorkingDatesRequest) (*dto.WorkingDatesResponse, error)
+	GetTradingSession(context.Context, dto.GetTradingSessionRequest) (*dto.GetTradingSessionResponse, error)
 }
 
 type RealtimeService interface {
@@ -60,6 +63,7 @@ type RealtimeService interface {
 	SubscribeClosedOHLC(context.Context, dto.SubscribeOHLCRequest) (realtime.Subscription[dto.OHLCClosedEvent], error)
 	SubscribeQuotes(context.Context, dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.QuoteEvent], error)
 	SubscribeSecurityDefinitions(context.Context, dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.SecurityDefinitionEvent], error)
+	SubscribeTradingSessions(context.Context, dto.SubscribeTradingSessionRequest) (realtime.Subscription[dto.TradingSessionEvent], error)
 	SubscribeTrades(context.Context, dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.TradeEvent], error)
 	SubscribeTradeExtras(context.Context, dto.SubscribeSymbolsRequest) (realtime.Subscription[dto.TradeExtraEvent], error)
 }
@@ -158,6 +162,12 @@ func (s *service) GetSecurityDefinition(ctx context.Context, r dto.GetSecurityDe
 }
 func (s *service) GetWorkingDates(ctx context.Context, _ dto.GetWorkingDatesRequest) (*dto.WorkingDatesResponse, error) {
 	return get[dto.WorkingDatesResponse](ctx, s, CapabilityWorkingDates, "/market/working-dates", nil)
+}
+func (s *service) GetTradingSession(ctx context.Context, r dto.GetTradingSessionRequest) (*dto.GetTradingSessionResponse, error) {
+	q := url.Values{}
+	set(q, "boardId", r.BoardID)
+	set(q, "tscProdGrpId", r.TSCProdGrpID)
+	return get[dto.GetTradingSessionResponse](ctx, s, CapabilityTradingSession, "/market/trading-session", q)
 }
 
 func get[T any](ctx context.Context, s *service, capability core.Capability, path string, q url.Values) (*T, error) {

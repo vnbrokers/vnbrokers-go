@@ -13,26 +13,27 @@ import (
 )
 
 const (
-	CapabilityAccounts               core.Capability = "native.trading.accounts"
-	CapabilityAccountBalances        core.Capability = "native.trading.account_balances"
-	CapabilityCorporateActionHistory core.Capability = "native.trading.corporate_action_history"
-	CapabilityExecutions             core.Capability = "native.trading.executions"
-	CapabilityLoanPackages           core.Capability = "native.trading.loan_packages"
-	CapabilityOrderHistory           core.Capability = "native.trading.order_history"
-	CapabilityOrders                 core.Capability = "native.trading.orders"
-	CapabilityPositionPnLConfigs     core.Capability = "native.trading.position_pnl_configs"
-	CapabilityPosition               core.Capability = "native.trading.position"
-	CapabilityPositions              core.Capability = "native.trading.positions"
-	CapabilityPPSE                   core.Capability = "native.trading.ppse"
-	CapabilityCancelOrder            core.Capability = "native.trading.cancel_order"
-	CapabilityClosePosition          core.Capability = "native.trading.close_position"
-	CapabilityOrder                  core.Capability = "native.trading.order"
-	CapabilityPlaceOrder             core.Capability = "native.trading.place_order"
-	CapabilitySetPositionPnLConfigs  core.Capability = "native.trading.set_position_pnl_configs"
-	CapabilityReplaceOrder           core.Capability = "native.trading.replace_order"
-	CapabilityRealtimeOrders         core.Capability = "native.trading.realtime.orders"
-	CapabilityRealtimeBrokerOrders   core.Capability = "native.trading.realtime.broker_orders"
-	CapabilityRealtimePositions      core.Capability = "native.trading.realtime.positions"
+	CapabilityAccounts                core.Capability = "native.trading.accounts"
+	CapabilityAccountBalances         core.Capability = "native.trading.account_balances"
+	CapabilityCorporateActionHistory  core.Capability = "native.trading.corporate_action_history"
+	CapabilityExecutions              core.Capability = "native.trading.executions"
+	CapabilityLoanPackages            core.Capability = "native.trading.loan_packages"
+	CapabilityOrderHistory            core.Capability = "native.trading.order_history"
+	CapabilityOrders                  core.Capability = "native.trading.orders"
+	CapabilityPositionPnLConfigs      core.Capability = "native.trading.position_pnl_configs"
+	CapabilityPosition                core.Capability = "native.trading.position"
+	CapabilityPositions               core.Capability = "native.trading.positions"
+	CapabilityPPSE                    core.Capability = "native.trading.ppse"
+	CapabilityCancelOrder             core.Capability = "native.trading.cancel_order"
+	CapabilityClosePosition           core.Capability = "native.trading.close_position"
+	CapabilityOrder                   core.Capability = "native.trading.order"
+	CapabilityPlaceOrder              core.Capability = "native.trading.place_order"
+	CapabilitySetPositionPnLConfigs   core.Capability = "native.trading.set_position_pnl_configs"
+	CapabilityReplaceOrder            core.Capability = "native.trading.replace_order"
+	CapabilityRealtimeOrders          core.Capability = "native.trading.realtime.orders"
+	CapabilityRealtimeBrokerOrders    core.Capability = "native.trading.realtime.broker_orders"
+	CapabilityRealtimePositions       core.Capability = "native.trading.realtime.positions"
+	CapabilityRealtimeBrokerPositions core.Capability = "native.trading.realtime.broker_positions"
 )
 
 type Service interface {
@@ -60,6 +61,7 @@ type RealtimeService interface {
 	SubscribeOrders(context.Context, dto.SubscribeTradingRequest) (realtime.Subscription[dto.OrderEvent], error)
 	SubscribeBrokerOrders(context.Context, dto.SubscribeBrokerOrdersRequest) (realtime.Subscription[dto.BrokerOrderEvent], error)
 	SubscribePositions(context.Context, dto.SubscribeTradingRequest) (realtime.Subscription[dto.PositionEvent], error)
+	SubscribeBrokerPositions(context.Context, dto.SubscribeBrokerPositionsRequest) (realtime.Subscription[dto.BrokerPositionEvent], error)
 }
 
 type Dependencies struct {

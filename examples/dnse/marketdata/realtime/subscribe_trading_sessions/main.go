@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	vnbrokers "github.com/vnbrokers/vnbrokers-go"
@@ -27,6 +28,10 @@ func main() {
 	}
 	defer sub.Close()
 	for event := range sub.Events() {
-		fmt.Println(event)
+		message, err := json.Marshal(event)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(message))
 	}
 }

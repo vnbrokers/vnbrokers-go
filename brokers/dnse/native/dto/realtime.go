@@ -3,47 +3,59 @@ package dto
 import (
 	"encoding/json"
 	"strconv"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
 
 type SubscribeSymbolsRequest struct {
-	Symbols []string
-	BoardID string
+	Symbols []string `json:"symbols,omitempty"`
+	BoardID string   `json:"boardId,omitempty"`
 }
-type SubscribeMarketIndexRequest struct{ IndexName string }
+type SubscribeMarketIndexRequest struct {
+	IndexName string `json:"indexName,omitempty"`
+}
 type SubscribeOHLCRequest struct {
-	Symbols    []string
-	Resolution string
+	Symbols    []string `json:"symbols,omitempty"`
+	Resolution string   `json:"resolution,omitempty"`
 }
-type SubscribeTradingSessionRequest struct{ TSCProdGrpID, BoardID string }
-type SubscribeTradingRequest struct{ MarketType string }
+type SubscribeTradingSessionRequest struct {
+	TSCProdGrpID string `json:"tscProdGrpId,omitempty"`
+	BoardID      string `json:"boardId,omitempty"`
+}
+type SubscribeTradingRequest struct {
+	MarketType string `json:"marketType,omitempty"`
+}
 type SubscribeBrokerOrdersRequest struct {
-	MarketType string
-	InvestorID string
+	MarketType string `json:"marketType,omitempty"`
+	InvestorID string `json:"investorId,omitempty"`
 }
 type SubscribeBrokerPositionsRequest struct {
-	MarketType string
-	InvestorID string
+	MarketType string `json:"marketType,omitempty"`
+	InvestorID string `json:"investorId,omitempty"`
 }
 
 type ExpectedPriceEvent = ExpectedPrice
 type ForeignEvent = Foreign
-type StreamTimestamp struct {
+type PbTimestamp struct {
 	Nanos   int64 `json:"Nanos,omitempty"`
 	Seconds int64 `json:"Seconds,omitempty"`
 }
 
-func (t *StreamTimestamp) UnmarshalJSON(data []byte) error {
+func (t PbTimestamp) MarshalJSON() ([]byte, error) {
+	return json.Marshal(time.Unix(t.Seconds, t.Nanos).UTC().Format(time.RFC3339Nano))
+}
+
+func (t *PbTimestamp) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" || string(data) == `""` {
-		*t = StreamTimestamp{}
+		*t = PbTimestamp{}
 		return nil
 	}
 
-	type timestampAlias StreamTimestamp
+	type timestampAlias PbTimestamp
 	var object timestampAlias
 	if err := json.Unmarshal(data, &object); err == nil {
-		*t = StreamTimestamp(object)
+		*t = PbTimestamp(object)
 		return nil
 	}
 
@@ -93,11 +105,11 @@ type MarketIndexEvent struct {
 	LowestValueIndexes              *decimal.Decimal `json:"lowestValueIndexes,omitempty"`
 	MarketID                        string           `json:"marketId,omitempty"`
 	MarketIndexClass                string           `json:"marketIndexClass,omitempty"`
-	MulticastReceiveTime            StreamTimestamp  `json:"multicastReceiveTime,omitempty"`
+	MulticastReceiveTime            PbTimestamp      `json:"multicastReceiveTime,omitempty"`
 	PriorValueIndexes               *decimal.Decimal `json:"priorValueIndexes,omitempty"`
 	TotalVolumeTraded               int64            `json:"totalVolumeTraded,omitempty"`
 	TradingSessionID                string           `json:"tradingSessionId,omitempty"`
-	TransactTime                    StreamTimestamp  `json:"transactTime,omitempty"`
+	TransactTime                    PbTimestamp      `json:"transactTime,omitempty"`
 	ValueIndexes                    *decimal.Decimal `json:"valueIndexes,omitempty"`
 }
 type EstimatedMarketIndexEvent = EstimatedMarketIndex

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -22,6 +23,10 @@ func main() {
 	}
 	defer sub.Close()
 	for event := range sub.Events() {
-		fmt.Printf("%+v\n", event)
+		message, err := json.Marshal(event)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(message))
 	}
 }

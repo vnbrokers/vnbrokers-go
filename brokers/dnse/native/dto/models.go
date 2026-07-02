@@ -377,7 +377,7 @@ type ExpectedPrice struct {
 	ClosePrice            *decimal.Decimal `json:"closePrice,omitempty"`
 	ExpectedTradePrice    *decimal.Decimal `json:"expectedTradePrice,omitempty"`
 	ExpectedTradeQuantity int64            `json:"expectedTradeQuantity,omitempty"`
-	Time                  StreamTimestamp  `json:"time,omitempty"`
+	Time                  PbTimestamp      `json:"time,omitempty"`
 }
 
 type Foreign struct {
@@ -389,7 +389,7 @@ type Foreign struct {
 	ForeignerBuyPossibleQuantity int64            `json:"foreignerBuyPossibleQuantity,omitempty"`
 	ForeignerOrderLimitQuantity  int64            `json:"foreignerOrderLimitQuantity,omitempty"`
 	MarketID                     string           `json:"marketId,omitempty"`
-	MulticastReceiveTime         StreamTimestamp  `json:"multicastReceiveTime,omitempty"`
+	MulticastReceiveTime         PbTimestamp      `json:"multicastReceiveTime,omitempty"`
 	SellTradedAmount             *decimal.Decimal `json:"sellTradedAmount,omitempty"`
 	SellVolume                   int64            `json:"sellVolume,omitempty"`
 	Symbol                       string           `json:"symbol,omitempty"`
@@ -453,10 +453,10 @@ type Quote struct {
 	BoardID              string           `json:"boardId,omitempty"`
 	ISIN                 string           `json:"isin,omitempty"`
 	MarketID             string           `json:"marketId,omitempty"`
-	MulticastReceiveTime StreamTimestamp  `json:"multicastReceiveTime,omitempty"`
+	MulticastReceiveTime PbTimestamp      `json:"multicastReceiveTime,omitempty"`
 	Offer                []PriceLevel     `json:"offer,omitempty"`
 	Symbol               string           `json:"symbol,omitempty"`
-	Time                 StreamTimestamp  `json:"time,omitempty"`
+	Time                 PbTimestamp      `json:"time,omitempty"`
 	TotalOfferQtty       *decimal.Decimal `json:"totalOfferQtty,omitempty"`
 	TotalBidQtty         *decimal.Decimal `json:"totalBidQtty,omitempty"`
 }
@@ -486,10 +486,10 @@ type Trade struct {
 	MarketID             string           `json:"marketId,omitempty"`
 	MatchPrice           *decimal.Decimal `json:"matchPrice,omitempty"`
 	MatchQuantity        *decimal.Decimal `json:"matchQtty,omitempty"`
-	MulticastReceiveTime StreamTimestamp  `json:"multicastReceiveTime,omitempty"`
+	MulticastReceiveTime PbTimestamp      `json:"multicastReceiveTime,omitempty"`
 	OpenPrice            *decimal.Decimal `json:"openPrice,omitempty"`
 	Symbol               string           `json:"symbol,omitempty"`
-	Time                 StreamTimestamp  `json:"time,omitempty"`
+	Time                 PbTimestamp      `json:"time,omitempty"`
 	TotalVolumeTraded    *decimal.Decimal `json:"totalVolumeTraded,omitempty"`
 	TradingSessionID     string           `json:"tradingSessionId,omitempty"`
 }
@@ -505,11 +505,11 @@ type TradeExtra struct {
 	MarketID             string           `json:"marketId,omitempty"`
 	MatchPrice           *decimal.Decimal `json:"matchPrice,omitempty"`
 	MatchQuantity        *decimal.Decimal `json:"matchQtty,omitempty"`
-	MulticastReceiveTime StreamTimestamp  `json:"multicastReceiveTime,omitempty"`
+	MulticastReceiveTime PbTimestamp      `json:"multicastReceiveTime,omitempty"`
 	OpenPrice            *decimal.Decimal `json:"openPrice,omitempty"`
 	Side                 string           `json:"side,omitempty"`
 	Symbol               string           `json:"symbol,omitempty"`
-	Time                 StreamTimestamp  `json:"time,omitempty"`
+	Time                 PbTimestamp      `json:"time,omitempty"`
 	TotalVolumeTraded    *decimal.Decimal `json:"totalVolumeTraded,omitempty"`
 	TradingSessionID     string           `json:"tradingSessionId,omitempty"`
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -16,12 +17,16 @@ func main() {
 		APISecret:      os.Getenv("DNSE_API_SECRET"),
 		StreamEncoding: "msgpack",
 	})
-	sub, err := broker.Native().MarketData().Realtime().SubscribeTrades(context.Background(), nativedto.SubscribeSymbolsRequest{Symbols: []string{"*"}, BoardID: "G1"})
+	sub, err := broker.Native().MarketData().Realtime().SubscribeTrades(context.Background(), nativedto.SubscribeSymbolsRequest{Symbols: []string{"ACB"}, BoardID: "G1"})
 	if err != nil {
 		panic(err)
 	}
 	defer sub.Close()
 	for event := range sub.Events() {
-		fmt.Println(event)
+		message, err := json.Marshal(event)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(message))
 	}
 }

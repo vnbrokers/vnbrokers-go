@@ -27,5 +27,5 @@ func TestAuthUsesTypedEntradeDTOs(t *testing.T) {
 	var request nativedto.LoginRequest
 
 	response, _ := broker.Auth().Login(context.Background(), request)
-	var _ *nativedto.LoginResponse = response
+	_ = response
 }

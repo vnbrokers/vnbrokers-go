@@ -1,0 +1,14 @@
+version: "2"
+
+linters:
+  exclusions:
+    rules:
+      - source: 'defer .*\.Close\(\)'
+        linters:
+          - errcheck
+      - path: examples/
+        linters:
+          - errcheck
+      - path: _test\.go
+        linters:
+          - errcheck

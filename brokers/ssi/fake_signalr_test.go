@@ -49,11 +49,3 @@ func (c *fakeSignalRClient) OnError(fn func(error))             { c.onError = fn
 func (c *fakeSignalRClient) SetHeader(key string, value string) { c.headers[key] = value }
 func (c *fakeSignalRClient) SetQuery(key string, value string)  { c.query[key] = value }
 func (c *fakeSignalRClient) Close() error                       { c.closed = true; return nil }
-func (c *fakeSignalRClient) emit(hub string, method string, args ...json.RawMessage) {
-	c.mu.Lock()
-	fn := c.handlers[hub][method]
-	c.mu.Unlock()
-	if fn != nil {
-		fn(args)
-	}
-}

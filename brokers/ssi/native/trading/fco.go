@@ -37,11 +37,3 @@ func (s *service) FcoList(ctx context.Context, params url.Values) (*dto.FCOListR
 	}
 	return get[dto.FCOListResponse](ctx, s, CapabilityFcoList, "/api/v2/fco/list", params)
 }
-
-func fcoPageParams(fcoID string, pageIndex int, pageSize int) url.Values {
-	params := url.Values{}
-	setOptionalString(params, "fcoId", fcoID)
-	setOptionalInt(params, "pageIndex", pageIndex)
-	setOptionalInt(params, "pageSize", pageSize)
-	return params
-}

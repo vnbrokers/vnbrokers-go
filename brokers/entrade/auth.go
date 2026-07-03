@@ -61,10 +61,6 @@ func (b *Broker) send(
 	return response, nil
 }
 
-func (b *Broker) url(path string) string {
-	return httpx.URL(b.config.BaseURL, path, nil)
-}
-
 func (b *Broker) authURL(path string) string {
 	return httpx.URL(b.config.AuthBaseURL, path, nil)
 }

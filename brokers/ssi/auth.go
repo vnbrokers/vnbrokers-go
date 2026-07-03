@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/vnbrokers/vnbrokers-go/core"
@@ -159,13 +158,6 @@ func (b *Broker) withTradingAuthorization(headers map[string]string) map[string]
 		out["Authorization"] = "Bearer " + token
 	}
 	return out
-}
-
-func (b *Broker) query(path string, values url.Values) string {
-	if len(values) == 0 {
-		return b.url(path)
-	}
-	return b.url(path + "?" + values.Encode())
 }
 
 func rawPayload(data any, raw []byte) domain.RawPayload {

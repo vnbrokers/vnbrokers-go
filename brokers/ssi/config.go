@@ -2,11 +2,11 @@ package ssi
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/vnbrokers/vnbrokers-go/internal/signalr"
 	"github.com/vnbrokers/vnbrokers-go/transport"
@@ -78,10 +78,21 @@ func (c Config) withDefaults() Config {
 		c.HTTPTransport = transport.NewHTTPClient(c.HTTPClient)
 	}
 	if c.RequestID == nil {
-		rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 		c.RequestID = func() string {
-			return strconv.Itoa(rng.Intn(100000000))
+			id, err := secureRequestID()
+			if err != nil {
+				return ""
+			}
+			return id
 		}
 	}
 	return c
+}
+
+func secureRequestID() (string, error) {
+	n, err := rand.Int(rand.Reader, big.NewInt(100000000))
+	if err != nil {
+		return "", err
+	}
+	return strconv.Itoa(int(n.Int64())), nil
 }

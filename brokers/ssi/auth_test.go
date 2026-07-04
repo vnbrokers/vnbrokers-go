@@ -3,6 +3,7 @@ package ssi
 import (
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -259,6 +260,23 @@ func TestSSIConfigDefaultsDataBaseURL(t *testing.T) {
 	config := Config{}.withDefaults()
 	if config.DataBaseURL != "https://fc-data.ssi.com.vn" {
 		t.Fatalf("data base URL = %s", config.DataBaseURL)
+	}
+}
+
+func TestSecureRequestIDGeneratesSSIRequestID(t *testing.T) {
+	id, err := secureRequestID()
+	if err != nil {
+		t.Fatalf("secure request ID: %v", err)
+	}
+	if id == "" {
+		t.Fatalf("request ID is empty")
+	}
+	value, err := strconv.Atoi(id)
+	if err != nil {
+		t.Fatalf("request ID should be numeric: %q", id)
+	}
+	if value < 0 || value >= 100000000 {
+		t.Fatalf("request ID out of SSI range: %d", value)
 	}
 }
 

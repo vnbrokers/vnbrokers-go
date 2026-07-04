@@ -44,7 +44,7 @@ func TestSignerSignsPayloadFromBase64XMLPrivateKey(t *testing.T) {
 		t.Fatalf("json body type = %T", request.JSON)
 	}
 	digest := sha256.Sum256(payload.Bytes)
-	if err := rsa.VerifyPKCS1v15(&key.PublicKey, crypto.SHA256, digest[:], payload.Signature); err != nil {
+	if err := rsa.VerifyPSS(&key.PublicKey, crypto.SHA256, digest[:], payload.Signature, nil); err != nil {
 		t.Fatalf("verify signature: %v", err)
 	}
 }

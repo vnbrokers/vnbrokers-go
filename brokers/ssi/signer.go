@@ -47,7 +47,7 @@ func (s Signer) Sign(_ context.Context, request transport.HTTPRequest) (transpor
 		return request, err
 	}
 	digest := sha256.Sum256(payload)
-	signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, digest[:])
+	signature, err := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, digest[:], nil)
 	if err != nil {
 		return request, err
 	}

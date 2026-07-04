@@ -109,6 +109,12 @@ func startMarketDataSubscription[T any](
 		return nil, sdkerrors.Auth("ssi", "realtime.subscribe", "SSI realtime requires an access token")
 	}
 	childCtx, cancel := context.WithCancel(ctx)
+	cancelOnReturn := true
+	defer func() {
+		if cancelOnReturn {
+			cancel()
+		}
+	}()
 	client := deps.NewSignalRClient(deps.MarketDataStreamURL, []string{fcMarketDataHub})
 	client.SetHeader("Authorization", "Bearer "+token)
 
@@ -144,6 +150,7 @@ func startMarketDataSubscription[T any](
 		<-childCtx.Done()
 		_ = subscription.Close()
 	}()
+	cancelOnReturn = false
 	return subscription, nil
 }
 
@@ -161,6 +168,12 @@ func subscribeMarketData[T any](
 		return nil, sdkerrors.Auth("ssi", "realtime.subscribe", "SSI realtime requires an access token")
 	}
 	childCtx, cancel := context.WithCancel(ctx)
+	cancelOnReturn := true
+	defer func() {
+		if cancelOnReturn {
+			cancel()
+		}
+	}()
 	client := deps.NewSignalRClient(deps.MarketDataStreamURL, []string{fcMarketDataHub})
 	client.SetHeader("Authorization", "Bearer "+token)
 
@@ -196,6 +209,7 @@ func subscribeMarketData[T any](
 		<-childCtx.Done()
 		_ = subscription.Close()
 	}()
+	cancelOnReturn = false
 	return subscription, nil
 }
 

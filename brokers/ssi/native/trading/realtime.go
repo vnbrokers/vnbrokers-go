@@ -102,6 +102,12 @@ func startTradingSubscription[T any](
 		return nil, sdkerrors.Auth("ssi", "realtime.subscribe", "SSI realtime requires an access token")
 	}
 	childCtx, cancel := context.WithCancel(ctx)
+	cancelOnReturn := true
+	defer func() {
+		if cancelOnReturn {
+			cancel()
+		}
+	}()
 	client := deps.NewSignalRClient(deps.TradingStreamURL, []string{ssiTradingHub})
 	client.SetHeader("Authorization", "Bearer "+token)
 
@@ -130,6 +136,7 @@ func startTradingSubscription[T any](
 		<-childCtx.Done()
 		_ = subscription.Close()
 	}()
+	cancelOnReturn = false
 	return subscription, nil
 }
 

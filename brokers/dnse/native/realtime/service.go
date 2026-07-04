@@ -80,6 +80,12 @@ func Subscribe[T any](ctx context.Context, d Dependencies, subscribeMessage map[
 		factory = transport.ConnectWebSocket
 	}
 	childCtx, cancel := context.WithCancel(ctx)
+	cancelOnReturn := true
+	defer func() {
+		if cancelOnReturn {
+			cancel()
+		}
+	}()
 	var socket transport.WebSocketTransport
 	var sendMu sync.Mutex
 	send := func(ctx context.Context, message map[string]any) error {
@@ -157,6 +163,7 @@ func Subscribe[T any](ctx context.Context, d Dependencies, subscribeMessage map[
 			subscription.PublishEvent(event)
 		}
 	}()
+	cancelOnReturn = false
 	return subscription, nil
 }
 
